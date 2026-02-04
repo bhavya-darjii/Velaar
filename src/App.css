@@ -1,0 +1,35 @@
+/* Reset */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden; /* Prevent scrollbar from animation */
+  background-color: #111; /* Dark fallback color */
+}
+
+.app-layout {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+/* Background sits fixed behind everything */
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Content sits on top */
+.content-layer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  width: 100%;
+}
