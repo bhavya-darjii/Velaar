@@ -25,3 +25,5 @@ dist-ssr
 
 #Security
 .env
+.vercel
+.env*.local
