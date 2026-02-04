@@ -1,11 +1,34 @@
 /* Reset */
-body {
+html, body {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow-x: hidden; /* Prevent scrollbar from animation */
-  background-color: #111; /* Dark fallback color */
+  overflow-x: hidden; 
+  /* 1. CRITICAL: Body must be transparent to let the scrollbar see through it */
+  background-color: transparent; 
 }
+
+/* 2. THE FLOATING SCROLLBAR */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important; /* Shows what's behind the body */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15); /* Glassy thumb */
+  border-radius: 10px;
+  border: 2px solid transparent; 
+  background-clip: content-box; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* --- YOUR LAYOUT LOGIC (Identical to your request) --- */
 
 .app-layout {
   position: relative;
@@ -13,7 +36,6 @@ body {
   min-height: 100vh;
 }
 
-/* Background sits fixed behind everything */
 .background-layer {
   position: fixed;
   top: 0;
@@ -21,15 +43,15 @@ body {
   width: 100%;
   height: 100%;
   z-index: 0;
+  /* 3. MOVE FALLBACK HERE: Now it's behind the animation AND the scrollbar */
+  background-color: #111; 
 }
 
-/* Content sits on top */
 .content-layer {
   position: relative;
   z-index: 1;
   display: flex;
   justify-content: center;
-  padding-top: 40px;
   padding-bottom: 40px;
   width: 100%;
 }

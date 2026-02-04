@@ -1,4 +1,4 @@
-const API_KEY = import.meta.env.GOOGLE_API_KEY;
+const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
 export const gradeStudentAnswer = async (syllabus, question, studentAnswer) => {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`;

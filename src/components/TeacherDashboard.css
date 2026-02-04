@@ -1,0 +1,114 @@
+/* src/components/TeacherDashboard.css */
+
+/* --- LAYOUT & CONTAINER --- */
+.teacher-container {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  margin: 30px auto;
+}
+
+/* --- HEADER STYLES --- */
+.teacher-header {
+  color: #e0cffc; /* Lavender */
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+  text-shadow: 0 4px 20px rgba(108, 92, 231, 0.2);
+}
+
+.teacher-subtext {
+  color: rgba(224, 207, 252, 0.6);
+  font-size: 0.95rem;
+}
+
+/* --- GLASS CARD (Teacher Variant) --- */
+.teacher-card {
+  /* Slightly darker, more serious background */
+  background: rgba(20, 10, 40, 0.4); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(155, 89, 182, 0.3); /* Purple border */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  
+  padding: 35px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+}
+
+/* --- FORM ELEMENTS --- */
+.teacher-label {
+  color: #d1c4e9;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  display: block;
+}
+
+.teacher-textarea {
+  width: 100%;
+  padding: 18px;
+  /* Deep purple tint input */
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  color: #ffffff;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif; /* Or your preferred font */
+  box-sizing: border-box;
+  min-height: 350px; /* Taller for syllabus */
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.teacher-textarea:focus {
+  outline: none;
+  border-color: #9b59b6;
+  box-shadow: 0 0 15px rgba(155, 89, 182, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* --- BUTTONS --- */
+.teacher-btn {
+  background: linear-gradient(135deg, #8e44ad, #9b59b6); /* Purple Gradient */
+  color: white;
+  border: none;
+  padding: 16px 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
+}
+
+.teacher-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(142, 68, 173, 0.6);
+}
+
+.teacher-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0cffc;
+  border: 1px solid rgba(224, 207, 252, 0.2);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.teacher-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}

@@ -1,0 +1,169 @@
+/* src/components/LoginPage.css */
+
+/* 1. Main Wrapper - Centers the card perfectly */
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+/* 2. The Glass Login Card */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  padding: 45px 35px;
+  border-radius: 28px;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* 3. Brand Header */
+.login-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -2px;
+}
+
+.login-subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.95rem;
+  margin-bottom: 35px;
+  font-weight: 500;
+}
+
+/* 4. Inputs */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-radius: 14px;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Placeholder Styling --- */
+.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.8); /* Pure white with a hint of transparency for style */
+  opacity: 1; /* Ensures Firefox doesn't dim it */
+}
+
+/* For older browsers */
+.login-input:-ms-input-placeholder {
+  color: #ffffff;
+}
+
+.login-input::-ms-input-placeholder {
+  color: #ffffff;
+}
+
+.login-input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+}
+
+/* 5. Primary Button */
+.login-btn {
+  margin-top: 15px;
+  padding: 16px;
+  background: #ffffff;
+  color: #0f172a; /* Dark Navy text */
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.login-btn:hover {
+  background: #f1f5f9;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+.login-btn:disabled {
+  background: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+/* 6. Footer Links */
+.login-footer {
+  margin-top: 25px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.login-link {
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 6px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: opacity 0.2s;
+}
+
+.login-link:hover {
+  opacity: 0.8;
+}
+
+/* 7. Mobile Responsiveness */
+@media screen and (max-width: 480px) {
+  .login-card {
+    /* Reduced width and padding for a tighter fit on phones */
+    max-width: 75%; 
+    padding: 25px 20px;
+    border-radius: 20px;
+  }
+  
+  .login-title {
+    font-size: 2.4rem; /* Slightly smaller title for small screens */
+  }
+
+  .login-subtitle {
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+  }
+
+  .login-input {
+    padding: 12px; /* Smaller inputs */
+    font-size: 14px;
+  }
+
+  .login-btn {
+    padding: 12px;
+  }
+
+  .login-footer {
+    font-size: 0.8rem;
+  }
+}
