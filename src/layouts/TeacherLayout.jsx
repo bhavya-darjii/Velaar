@@ -29,8 +29,7 @@ const TeacherLayout = () => {
 
   useEffect(() => {
     const initDashboard = async () => {
-      if (!auth.currentUser) return navigate('/');
-      
+      // ProtectedRoute strictly guarantees auth.currentUser exists before this mounts!
       const user = auth.currentUser;
       let teacherName = "Teacher";
 
@@ -87,7 +86,7 @@ const TeacherLayout = () => {
     initDashboard();
   }, [navigate]);
 
-  if (loading) return <div className="loading-screen" style={{color: 'white', display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', fontSize:'1.5rem'}}>Loading your classroom...</div>;
+  if (loading) return <div className="loading-screen" style={{color: 'white', display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', fontSize:'1.5rem'}}>Loading...</div>;
 
   return (
     <div className="teacher-layout">
@@ -102,12 +101,13 @@ const TeacherLayout = () => {
         
         <ul className="sidebar-links">
           <li className={location.pathname === '/teacher' ? 'active' : ''} onClick={() => { navigate('/teacher'); setSidebarOpen(false); }}>
-            Home Schedule
+            Home
           </li>
           <li className={location.pathname === '/teacher/exams' ? 'active' : ''} onClick={() => { navigate('/teacher/exams'); setSidebarOpen(false); }}>
-            Exam Control
+            Exam Center
           </li>
-          <li className={location.pathname === '/teacher/create-course' ? 'active' : ''} onClick={() => { navigate('/teacher/create-course'); setSidebarOpen(false); }}>
+          {/* Developer Note: Append all NEW navigation tabs perfectly above this line */}
+          <li className={`new-course-tab ${location.pathname === '/teacher/create-course' ? 'active' : ''}`} onClick={() => { navigate('/teacher/create-course'); setSidebarOpen(false); }}>
             + New Course
           </li>
         </ul>

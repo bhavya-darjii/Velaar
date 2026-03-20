@@ -8,6 +8,7 @@ import TeacherHome from './pages/TeacherHome';
 import ExamsPage from './pages/ExamsPage';
 import StudentDashboard from './pages/StudentDashboard';
 import SyllabusUpload from './components/CourseGenerator';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -30,14 +31,23 @@ function App() {
             {/* When the app starts ('/'), show Login Page */}
             <Route path="/" element={<LoginPage />} />
             
-            {/* Teacher Dashboard nested routes */}
-            <Route path="/teacher" element={<TeacherLayout />}>
+            {/* Teacher Dashboard nested routes safely mapped into ProtectedRoute block */}
+            <Route path="/teacher" element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <TeacherLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<TeacherHome />} />
               <Route path="exams" element={<ExamsPage />} />
+              {/* Developer Note: Append all NEW navigation tabs perfectly above this line */}
               <Route path="create-course" element={<SyllabusUpload />} />
             </Route>
 
-            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/student" element={
+              <ProtectedRoute allowedRoles={['student', 'admin']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
           </Routes>
         </div>
 

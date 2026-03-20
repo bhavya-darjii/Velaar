@@ -56,6 +56,13 @@
   margin: 0;
   display: flex;
   flex-direction: column;
+  flex: 1; /* Allows the container to expand vertically */
+}
+
+/* Anchors +New Course to the absolute bottom of the sidebar */
+.sidebar-links li.new-course-tab {
+  margin-top: auto;
+  margin-bottom: 20px;
 }
 
 .sidebar-links li {
@@ -133,6 +140,13 @@
   background: rgba(255, 255, 255, 0.15);
   transform: scale(1.08); /* Float effect */
   box-shadow: 0 5px 20px rgba(255, 255, 255, 0.08);
+}
+
+.hamburger-btn:focus,
+.hamburger-btn:active,
+.close-btn:focus,
+.close-btn:active {
+  outline: none; /* Strip default Chrome black/white click borders */
 }
 
 .header-left {
