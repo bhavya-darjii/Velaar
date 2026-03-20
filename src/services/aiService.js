@@ -279,3 +279,28 @@ export const generateLessonPlan = async (subjectName, modules) => {
     return null;
   }
 };
+
+export const generateSpecificField = async (type, subjectName, modules) => {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  
+  let prompt = "";
+  if (type === "description") {
+    prompt = `Role: Academic Curriculum Planner. Task: Generate a strictly 1-paragraph globally-applicable "Course Description" for "${subjectName}". Return ONLY raw JSON like {"result": "The course..."}`;
+  } else if (type === "unit") {
+    const m = modules[0];
+    prompt = `Role: Academic Planner. Task: For Unit "${m?.name || "Unknown"}" in "${subjectName}" with context "${m?.extractedText || ""}", generate EXACTLY 2 measurable Outcomes and 1 Bloom's Taxonomy Level (e.g., "Understand"). Return ONLY raw JSON like {"outcomes": "1. ...\\n2. ...", "btLevel": "Understand"}`;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    });
+    const data = await response.json();
+    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+    return type === "description" ? result.result : result;
+  } catch (error) {
+    console.error("Single Gen Error", error);
+    return null;
+  }
+};

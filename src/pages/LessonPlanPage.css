@@ -30,22 +30,22 @@
 .empty-state-card p { color: #cbd5e1; margin-bottom: 20px; }
 
 .generate-btn {
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: white;
   border: none;
   padding: 15px 35px;
   font-size: 1.2rem;
   font-weight: 700;
   border-radius: 30px;
-  color: white;
+  color: #0f172a;
   cursor: pointer;
   margin-top: 15px;
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
   transition: all 0.3s;
 }
 
 .generate-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.4);
 }
 
 .loading-spinner {
@@ -144,7 +144,7 @@
   width: 100%;
   background: transparent;
   border: none;
-  color: #a855f7;
+  color: #fff;
   text-align: center;
   font-family: inherit;
   font-weight: 700;
@@ -206,4 +206,46 @@
   font-weight: 600;
   font-size: 1.2rem;
   color: white;
+}
+
+.inline-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed rgba(255,255,255,0.4);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  width: 80px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.inline-input:focus {
+  outline: none;
+  border-bottom: 1px solid #fff;
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.sm-regen {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  z-index: 2;
 }

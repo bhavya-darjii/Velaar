@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { generateLessonPlan } from '../services/aiService';
+import { generateLessonPlan, generateSpecificField } from '../services/aiService';
 import './LessonPlanPage.css';
 
 const LessonPlanPage = () => {
@@ -56,11 +56,6 @@ const LessonPlanPage = () => {
     setLoading(false);
   };
 
-  const handleRegenerate = async () => {
-    if(!window.confirm("This will overwrite your currently generated AI outcomes. Proceed?")) return;
-    await handleGenerate();
-  };
-
   const handleOutcomeChange = (index, field, value) => {
     const updated = [...lessonPlan.unitOutcomes];
     updated[index] = { ...updated[index], [field]: value };
@@ -93,11 +88,23 @@ const LessonPlanPage = () => {
            <div className="lp-header">
              <h2>{course.subjectName} ({new Date().getFullYear()}-{new Date().getFullYear().toString().slice(-2)}) - Faculty – Prof. {course.teacherName || "Teacher"}</h2>
              <h3>Course Outcomes, Mapping of COs with POs, Course Assessment and Lesson Plan</h3>
-             <p>Semester-[Sem]-DIV-A&B course code:-[Code]</p>
+             <p>
+               Semester-<input className="inline-input" placeholder="IV" value={lessonPlan.semester || ""} onChange={(e) => setLessonPlan({...lessonPlan, semester: e.target.value})} />
+               -DIV-{course.divisions?.length ? course.divisions.join('&') : "A"} course code:-
+               <input className="inline-input" placeholder="AIA&E404" value={lessonPlan.courseCode || ""} onChange={(e) => setLessonPlan({...lessonPlan, courseCode: e.target.value})} />
+             </p>
            </div>
            
            <div className="lp-description">
-             <strong>Course Description: </strong>
+             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+               <strong>Course Description: </strong>
+               <button className="icon-btn" title="Regenerate Description" onClick={async () => {
+                 setLoading(true);
+                 const desc = await generateSpecificField("description", course.subjectName, []);
+                 if(desc) setLessonPlan({...lessonPlan, courseDescription: desc});
+                 setLoading(false);
+               }}>↻ Regenerate</button>
+             </div>
              <textarea 
                value={lessonPlan.courseDescription} 
                onChange={handleDescriptionChange}
@@ -109,18 +116,18 @@ const LessonPlanPage = () => {
              <table className="lp-table">
                <thead>
                  <tr>
-                   <th style={{width: '60px'}}>Unit No</th>
-                   <th style={{width: '180px'}}>Unit</th>
-                   <th style={{width: '350px'}}>Outcomes</th>
-                   <th style={{width: '120px'}}>Teaching Practice</th>
+                   <th style={{width: '45px'}}>Unit No</th>
+                   <th style={{width: '140px'}}>Unit</th>
+                   <th style={{width: '300px'}}>Outcomes</th>
+                   <th style={{width: '100px'}}>Teaching Practice</th>
                    <th colSpan="2">
                      Evaluation Methods
                      <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize:'0.85rem', color: '#cbd5e1'}}>
-                       <span style={{flex: 1, borderRight: '1px solid rgba(255,255,255,0.1)'}}>Formative</span>
-                       <span style={{flex: 1}}>Summative</span>
+                       <span style={{flex: 1, paddingRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)'}}>Formative</span>
+                       <span style={{flex: 1, paddingLeft: '10px'}}>Summative</span>
                      </div>
                    </th>
-                   <th style={{width: '100px'}}>BT level</th>
+                   <th style={{width: '90px'}}>BT level</th>
                  </tr>
                </thead>
                <tbody>
@@ -130,7 +137,18 @@ const LessonPlanPage = () => {
                      <tr key={idx}>
                        <td style={{textAlign: 'center'}}>{moduleRef.id || unit.unitNo}</td>
                        <td>{moduleRef.name || "Unknown"}</td>
-                       <td>
+                       <td style={{position: 'relative'}}>
+                         <button className="icon-btn sm-regen" title="Regenerate Outcome" onClick={async () => {
+                           setLoading(true);
+                           const unitData = await generateSpecificField("unit", course.subjectName, [moduleRef]);
+                           if(unitData) {
+                             const updated = [...lessonPlan.unitOutcomes];
+                             updated[idx].outcomes = unitData.outcomes;
+                             updated[idx].btLevel = unitData.btLevel;
+                             setLessonPlan({...lessonPlan, unitOutcomes: updated});
+                           }
+                           setLoading(false);
+                         }}>↻</button>
                          <textarea value={unit.outcomes} onChange={(e) => handleOutcomeChange(idx, 'outcomes', e.target.value)} />
                        </td>
                        <td>
@@ -168,7 +186,6 @@ const LessonPlanPage = () => {
 
            <div className="lp-actions">
              <button className="save-btn" onClick={handleSave}>Save Changes</button>
-             <button className="regen-btn" onClick={handleRegenerate}>Regenerate AI Content</button>
            </div>
         </div>
       )}
