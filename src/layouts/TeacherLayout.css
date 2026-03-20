@@ -191,3 +191,14 @@
     max-width: 1600px; /* Desktop mega stretch for schedule cards! */
   }
 }
+
+/* Liquid Brand Title for New Users */
+.liquid-title {
+  font-size: 4.5rem;
+  font-weight: 900;
+  margin: 0 auto;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7); /* Softly translucent */
+  letter-spacing: -2px;
+  text-shadow: none;
+}

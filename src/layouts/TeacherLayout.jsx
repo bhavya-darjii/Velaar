@@ -25,6 +25,7 @@ const TeacherLayout = () => {
   const [currentLecture, setCurrentLecture] = useState(null);
   const [greetingBase] = useState(() => TEACHER_GREETINGS[Math.floor(Math.random() * TEACHER_GREETINGS.length)]);
   const [greeting, setGreeting] = useState(greetingBase + " Teacher.");
+  const [teacherName, setTeacherName] = useState("");
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -49,6 +50,7 @@ const TeacherLayout = () => {
         console.error("Error fetching user name:", error);
       }
 
+      setTeacherName(teacherName);
       setGreeting(`${greetingBase} ${teacherName}.`);
 
       try {
@@ -113,22 +115,28 @@ const TeacherLayout = () => {
 
       {/* Main Content Area */}
       <div className="main-content">
-        <header className="dash-header">
-          <div className="header-left">
-            <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>☰</button>
-            <div>
-              <h1>{course?.subjectName}</h1>
-              <p className="subtitle">{greeting}</p>
-            </div>
-          </div>
-          
-          <div className="header-actions">
-            {location.pathname === '/teacher' && (
-              <div className="progress-badge">
-                {(Array.isArray(course?.roadmap) ? course?.roadmap : Object.values(course?.roadmap || {}).flat()).filter(l => l.isCompleted).length} / {(course?.totalLectures || 0) * (course?.divisions?.length || 1)} Lectures Done
+        <header className="dash-header" style={course === null ? { justifyContent: 'center' } : {}}>
+          {course !== null ? (
+            <>
+              <div className="header-left">
+                <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>☰</button>
+                <div>
+                  <h1>{course?.subjectName}</h1>
+                  <p className="subtitle">{greeting}</p>
+                </div>
               </div>
-            )}
-          </div>
+              
+              <div className="header-actions">
+                {location.pathname === '/teacher' && (
+                  <div className="progress-badge">
+                    {(Array.isArray(course?.roadmap) ? course?.roadmap : Object.values(course?.roadmap || {}).flat()).filter(l => l.isCompleted).length} / {(course?.totalLectures || 0) * (course?.divisions?.length || 1)} Lectures Done
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <h1 className="liquid-title">Welcome to Velaar{teacherName ? `, ${teacherName}!` : '!'}</h1>
+          )}
         </header>
 
         {/* Dynamic Nested Route Content */}

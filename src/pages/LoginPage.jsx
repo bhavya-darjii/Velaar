@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword 
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import './LoginPage.css';
 
@@ -14,12 +15,34 @@ const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState(""); // NEW: State for Name
+  const [name, setName] = useState(""); 
   const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  
+  // Prevent logged-in users from seeing the login page
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setLoading(true);
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const role = userSnap.data().userType;
+          if (role === 'teacher') navigate('/teacher');
+          else if (role === 'admin') navigate('/admin');
+          else navigate('/student');
+        } else {
+          navigate('/teacher'); // default
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setAuthError("");
 
     try {
       let user;
@@ -32,10 +55,10 @@ const LoginPage = () => {
         await setDoc(doc(db, "users", user.uid), {
           fullName: name, // Saving the name here
           email: user.email,
-          userType: 'student',
+          userType: 'teacher', // Changed default from student to teacher
           createdAt: new Date()
         });
-        navigate('/student');
+        navigate('/teacher');
       } else {
         // Login Logic
         const result = await signInWithEmailAndPassword(auth, email, password);
@@ -54,7 +77,27 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error("Auth Error:", error);
-      alert(error.message);
+      let errorMsg = "Authentication failed. Please try again.";
+      switch (error.code) {
+        case 'auth/invalid-credential':
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          errorMsg = "Incorrect email or password. Please try again.";
+          break;
+        case 'auth/email-already-in-use':
+          errorMsg = "An account already exists with this email address.";
+          break;
+        case 'auth/weak-password':
+          errorMsg = "Your password must be at least 6 characters long.";
+          break;
+        case 'auth/invalid-email':
+          errorMsg = "Please enter a valid email address.";
+          break;
+        case 'auth/too-many-requests':
+          errorMsg = "Too many failed attempts. Please try again later.";
+          break;
+      }
+      setAuthError(errorMsg);
     }
     setLoading(false);
   };
@@ -67,6 +110,12 @@ const LoginPage = () => {
         <p className="login-subtitle">
           {isSignUp ? "Create your account to get started" : "Welcome back, please login"}
         </p>
+
+        {authError && (
+          <div className="liquid-error">
+            {authError}
+          </div>
+        )}
 
         <form onSubmit={handleAuth} className="login-form">
           {/* NEW: Conditional Name Field */}
@@ -111,6 +160,7 @@ const LoginPage = () => {
             onClick={() => {
               setIsSignUp(!isSignUp);
               setName(""); // Clear name if they switch back to login
+              setAuthError(""); // Clear errors on tab switch
             }}
           >
             {isSignUp ? "Login here" : "Create Account"}
