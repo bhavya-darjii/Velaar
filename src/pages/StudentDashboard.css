@@ -1,0 +1,328 @@
+/* src/components/StudentDashboard.css */
+
+/* --- LAYOUT & CONTAINER --- */
+.student-container {
+  width: 100%;
+  max-width: 800px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  margin: 30px auto;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* --- HEADER STYLES --- */
+.student-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.student-header {
+  color: #ffffff;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.student-subtext {
+  /* Changed from purple tint to neutral grey */
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+/* --- BUTTONS --- */
+
+/* Secondary Button (Exit) - Neutral, No Hover Effect */
+.student-exit-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: none; /* Removed transition */
+}
+
+.student-exit-btn:hover {
+  /* Kept same as default to disable visual hover effect */
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Main Action Button - Neutral, No Hover Effect */
+.student-btn {
+  width: 100%;
+  background: #ffffff;
+  color: #0f172a; 
+  border: none;
+  padding: 16px 30px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: none; /* Removed transition */
+}
+
+.student-btn:hover:not(:disabled) {
+  /* Kept same as default */
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transform: none;
+}
+
+.student-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- GLASS CARD --- */
+.student-card {
+  /* Changed from purple-tinted dark to neutral dark */
+  background: rgba(10, 10, 10, 0.5); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  /* Changed border from purple to subtle white/grey */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  
+  padding: 35px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+}
+
+/* --- LABELS & TEXT --- */
+.student-label {
+  /* Changed from purple to light grey */
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  display: block;
+}
+
+/* --- INPUTS & SELECTION --- */
+.student-select {
+  width: 100%;
+  padding: 18px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+  
+  background: rgba(0, 0, 0, 0.4);
+  /* Neutral border */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  
+  font-size: 1rem;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.student-select:focus {
+  outline: none;
+  /* Neutral focus border (white) */
+  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* --- EXAM PHASE --- */
+.exam-progress {
+  margin-bottom: 30px;
+}
+
+.exam-progress span {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  /* Neutral gradient (White to Grey) */
+  background: linear-gradient(90deg, #ffffff, #94a3b8);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.question-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Neutral accent line */
+  border-left: 4px solid #ffffff;
+  margin-bottom: 30px;
+}
+
+.q-text {
+  color: #fff;
+  font-size: 1.2rem;
+  margin-top: 10px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.student-textarea {
+  width: 100%;
+  min-height: 220px;
+  
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.3);
+  /* Neutral border */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  
+  line-height: 1.7;
+  resize: vertical;
+  margin-bottom: 30px;
+  box-sizing: border-box;
+}
+
+.student-textarea:focus {
+  outline: none;
+  /* Neutral focus */
+  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* --- GRADING LOADER --- */
+.grading-loader {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.grading-loader h2 {
+  color: #ffffff;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* =========================================
+   RESULT AREA - (KEPT EXACTLY AS IS)
+   ========================================= */
+:root {
+  /* These variables are locally scoped for the result area if needed */
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-muted: rgba(255, 255, 255, 0.6);
+}
+
+.result-card {
+  text-align: center;
+}
+
+.score-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 30px 0;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 20px 40px;
+  border-radius: 100px;
+  border: 1px solid var(--glass-border);
+}
+
+.score-val {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0;
+  color: #fff;
+}
+
+.score-tag {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.score-tag.pass { background: #10b981; color: #064e3b; }
+.score-tag.fail { background: #ef4444; color: #ffffff; }
+
+.feedback-text {
+  color: var(--text-muted);
+  line-height: 1.8;
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- RESPONSIVENESS --- */
+@media screen and (max-width: 600px) {
+  .student-container {
+    margin: 15px auto;
+    padding: 0 15px;
+    gap: 15px;
+  }
+
+  .student-header {
+    font-size: 1.8rem;
+  }
+  
+  .student-header-section {
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 20px;
+  }
+
+  .student-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .student-textarea {
+    min-height: 250px;
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  .student-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+  
+  .student-exit-btn { 
+    width: 100%; 
+    text-align: center; 
+  }
+  
+  .score-container { 
+    width: 100%; 
+    border-radius: 20px; 
+    box-sizing: border-box; 
+  }
+}

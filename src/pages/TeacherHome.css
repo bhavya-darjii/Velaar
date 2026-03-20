@@ -1,0 +1,11 @@
+.teacher-home-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+@media screen and (max-width: 768px) {
+  .teacher-home-grid {
+    grid-template-columns: 1fr;
+  }
+}

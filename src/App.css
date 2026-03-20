@@ -52,6 +52,5 @@ html, body {
   z-index: 1;
   display: flex;
   justify-content: center;
-  padding-bottom: 40px;
   width: 100%;
 }

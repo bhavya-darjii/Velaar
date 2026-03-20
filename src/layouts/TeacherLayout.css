@@ -1,0 +1,193 @@
+.teacher-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Floating Sidebar */
+.teacher-sidebar {
+  width: 300px;
+  background: rgba(10, 5, 20, 0.25); /* Ultra transparent glass base */
+  backdrop-filter: blur(30px); 
+  -webkit-backdrop-filter: blur(30px);
+  border-right: none; 
+  border-radius: 0 24px 24px 0; /* Massive rounded floating border */
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: -320px;
+  top: 15px;
+  bottom: 15px;
+  z-index: 100;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Floating shadow */
+}
+
+.teacher-sidebar.open {
+  transform: translateX(320px);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: flex-end; /* Pushes close button to the right */
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  color: #fff;
+  font-weight: 900;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.sidebar-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-links li {
+  padding: 16px 20px;
+  color: #ccc;
+  cursor: pointer;
+  border-radius: 16px;
+  margin: 8px 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 700;
+}
+
+.sidebar-links li:hover {
+  background: rgba(255, 255, 255, 0.12); /* Liquid glass hover */
+  transform: translateX(6px); /* Smooth slide right */
+  color: #fff;
+}
+
+.sidebar-links li.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-weight: 800;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1); /* Glass popup lighting */
+}
+
+/* Overlay for mobile */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1400px; /* Stretch Home Schedule wider! */
+  margin: 0 auto;
+  padding: 40px 5%; 
+  box-sizing: border-box;
+}
+
+.hamburger-btn {
+  background: rgba(255, 255, 255, 0.05); /* Liquid glass base */
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  font-size: 20px; /* Subtle size */
+  color: #ffffff;
+  cursor: pointer;
+  margin-right: 35px; /* Farther from textual subject line */
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Perfect box center */
+  margin-top: 5px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.08); /* Float effect */
+  box-shadow: 0 5px 20px rgba(255, 255, 255, 0.08);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+
+.dash-header h1 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.subtitle {
+  color: rgba(224, 207, 252, 0.9);
+  font-size: 1.2rem;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.progress-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  color: #fff;
+}
+
+.outlet-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+@media screen and (min-width: 1024px) {
+  /* No automatic sidebar opening anymore to allow overlaps */
+  .hamburger-btn { display: flex; } /* Always show hamburger */
+  .close-btn { display: block; }    /* Always show close button */
+  
+  .main-content {
+    margin: 0 auto; 
+    max-width: 1600px; /* Desktop mega stretch for schedule cards! */
+  }
+}

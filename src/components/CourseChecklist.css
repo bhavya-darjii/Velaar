@@ -1,0 +1,184 @@
+/* =========================================
+   ACTIVE LECTURE CARD (Left Column)
+   ========================================= */
+.active-card {
+  background: rgba(20, 10, 40, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  padding: 30px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  margin-bottom: 20px;
+}
+
+.tag-live {
+  background: #ff4757;
+  color: white;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+}
+
+.active-card h2 {
+  font-size: 1.8rem;
+  margin: 0;
+  line-height: 1.3;
+}
+
+@media screen and (max-width: 768px) {
+  .active-card h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* =========================================
+   CHECKLIST STYLES
+   ========================================= */
+.checklist-area {
+  margin: 20px 0;
+}
+
+.checklist-area h3 {
+  font-size: 1.1rem;
+  color: #d1c4e9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.instruction {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.check-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+/* CHECKED STATE */
+.check-item.checked {
+  background: rgba(46, 125, 50, 0.2);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.check-item.checked span {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* CUSTOM CHECKBOX CIRCLE */
+.checkbox-circle {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.check-item.checked .checkbox-circle {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: white;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+}
+
+/* =========================================
+   FINISH BUTTON
+   ========================================= */
+.finish-btn {
+  width: 100%;
+  padding: 16px;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 15px;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.finish-btn:hover {
+  transform: translateY(-2px);
+  background: #f0f0f0;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================
+   SIDEBAR ROADMAP
+   ========================================= */
+.roadmap-mini {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.roadmap-mini h3 {
+  margin-top: 0;
+  font-size: 1rem;
+  color: #aaa;
+}
+
+.roadmap-mini ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.roadmap-mini li {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.roadmap-mini li:last-child {
+  border-bottom: none;
+}
+
+.mini-num {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-right: 10px;
+  color: #aaa;
+  white-space: nowrap; /* Prevents text from breaking into a second line */
+  flex-shrink: 0;      /* Prevents the badge from squishing when title is long */
+}

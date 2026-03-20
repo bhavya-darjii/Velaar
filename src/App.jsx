@@ -1,11 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Iridescence from './Iridescence/Iridescence';
+import LiquidChrome from './components/LiquidChrome';
 
-// Import your pages
-import LoginPage from './components/LoginPage';
-import TeacherDashboard from './components/TeacherDashboard';
-import StudentDashboard from './components/StudentDashboard';
+import LoginPage from './pages/LoginPage';
+import TeacherLayout from './layouts/TeacherLayout';
+import TeacherHome from './pages/TeacherHome';
+import ExamsPage from './pages/ExamsPage';
+import StudentDashboard from './pages/StudentDashboard';
+import SyllabusUpload from './components/CourseGenerator';
 
 function App() {
   return (
@@ -14,11 +16,11 @@ function App() {
         
         {/* BACKGROUND LAYER (Stays fixed behind every page) */}
         <div className="background-layer">
-          <Iridescence 
-            color={[0.5, 0.6, 0.8]} 
-            mouseReact={true} 
-            amplitude={0.1} 
-            speed={1} 
+          <LiquidChrome
+            baseColor={[0.1, 0.1, 0.3]}
+            speed={1}
+            amplitude={0.13}
+            interactive={true}
           />
         </div>
 
@@ -28,8 +30,13 @@ function App() {
             {/* When the app starts ('/'), show Login Page */}
             <Route path="/" element={<LoginPage />} />
             
-            {/* The other pages */}
-            <Route path="/teacher" element={<TeacherDashboard />} />
+            {/* Teacher Dashboard nested routes */}
+            <Route path="/teacher" element={<TeacherLayout />}>
+              <Route index element={<TeacherHome />} />
+              <Route path="exams" element={<ExamsPage />} />
+              <Route path="create-course" element={<SyllabusUpload />} />
+            </Route>
+
             <Route path="/student" element={<StudentDashboard />} />
           </Routes>
         </div>

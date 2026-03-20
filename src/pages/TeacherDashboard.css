@@ -1,0 +1,122 @@
+/* =========================================
+   GLOBAL LAYOUT & CONTAINER
+   ========================================= */
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #ffffff;
+}
+
+/* =========================================
+   HEADER SECTION
+   ========================================= */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+
+.dash-header h1 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+  background: linear-gradient(to right, #fff, #e0cffc);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.3;
+  padding-bottom: 5px; 
+  display: inline-block;
+}
+
+.subtitle {
+  color: rgba(224, 207, 252, 0.9);
+  font-size: 1.2rem;
+  margin-top: 5px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.new-course-btn {
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.new-course-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+
+.progress-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+/* =========================================
+   MAIN GRID
+   ========================================= */
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================================
+   LOADING SCREEN
+   ========================================= */
+.loading-screen {
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+@media screen and (max-width: 768px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}

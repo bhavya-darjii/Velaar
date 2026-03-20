@@ -1,0 +1,151 @@
+/* =========================================
+   EXAM CONTROL CARD - PREMIUM DARK UI
+   ========================================= */
+.action-card {
+  background: rgba(30, 20, 50, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(155, 89, 182, 0.25);
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-header h3 {
+  margin: 0 0 8px 0;
+  color: #e0cffc;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+
+.card-header p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+}
+
+/* --- Settings Panel --- */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-group label.group-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #bfa1e6;
+  font-weight: 600;
+}
+
+/* Number Input */
+.custom-number-input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-number-input:focus {
+  border-color: #a569bd;
+  box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Custom Chips (Replacing Checkboxes) */
+.bt-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bt-chip {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bt-chip input {
+  display: none; /* Hide the ugly default checkbox */
+}
+
+.chip-text {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.bt-chip:hover .chip-text {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* When the hidden checkbox is checked, style the chip-text */
+.bt-chip input:checked + .chip-text {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  border-color: #9b59b6;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(155, 89, 182, 0.3);
+  font-weight: 600;
+}
+
+/* --- Generate Button --- */
+.generate-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+  margin-top: 10px;
+}
+
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+}
+
+.generate-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.generate-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* --- Hide Number Input Spinners --- */
+.custom-number-input::-webkit-outer-spin-button,
+.custom-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.custom-number-input[type=number] {
+  appearance: textfield; /* Safari and Chrome */
+  -moz-appearance: textfield; /* Firefox */
+}
