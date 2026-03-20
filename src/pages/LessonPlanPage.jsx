@@ -2,8 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { generateLessonPlan, generateSpecificField } from '../services/aiService';
+import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan } from '../services/aiService';
 import './LessonPlanPage.css';
+
+const defaultProgramOutcomes = [
+  { code: 'PO1', title: 'Engineering Knowledge' },
+  { code: 'PO2', title: 'Problem Analysis' },
+  { code: 'PO3', title: 'Design/Development of Solutions' },
+  { code: 'PO4', title: 'Conduct Investigations of Complex Problems' },
+  { code: 'PO5', title: 'Engineering Tool Usage' },
+  { code: 'PO6', title: 'The Engineer and The World' },
+  { code: 'PO7', title: 'Ethics' },
+  { code: 'PO8', title: 'Individual and Collaborative Team Work' },
+  { code: 'PO9', title: 'Communication' },
+  { code: 'PO10', title: 'Project Management and Finance' },
+  { code: 'PO11', title: 'Life-Long Learning' },
+];
 
 const LessonPlanPage = () => {
   const { course, setCourse } = useOutletContext();
@@ -29,16 +43,22 @@ const LessonPlanPage = () => {
 
   const handleGenerate = async () => {
     setLoading(true);
-    const data = await generateLessonPlan(course.subjectName, course.modules || []);
-    if (data) {
+    const lpData = await generateLessonPlan(course.subjectName, course.modules || []);
+    const suppData = await generateSupplementaryLessonPlan(course.subjectName, course.modules || []);
+    
+    if (lpData && suppData) {
       const defaultPlan = {
-        ...data,
-        unitOutcomes: data.unitOutcomes.map(u => ({
+        ...lpData,
+        unitOutcomes: lpData.unitOutcomes.map(u => ({
           ...u,
           teachingPractice: "Black Board & PPT",
           formative: "Objective Test, Course Exit Survey",
           summative: "Test-1, IA, ESE"
-        }))
+        })),
+        programOutcomes: defaultProgramOutcomes,
+        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `CODE.${idx+1}` })),
+        textBooks: suppData.textBooks,
+        referenceBooks: suppData.referenceBooks
       };
       
       try {
@@ -48,6 +68,28 @@ const LessonPlanPage = () => {
       } catch(e) { console.error("Save error", e); }
     } else {
       alert("Failed to generate AI Lesson Plan. Please try again.");
+    }
+    setLoading(false);
+  };
+
+  const handleGenerateSupplementary = async () => {
+    setLoading(true);
+    const suppData = await generateSupplementaryLessonPlan(course.subjectName, course.modules || []);
+    if (suppData) {
+      const updatedPlan = {
+        ...lessonPlan,
+        programOutcomes: defaultProgramOutcomes,
+        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `${lessonPlan.courseCode || "CODE"}.${idx+1}` })),
+        textBooks: suppData.textBooks,
+        referenceBooks: suppData.referenceBooks
+      };
+      try {
+        await updateDoc(doc(db, "courses", course.id), { lessonPlan: updatedPlan });
+        setCourse({ ...course, lessonPlan: updatedPlan });
+        setLessonPlan(updatedPlan);
+      } catch(e) { console.error("Save error", e); }
+    } else {
+      alert("Failed to generate Outcomes & Books.");
     }
     setLoading(false);
   };
@@ -109,6 +151,96 @@ const LessonPlanPage = () => {
              </p>
            </div>
            
+           {(!lessonPlan.programOutcomes || !lessonPlan.courseOutcomes) && (
+             <div style={{background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center'}}>
+               <p style={{marginBottom: '15px'}}>New Features Available! Initialize your Course/Program Outcomes and AI Book tracking.</p>
+               <button className="generate-btn" style={{marginTop: 0, padding: '10px 25px', fontSize: '1rem'}} onClick={handleGenerateSupplementary}>Initialize Remaining Outcomes & Books</button>
+             </div>
+           )}
+
+           {(lessonPlan.programOutcomes && lessonPlan.courseOutcomes) && (
+             <div className="outcomes-section fade-in">
+               <div className="lp-table-wrapper" style={{maxWidth: '700px'}}>
+                 <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+                   <strong style={{fontSize: '1.2rem'}}>Program Outcomes:</strong>
+                 </div>
+                 <table className="lp-table po-table">
+                   <thead>
+                     <tr>
+                       <th style={{width: '120px'}}>PO Code</th>
+                       <th>PO Title</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {lessonPlan.programOutcomes.map((po, idx) => (
+                       <tr key={idx}>
+                         <td style={{textAlign: 'center', fontWeight: 'bold'}}>{po.code}</td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{width: '100%'}} value={po.title} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.programOutcomes];
+                               updated[idx].title = e.target.value;
+                               setLessonPlan({...lessonPlan, programOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+
+               <div className="lp-table-wrapper">
+                 <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+                   <strong style={{fontSize: '1.2rem'}}>Course Outcomes:</strong>
+                 </div>
+                 <p style={{color: '#cbd5e1', marginBottom: '15px', fontSize: '0.9rem'}}>After taking this Course a student will be able to:</p>
+                 <table className="lp-table co-table">
+                   <thead>
+                     <tr>
+                       <th style={{width: '140px'}}>CO No:</th>
+                       <th>Course outcomes</th>
+                       <th style={{width: '180px'}}>PO Mapped</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {lessonPlan.courseOutcomes.map((co, idx) => (
+                       <tr key={idx}>
+                         <td style={{textAlign: 'center', fontWeight: 'bold'}}>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={co.coNo} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.courseOutcomes];
+                               updated[idx].coNo = e.target.value;
+                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                         <td>
+                           <textarea className="co-textarea" value={co.description} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.courseOutcomes];
+                               updated[idx].description = e.target.value;
+                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                         <td style={{textAlign: 'center'}}>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={co.mappedPOs} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.courseOutcomes];
+                               updated[idx].mappedPOs = e.target.value;
+                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+           )}
+
            <div className="lp-description">
              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
                <strong>Course Description: </strong>
@@ -133,29 +265,33 @@ const LessonPlanPage = () => {
                    <th style={{width: '45px'}}>Unit No</th>
                    <th style={{width: '140px'}}>Unit</th>
                    <th style={{width: '300px'}}>Outcomes</th>
-                   <th style={{width: '130px'}}>
-                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                       Teaching Practice
-                       <button className={`lock-btn ${lockedCols.teachingPractice ? 'locked' : ''}`} onClick={() => toggleLock('teachingPractice')} title="Lock edits to all rows globally">
-                         {lockedCols.teachingPractice ? '🔒' : '🔓'}
+                   <th style={{width: '100px', textAlign: 'center'}}>
+                     Teaching Practice
+                     <div style={{marginTop: '5px'}}>
+                       <button className={`link-btn ${lockedCols.teachingPractice ? 'linked' : ''}`} onClick={() => toggleLock('teachingPractice')} title="Link rows to edit all together">
+                         🔗
                        </button>
                      </div>
                    </th>
-                   <th colSpan="2">
+                   <th colSpan="2" style={{textAlign: 'center'}}>
                      Evaluation Methods
                      <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize:'0.85rem', color: '#cbd5e1'}}>
-                       <span style={{flex: 1, paddingRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent:'space-between'}}>
+                       <div style={{flex: 1, paddingRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', textAlign: 'center'}}>
                          Formative
-                         <button className={`lock-btn ${lockedCols.formative ? 'locked' : ''}`} onClick={() => toggleLock('formative')} title="Lock formative edits to all rows">
-                           {lockedCols.formative ? '🔒' : '🔓'}
-                         </button>
-                       </span>
-                       <span style={{flex: 1, paddingLeft: '10px', display: 'flex', justifyContent:'space-between'}}>
+                         <div style={{marginTop: '5px'}}>
+                           <button className={`link-btn ${lockedCols.formative ? 'linked' : ''}`} onClick={() => toggleLock('formative')} title="Link rows to edit all together">
+                             🔗
+                           </button>
+                         </div>
+                       </div>
+                       <div style={{flex: 1, paddingLeft: '10px', textAlign: 'center'}}>
                          Summative
-                         <button className={`lock-btn ${lockedCols.summative ? 'locked' : ''}`} onClick={() => toggleLock('summative')} title="Lock summative edits to all rows">
-                           {lockedCols.summative ? '🔒' : '🔓'}
-                         </button>
-                       </span>
+                         <div style={{marginTop: '5px'}}>
+                           <button className={`link-btn ${lockedCols.summative ? 'linked' : ''}`} onClick={() => toggleLock('summative')} title="Link rows to edit all together">
+                             🔗
+                           </button>
+                         </div>
+                       </div>
                      </div>
                    </th>
                    <th style={{width: '90px'}}>BT level</th>
@@ -203,11 +339,96 @@ const LessonPlanPage = () => {
 
            <div className="lp-methodologies">
               <strong>Teaching Methodologies:</strong>
-              <textarea 
-                value={lessonPlan.teachingMethodologies || "Direct Instruction (PPT/Black board based) DI\nFlipped Classrooms FC\nCooperative method (please specify technique used)\nGame-based Learning\nRole Play\nProblem based\nBrain storming\nany other"}
-                onChange={(e) => setLessonPlan({...lessonPlan, teachingMethodologies: e.target.value})}
-              />
+              <ul>
+                {(Array.isArray(lessonPlan.teachingMethodologies) ? lessonPlan.teachingMethodologies : [
+                  "Direct Instruction (PPT/Black board based) DI",
+                  "Flipped Classrooms FC",
+                  "Cooperative method (please specify technique used)",
+                  "Game-based Learning",
+                  "Role Play",
+                  "Problem based",
+                  "Brain storming",
+                  "Any Other"
+                ]).map((method, idx) => (
+                  <li key={idx} style={{marginBottom: '5px'}}>
+                    <input 
+                      type="text" 
+                      className="methodology-input"
+                      size={Math.max((method || '').length + 2, 20)}
+                      value={method}
+                      onChange={(e) => {
+                        const updated = [...(Array.isArray(lessonPlan.teachingMethodologies) ? lessonPlan.teachingMethodologies : [
+                          "Direct Instruction (PPT/Black board based) DI",
+                          "Flipped Classrooms FC",
+                          "Cooperative method (please specify technique used)",
+                          "Game-based Learning",
+                          "Role Play",
+                          "Problem based",
+                          "Brain storming",
+                          "Any Other"
+                        ])];
+                        updated[idx] = e.target.value;
+                        setLessonPlan({...lessonPlan, teachingMethodologies: updated});
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
            </div>
+
+           {(lessonPlan.textBooks && lessonPlan.referenceBooks) && (
+             <div className="books-section fade-in">
+               <div className="lp-methodologies">
+                 <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                   <strong>Text Books:</strong>
+                   <button className="icon-btn" title="Regenerate Text Books" onClick={async () => {
+                     setLoading(true);
+                     const tb = await generateSpecificField("textBooks", course.subjectName, []);
+                     if(tb) setLessonPlan({...lessonPlan, textBooks: tb});
+                     setLoading(false);
+                   }}>↻</button>
+                 </div>
+                 <ul>
+                    {lessonPlan.textBooks.map((book, idx) => (
+                      <li key={idx} style={{marginBottom: '5px'}}>
+                        <input type="text" className="methodology-input" size={Math.max((book || '').length + 2, 20)} value={book}
+                          onChange={(e) => {
+                            const updated = [...lessonPlan.textBooks];
+                            updated[idx] = e.target.value;
+                            setLessonPlan({...lessonPlan, textBooks: updated});
+                          }}
+                        />
+                      </li>
+                    ))}
+                 </ul>
+               </div>
+               
+               <div className="lp-methodologies">
+                 <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                   <strong>Reference Books:</strong>
+                   <button className="icon-btn" title="Regenerate Reference Books" onClick={async () => {
+                     setLoading(true);
+                     const rb = await generateSpecificField("referenceBooks", course.subjectName, []);
+                     if(rb) setLessonPlan({...lessonPlan, referenceBooks: rb});
+                     setLoading(false);
+                   }}>↻</button>
+                 </div>
+                 <ul>
+                    {lessonPlan.referenceBooks.map((book, idx) => (
+                      <li key={idx} style={{marginBottom: '5px'}}>
+                        <input type="text" className="methodology-input" size={Math.max((book || '').length + 2, 20)} value={book}
+                          onChange={(e) => {
+                            const updated = [...lessonPlan.referenceBooks];
+                            updated[idx] = e.target.value;
+                            setLessonPlan({...lessonPlan, referenceBooks: updated});
+                          }}
+                        />
+                      </li>
+                    ))}
+                 </ul>
+               </div>
+             </div>
+           )}
 
            <div className="lp-actions">
              <button className="save-btn" onClick={handleSave}>Save Changes</button>

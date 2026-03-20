@@ -289,6 +289,10 @@ export const generateSpecificField = async (type, subjectName, modules) => {
   } else if (type === "unit") {
     const m = modules[0];
     prompt = `Role: Academic Planner. Task: For Unit "${m?.name || "Unknown"}" in "${subjectName}" with context "${m?.extractedText || ""}", generate EXACTLY 2 measurable Outcomes and 1 Bloom's Taxonomy Level (e.g., "Understand"). Return ONLY raw JSON like {"outcomes": "1. ...\\n2. ...", "btLevel": "Understand"}`;
+  } else if (type === "textBooks") {
+    prompt = `Role: Academic Planner. Task: Recommend 3 standard Text Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
+  } else if (type === "referenceBooks") {
+    prompt = `Role: Academic Planner. Task: Recommend 5 standard Reference Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
   }
 
   try {
@@ -298,9 +302,57 @@ export const generateSpecificField = async (type, subjectName, modules) => {
     });
     const data = await response.json();
     const result = JSON.parse(data.candidates[0].content.parts[0].text);
-    return type === "description" ? result.result : result;
+    return type === "unit" ? result : result.result;
   } catch (error) {
     console.error("Single Gen Error", error);
+    return null;
+  }
+};
+
+export const generateSupplementaryLessonPlan = async (subjectName, modules) => {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  
+  if (!modules || modules.length === 0) return null;
+
+  const moduleNames = modules.map((m, i) => `Module ${i+1}: ${m.name}`).join("\\n");
+  const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\\n${m.extractedText || ""}`).join("\\n\\n");
+
+  const prompt = `
+    Role: Senior Academic Curriculum Planner.
+    Task: Create Course Outcomes, map them to Program Outcomes (POs), and recommend Text/Reference books for "${subjectName}".
+    
+    CRITICAL INSTRUCTIONS:
+    1. Construct exactly ${modules.length} Course Outcomes (one per module).
+    2. Each Course Outcome must be a VERY SHORT, 1-sentence description.
+    3. For each Course Outcome, map it to exactly THREE relevant Program Outcomes from PO1 to PO12. Use exactly this format: "PO4,PO5,PO6".
+    4. Recommend exactly 3 standard Text Books as an array of strings (Author, 'Title', Publisher, Year).
+    5. Recommend exactly 5 standard Reference Books as an array of strings (Author, 'Title', Publisher, Year).
+    
+    Modules List: 
+    ${moduleNames}
+    
+    Output Format: return ONLY a raw JSON strictly matching this schema:
+    {
+      "courseOutcomes": [
+        {
+          "description": "Describe the basic concepts of AI.",
+          "mappedPOs": "PO4,PO5,PO6"
+        }
+      ],
+      "textBooks": ["Author, 'Title', Publisher, Year"],
+      "referenceBooks": ["Author, 'Title', Publisher, Year"]
+    }
+  `;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    });
+    const data = await response.json();
+    return JSON.parse(data.candidates[0].content.parts[0].text);
+  } catch (error) {
+    console.error("Suppl Gen Error", error);
     return null;
   }
 };

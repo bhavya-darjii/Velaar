@@ -141,6 +141,25 @@
   box-sizing: border-box;
 }
 
+.co-textarea {
+  width: 100%;
+  min-height: 60px;
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.5;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.co-textarea:focus {
+  outline: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
 .lp-table td input {
   width: 100%;
   background: transparent;
@@ -150,6 +169,7 @@
   font-family: inherit;
   font-weight: 700;
   padding: 5px;
+  box-sizing: border-box; /* Fixes alignment overflow push to the right */
 }
 
 .lp-table td textarea:focus, .lp-table td input:focus {
@@ -159,7 +179,7 @@
 }
 
 .lp-methodologies { margin-bottom: 30px; }
-.lp-methodologies ul { list-style: disc inside; color: #cbd5e1; margin-top: 10px; line-height: 1.8; }
+.lp-methodologies ul { list-style: none; padding: 0; margin-top: 10px; line-height: 1.8; }
 
 .lp-actions {
   display: flex;
@@ -251,32 +271,42 @@
   z-index: 2;
 }
 
-.lock-btn {
+.link-btn {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 2px;
-  font-size: 1rem;
-  opacity: 0.5;
+  font-size: 1.1rem;
+  opacity: 0.3;
   transition: all 0.2s;
+  filter: grayscale(100%);
 }
-.lock-btn:hover { opacity: 0.8; }
-.lock-btn.locked { opacity: 1; }
+.link-btn:focus { outline: none; }
+.link-btn:hover { opacity: 0.6; }
+.link-btn.linked { 
+  opacity: 1; 
+  filter: grayscale(0%);
+}
 
 .bt-cell {
   vertical-align: middle !important;
+  text-align: center !important;
 }
 
-.lp-methodologies textarea {
-  width: 100%;
-  min-height: 150px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #e2e8f0;
-  border-radius: 12px;
-  padding: 15px;
+.methodology-input {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
   font-family: inherit;
-  resize: none;
-  line-height: 1.5;
+  font-size: 1rem;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.2s;
   box-sizing: border-box;
+}
+
+.methodology-input:focus {
+  outline: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(0,0,0,0.3);
+  color: #fff;
 }
