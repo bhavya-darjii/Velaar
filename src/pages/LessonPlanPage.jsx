@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan } from '../services/aiService';
+import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment } from '../services/aiService';
 import './LessonPlanPage.css';
 
 const defaultProgramOutcomes = [
@@ -18,6 +18,16 @@ const defaultProgramOutcomes = [
   { code: 'PO10', title: 'Project Management and Finance' },
   { code: 'PO11', title: 'Life-Long Learning' },
 ];
+
+const getDefaultAssessment = (modules) => (modules || []).map((m, i) => ({
+   co: `CO${i+1}`, 
+   f1: 'Q&A', 
+   f2: 'Assignment-1,2', 
+   f3: i >= 3 ? 'Cooperative Learning (Case study)' : '--',
+   s1: '--', s2: '--', s3: '--', 
+   termTest: i >= 3 ? 'Test-2' : 'Test-1', 
+   endSem: 'ESE'
+}));
 
 const LessonPlanPage = () => {
   const { course, setCourse } = useOutletContext();
@@ -35,7 +45,12 @@ const LessonPlanPage = () => {
     if (!course) {
       navigate('/teacher/create-course');
     } else if (course.lessonPlan) {
-      setLessonPlan(course.lessonPlan);
+      const plan = course.lessonPlan;
+      if (!plan.assessmentPlanning && course.modules) {
+        setLessonPlan({ ...plan, assessmentPlanning: getDefaultAssessment(course.modules) });
+      } else {
+        setLessonPlan(plan);
+      }
     }
   }, [course, navigate]);
   
@@ -56,7 +71,8 @@ const LessonPlanPage = () => {
           summative: "Test-1, IA, ESE"
         })),
         programOutcomes: defaultProgramOutcomes,
-        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `CODE.${idx+1}` })),
+        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `CO.${idx+1}` })),
+        assessmentPlanning: getDefaultAssessment(course.modules),
         textBooks: suppData.textBooks,
         referenceBooks: suppData.referenceBooks
       };
@@ -79,7 +95,8 @@ const LessonPlanPage = () => {
       const updatedPlan = {
         ...lessonPlan,
         programOutcomes: defaultProgramOutcomes,
-        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `${lessonPlan.courseCode || "CODE"}.${idx+1}` })),
+        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `CO.${idx+1}` })),
+        assessmentPlanning: lessonPlan.assessmentPlanning || getDefaultAssessment(course.modules),
         textBooks: suppData.textBooks,
         referenceBooks: suppData.referenceBooks
       };
@@ -90,6 +107,50 @@ const LessonPlanPage = () => {
       } catch(e) { console.error("Save error", e); }
     } else {
       alert("Failed to generate Outcomes & Books.");
+    }
+    setLoading(false);
+  };
+
+  const handleGenerateDayWiseEnrichment = async () => {
+    setLoading(true);
+    let roadmapLine = [];
+    if (course.roadmap) {
+       roadmapLine = Array.isArray(course.roadmap) ? course.roadmap : Object.values(course.roadmap)[0] || [];
+    }
+    const topics = roadmapLine.map(l => l.title);
+    
+    if (topics.length === 0) {
+      alert("No syllabus roadmap found! Please generate the core roadmap in the Course Dashboard first.");
+      setLoading(false);
+      return;
+    }
+
+    const enrichmentData = await generateDayWiseEnrichment(course.subjectName, topics, lessonPlan.textBooks, lessonPlan.referenceBooks);
+    if (enrichmentData) {
+      const enriched = enrichmentData.map(e => ({ ...e, method: "Black Board & PPT/DI" }));
+      
+      const defaultActualDates = {};
+      (course.divisions && course.divisions.length > 0 ? course.divisions : ["A"]).forEach(div => {
+         defaultActualDates[div] = {};
+         let divRoadmap = Array.isArray(course.roadmap) ? course.roadmap : (course.roadmap?.[div] || []);
+         divRoadmap.forEach((lec, idx) => {
+            defaultActualDates[div][idx] = { proposed: lec.date || "", actual: lec.date || "" };
+         });
+      });
+
+      const updatedPlan = {
+        ...lessonPlan,
+        dayWiseEnrichment: enriched,
+        dayWiseDates: lessonPlan.dayWiseDates || defaultActualDates
+      };
+      
+      try {
+        await updateDoc(doc(db, "courses", course.id), { lessonPlan: updatedPlan });
+        setCourse({ ...course, lessonPlan: updatedPlan });
+        setLessonPlan(updatedPlan);
+      } catch(e) { console.error("Save error", e); }
+    } else {
+      alert("Failed to generate Day-Wise Enrichment.");
     }
     setLoading(false);
   };
@@ -105,16 +166,11 @@ const LessonPlanPage = () => {
 
   const handleOutcomeChange = (index, field, value) => {
     const updated = [...lessonPlan.unitOutcomes];
-    
     if (['teachingPractice', 'formative', 'summative'].includes(field) && lockedCols[field]) {
-      // Broadcast typed value inherently to all strictly locked nodes globally across the table map
-      updated.forEach(unit => {
-        unit[field] = value;
-      });
+      updated.forEach(unit => { unit[field] = value; });
     } else {
       updated[index] = { ...updated[index], [field]: value };
     }
-    
     setLessonPlan({ ...lessonPlan, unitOutcomes: updated });
   };
 
@@ -151,96 +207,7 @@ const LessonPlanPage = () => {
              </p>
            </div>
            
-           {(!lessonPlan.programOutcomes || !lessonPlan.courseOutcomes) && (
-             <div style={{background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center'}}>
-               <p style={{marginBottom: '15px'}}>New Features Available! Initialize your Course/Program Outcomes and AI Book tracking.</p>
-               <button className="generate-btn" style={{marginTop: 0, padding: '10px 25px', fontSize: '1rem'}} onClick={handleGenerateSupplementary}>Initialize Remaining Outcomes & Books</button>
-             </div>
-           )}
-
-           {(lessonPlan.programOutcomes && lessonPlan.courseOutcomes) && (
-             <div className="outcomes-section fade-in">
-               <div className="lp-table-wrapper" style={{maxWidth: '700px'}}>
-                 <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
-                   <strong style={{fontSize: '1.2rem'}}>Program Outcomes:</strong>
-                 </div>
-                 <table className="lp-table po-table">
-                   <thead>
-                     <tr>
-                       <th style={{width: '120px'}}>PO Code</th>
-                       <th>PO Title</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {lessonPlan.programOutcomes.map((po, idx) => (
-                       <tr key={idx}>
-                         <td style={{textAlign: 'center', fontWeight: 'bold'}}>{po.code}</td>
-                         <td>
-                           <input type="text" className="methodology-input" style={{width: '100%'}} value={po.title} 
-                             onChange={(e) => {
-                               const updated = [...lessonPlan.programOutcomes];
-                               updated[idx].title = e.target.value;
-                               setLessonPlan({...lessonPlan, programOutcomes: updated});
-                             }} 
-                           />
-                         </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
-
-               <div className="lp-table-wrapper">
-                 <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
-                   <strong style={{fontSize: '1.2rem'}}>Course Outcomes:</strong>
-                 </div>
-                 <p style={{color: '#cbd5e1', marginBottom: '15px', fontSize: '0.9rem'}}>After taking this Course a student will be able to:</p>
-                 <table className="lp-table co-table">
-                   <thead>
-                     <tr>
-                       <th style={{width: '140px'}}>CO No:</th>
-                       <th>Course outcomes</th>
-                       <th style={{width: '180px'}}>PO Mapped</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {lessonPlan.courseOutcomes.map((co, idx) => (
-                       <tr key={idx}>
-                         <td style={{textAlign: 'center', fontWeight: 'bold'}}>
-                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={co.coNo} 
-                             onChange={(e) => {
-                               const updated = [...lessonPlan.courseOutcomes];
-                               updated[idx].coNo = e.target.value;
-                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
-                             }} 
-                           />
-                         </td>
-                         <td>
-                           <textarea className="co-textarea" value={co.description} 
-                             onChange={(e) => {
-                               const updated = [...lessonPlan.courseOutcomes];
-                               updated[idx].description = e.target.value;
-                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
-                             }} 
-                           />
-                         </td>
-                         <td style={{textAlign: 'center'}}>
-                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={co.mappedPOs} 
-                             onChange={(e) => {
-                               const updated = [...lessonPlan.courseOutcomes];
-                               updated[idx].mappedPOs = e.target.value;
-                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
-                             }} 
-                           />
-                         </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
-             </div>
-           )}
-
+           {/* 1. COURSE DESCRIPTION */}
            <div className="lp-description">
              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
                <strong>Course Description: </strong>
@@ -257,8 +224,9 @@ const LessonPlanPage = () => {
              />
            </div>
 
-           <div className="lp-table-wrapper">
-             <h4>Unit wise Outcomes:</h4>
+           {/* 2. UNIT WISE OUTCOMES */}
+           <div className="lp-table-wrapper" style={{marginBottom: '30px'}}>
+             <h4 style={{marginBottom: '10px'}}>Unit wise Outcomes:</h4>
              <table className="lp-table">
                <thead>
                  <tr>
@@ -337,8 +305,9 @@ const LessonPlanPage = () => {
              </table>
            </div>
 
-           <div className="lp-methodologies">
-              <strong>Teaching Methodologies:</strong>
+           {/* 3. TEACHING METHODOLOGIES */}
+           <div className="lp-methodologies" style={{marginBottom: '30px'}}>
+              <h4 style={{marginBottom: '10px'}}>Teaching Methodologies:</h4>
               <ul>
                 {(Array.isArray(lessonPlan.teachingMethodologies) ? lessonPlan.teachingMethodologies : [
                   "Direct Instruction (PPT/Black board based) DI",
@@ -350,7 +319,7 @@ const LessonPlanPage = () => {
                   "Brain storming",
                   "Any Other"
                 ]).map((method, idx) => (
-                  <li key={idx} style={{marginBottom: '5px'}}>
+                  <li key={idx}>
                     <input 
                       type="text" 
                       className="methodology-input"
@@ -376,11 +345,201 @@ const LessonPlanPage = () => {
               </ul>
            </div>
 
+           {/* OUTCOMES FALLBACK INITIALIZER */}
+           {(!lessonPlan.programOutcomes || !lessonPlan.courseOutcomes) && (
+             <div style={{background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center'}}>
+               <p style={{marginBottom: '15px'}}>New Features Available! Initialize your Course/Program Outcomes and AI Book tracking.</p>
+               <button className="generate-btn" style={{marginTop: 0, padding: '10px 25px', fontSize: '1rem'}} onClick={handleGenerateSupplementary}>Initialize Remaining Outcomes & Books</button>
+             </div>
+           )}
+
+           {(lessonPlan.programOutcomes && lessonPlan.courseOutcomes) && (
+             <div className="outcomes-section fade-in">
+               {/* 4. PROGRAM OUTCOMES */}
+               <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
+                 <h4 style={{marginBottom: '10px'}}>Program Outcomes:</h4>
+                 <table className="lp-table po-table" style={{width: '100%', maxWidth: '800px', margin: '0 auto'}}>
+                   <thead>
+                     <tr>
+                       <th style={{width: '120px'}}>PO Code</th>
+                       <th>PO Title</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {lessonPlan.programOutcomes.map((po, idx) => (
+                       <tr key={idx}>
+                         <td style={{textAlign: 'center', fontWeight: 'bold'}}>{po.code}</td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{width: '100%'}} value={po.title} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.programOutcomes];
+                               updated[idx].title = e.target.value;
+                               setLessonPlan({...lessonPlan, programOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+
+               {/* 5. COURSE OUTCOMES */}
+               <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
+                 <h4 style={{marginBottom: '10px'}}>Course Outcomes:</h4>
+                 <p style={{color: '#cbd5e1', marginBottom: '15px', fontSize: '0.9rem'}}>After taking this Course a student will be able to:</p>
+                 <table className="lp-table co-table" style={{width: '100%', maxWidth: '800px', margin: '0 auto'}}>
+                   <thead>
+                     <tr>
+                       <th style={{width: '140px'}}>CO No:</th>
+                       <th>Course outcomes</th>
+                       <th style={{width: '180px'}}>PO Mapped</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {lessonPlan.courseOutcomes.map((co, idx) => (
+                       <tr key={idx}>
+                         <td style={{textAlign: 'center', fontWeight: 'bold'}}>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} 
+                             value={`CO.${idx+1}`} 
+                             readOnly
+                           />
+                         </td>
+                         <td>
+                           <textarea className="co-textarea" value={co.description} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.courseOutcomes];
+                               updated[idx].description = e.target.value;
+                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                         <td style={{textAlign: 'center'}}>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={co.mappedPOs} 
+                             onChange={(e) => {
+                               const updated = [...lessonPlan.courseOutcomes];
+                               updated[idx].mappedPOs = e.target.value;
+                               setLessonPlan({...lessonPlan, courseOutcomes: updated});
+                             }} 
+                           />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+               
+               {/* 6. COURSE ASSESSMENT PLANNING */}
+               {lessonPlan.assessmentPlanning && (
+                 <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
+                   <h4 style={{marginBottom: '10px'}}>Course Assessment Planning (tick applicable method: -)</h4>
+                   <div style={{overflowX: 'auto', width: '100%'}}>
+                     <table className="lp-table cap-table" style={{textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: '1000px'}}>
+                       <thead>
+                         <tr>
+                           <th rowSpan="4" style={{width: '90px', verticalAlign: 'middle'}}>Course outcomes</th>
+                           <th colSpan="8">Assessment Method</th>
+                         </tr>
+                         <tr>
+                           <th colSpan="3">Formative</th>
+                           <th colSpan="5">Summative</th>
+                         </tr>
+                         <tr>
+                           <th rowSpan="2" style={{width: '90px'}}></th>
+                           <th rowSpan="2" style={{width: '140px'}}></th>
+                           <th rowSpan="2" style={{width: '180px'}}></th>
+                           <th colSpan="3">Continuous assessment of 10 marks</th>
+                           <th rowSpan="2" style={{width: '100px'}}>Term Tests</th>
+                           <th rowSpan="2" style={{width: '110px'}}>End semester exam</th>
+                         </tr>
+                         <tr>
+                           <th style={{width: '40px'}}>-</th>
+                           <th style={{width: '40px'}}>-</th>
+                           <th style={{width: '40px'}}>-</th>
+                         </tr>
+                       </thead>
+                       <tbody>
+                         {lessonPlan.assessmentPlanning.map((row, idx) => (
+                           <tr key={idx}>
+                             <td style={{fontWeight: 'bold'}}>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.co} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].co = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.f1} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].f1 = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.f2} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].f2 = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.f3} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].f3 = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.s1} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].s1 = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.s2} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].s2 = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.s3} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].s3 = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.termTest} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].termTest = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                             <td>
+                               <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.endSem} onChange={(e) => {
+                                  const updated = [...lessonPlan.assessmentPlanning];
+                                  updated[idx].endSem = e.target.value;
+                                  setLessonPlan({...lessonPlan, assessmentPlanning: updated});
+                               }} />
+                             </td>
+                           </tr>
+                         ))}
+                       </tbody>
+                     </table>
+                   </div>
+                 </div>
+               )}
+             </div>
+           )}
+
+           {/* 7. TEXT & REFERENCE BOOKS */}
            {(lessonPlan.textBooks && lessonPlan.referenceBooks) && (
-             <div className="books-section fade-in">
-               <div className="lp-methodologies">
+             <div className="books-section fade-in" style={{marginBottom: '40px'}}>
+               <div className="lp-methodologies" style={{marginBottom: '20px'}}>
                  <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                   <strong>Text Books:</strong>
+                   <h4 style={{margin: '0'}}>Text Books:</h4>
                    <button className="icon-btn" title="Regenerate Text Books" onClick={async () => {
                      setLoading(true);
                      const tb = await generateSpecificField("textBooks", course.subjectName, []);
@@ -390,7 +549,7 @@ const LessonPlanPage = () => {
                  </div>
                  <ul>
                     {lessonPlan.textBooks.map((book, idx) => (
-                      <li key={idx} style={{marginBottom: '5px'}}>
+                      <li key={idx}>
                         <input type="text" className="methodology-input" size={Math.max((book || '').length + 2, 20)} value={book}
                           onChange={(e) => {
                             const updated = [...lessonPlan.textBooks];
@@ -405,7 +564,7 @@ const LessonPlanPage = () => {
                
                <div className="lp-methodologies">
                  <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                   <strong>Reference Books:</strong>
+                   <h4 style={{margin: '0'}}>Reference Books:</h4>
                    <button className="icon-btn" title="Regenerate Reference Books" onClick={async () => {
                      setLoading(true);
                      const rb = await generateSpecificField("referenceBooks", course.subjectName, []);
@@ -415,7 +574,7 @@ const LessonPlanPage = () => {
                  </div>
                  <ul>
                     {lessonPlan.referenceBooks.map((book, idx) => (
-                      <li key={idx} style={{marginBottom: '5px'}}>
+                      <li key={idx}>
                         <input type="text" className="methodology-input" size={Math.max((book || '').length + 2, 20)} value={book}
                           onChange={(e) => {
                             const updated = [...lessonPlan.referenceBooks];
@@ -427,6 +586,122 @@ const LessonPlanPage = () => {
                     ))}
                  </ul>
                </div>
+             </div>
+           )}
+
+           {/* 8. DAY WISE PLANNING SECTION */}
+           {(!lessonPlan.dayWiseEnrichment && lessonPlan.programOutcomes) && (
+             <div style={{background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center'}}>
+               <p style={{marginBottom: '15px'}}>Day-Wise Lecture Plan Mapping is available!</p>
+               <button className="generate-btn" style={{marginTop: 0, padding: '10px 25px', fontSize: '1rem'}} onClick={handleGenerateDayWiseEnrichment}>
+                 Generate Division Day-Wise Plans
+               </button>
+             </div>
+           )}
+
+           {lessonPlan.dayWiseEnrichment && (
+             <div className="day-wise-section fade-in" style={{marginBottom: '40px'}}>
+               {(course.divisions && course.divisions.length > 0 ? course.divisions : ["A"]).map(div => {
+                 let rawRoadmap = Array.isArray(course.roadmap) ? course.roadmap : (course.roadmap?.[div] || []);
+                 
+                 const processedRoadmap = rawRoadmap.map((lec, idx) => {
+                    const modIdentifier = lec.moduleName || String(lec.module) || `Mod-${Math.floor(idx/6)}`;
+                    return { ...lec, modIdentifier };
+                 });
+                 
+                 return (
+                   <div className="lp-table-wrapper" key={div} style={{marginBottom: '40px'}}>
+                     <h4 style={{marginBottom: '10px'}}>Day Wise Plan (Div-{div})</h4>
+                     <div style={{overflowX: 'auto', width: '100%'}}>
+                       <table className="lp-table cap-table" style={{width: '100%', minWidth: '900px', textAlign: 'center', margin: '0 auto'}}>
+                         <thead>
+                           <tr>
+                             <th style={{width: '50px'}}>Sr.No</th>
+                             <th style={{width: '250px'}}>Topic</th>
+                             <th style={{width: '70px'}}>Lecture No</th>
+                             <th style={{width: '100px'}}>Books referred</th>
+                             <th style={{width: '130px'}}>Proposed Date</th>
+                             <th style={{width: '130px'}}>Actual Date</th>
+                             <th style={{width: '140px'}}>Teaching method</th>
+                             <th style={{width: '100px'}}>BT</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+                           {processedRoadmap.map((lecture, idx) => {
+                             const enrichment = lessonPlan.dayWiseEnrichment[idx] || { books: "-", bt: "-", method: "Black Board & PPT/DI" };
+                             const mapDates = lessonPlan.dayWiseDates?.[div]?.[idx] || { proposed: lecture.date, actual: lecture.date };
+                             
+                             const localLecNo = processedRoadmap.slice(0, idx + 1).filter(l => l.modIdentifier === lecture.modIdentifier).length;
+                             const firstModuleIdx = processedRoadmap.findIndex(l => l.modIdentifier === lecture.modIdentifier);
+                             const moduleBT = lessonPlan.dayWiseEnrichment[firstModuleIdx]?.bt || enrichment.bt || "-";
+
+                             return (
+                               <tr key={idx}>
+                                 <td style={{fontWeight: 'bold'}}>{idx + 1}</td>
+                                 <td style={{textAlign: 'left', fontSize: '0.9rem'}}>{lecture.title}</td>
+                                 <td style={{fontWeight: 'bold'}}>{localLecNo}</td>
+                                 <td>
+                                   <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={enrichment.books} 
+                                     onChange={(e) => {
+                                        const updated = [...lessonPlan.dayWiseEnrichment];
+                                        updated[idx].books = e.target.value;
+                                        setLessonPlan({...lessonPlan, dayWiseEnrichment: updated});
+                                     }} 
+                                   />
+                                 </td>
+                                 <td>
+                                   <input type="date" className="methodology-input" style={{textAlign: 'center', width: '100%', fontSize: '0.85rem', padding: '5px 2px'}} 
+                                     value={(mapDates.proposed || "").split('T')[0]} 
+                                     onChange={(e) => {
+                                        const updatedDates = JSON.parse(JSON.stringify(lessonPlan.dayWiseDates));
+                                        if(!updatedDates[div]) updatedDates[div] = {};
+                                        if(!updatedDates[div][idx]) updatedDates[div][idx] = {proposed:"", actual:""};
+                                        updatedDates[div][idx].proposed = e.target.value;
+                                        setLessonPlan({...lessonPlan, dayWiseDates: updatedDates});
+                                     }} 
+                                   />
+                                 </td>
+                                 <td>
+                                   <input type="date" className="methodology-input" style={{textAlign: 'center', width: '100%', fontSize: '0.85rem', padding: '5px 2px'}} 
+                                     value={(mapDates.actual || "").split('T')[0]} 
+                                     onChange={(e) => {
+                                        const updatedDates = JSON.parse(JSON.stringify(lessonPlan.dayWiseDates));
+                                        if(!updatedDates[div]) updatedDates[div] = {};
+                                        if(!updatedDates[div][idx]) updatedDates[div][idx] = {proposed:"", actual:""};
+                                        updatedDates[div][idx].actual = e.target.value;
+                                        setLessonPlan({...lessonPlan, dayWiseDates: updatedDates});
+                                     }} 
+                                   />
+                                 </td>
+                                 <td>
+                                   <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={enrichment.method} 
+                                     onChange={(e) => {
+                                        const updated = [...lessonPlan.dayWiseEnrichment];
+                                        updated[idx].method = e.target.value;
+                                        setLessonPlan({...lessonPlan, dayWiseEnrichment: updated});
+                                     }} 
+                                   />
+                                 </td>
+                                 <td>
+                                   <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={moduleBT} 
+                                     onChange={(e) => {
+                                        // Update the BT for the first index of this module to propagate to all
+                                        const updated = [...lessonPlan.dayWiseEnrichment];
+                                        if(!updated[firstModuleIdx]) updated[firstModuleIdx] = { bt: e.target.value };
+                                        else updated[firstModuleIdx].bt = e.target.value;
+                                        setLessonPlan({...lessonPlan, dayWiseEnrichment: updated});
+                                     }} 
+                                   />
+                                 </td>
+                               </tr>
+                             )
+                           })}
+                         </tbody>
+                       </table>
+                     </div>
+                   </div>
+                 )
+               })}
              </div>
            )}
 

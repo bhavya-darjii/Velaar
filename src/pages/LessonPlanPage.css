@@ -83,7 +83,7 @@
 .lp-header p { color: #94a3b8; margin: 0; font-weight: 600;}
 
 .lp-description { margin-bottom: 30px; }
-.lp-description strong { display: block; margin-bottom: 10px; font-size: 1.1rem; }
+.lp-description strong { display: block; margin-bottom: 15px; font-size: 1.4rem; }
 .lp-description textarea {
   width: 100%;
   min-height: 80px;
@@ -103,9 +103,15 @@
   margin-bottom: 30px; 
 }
 
+.lp-table-wrapper h4, .lp-methodologies h4 {
+  font-size: 1.3rem;
+  margin: 0 0 15px 0 !important;
+  font-weight: 700;
+}
+
 .lp-table {
-  width: 100%;
   border-collapse: collapse;
+  margin-top: 20px;
   background: rgba(0,0,0,0.2);
   border-radius: 12px;
   overflow: hidden;
@@ -115,42 +121,42 @@
 
 .lp-table th, .lp-table td {
   border: 1px solid rgba(255,255,255,0.1);
-  padding: 15px;
+  padding: 8px 10px;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .lp-table th {
   background: rgba(255,255,255,0.05);
   font-weight: 700;
   text-align: center;
-  padding: 12px;
+  padding: 8px 10px;
 }
 
 .lp-table td textarea {
   width: 100%;
   height: 100%;
-  min-height: 100px;
+  min-height: 50px;
   background: transparent;
   border: none;
   color: #e2e8f0;
   resize: none; /* Strip manual resize handle */
   font-family: inherit;
   line-height: 1.4;
-  padding: 5px;
+  padding: 4px;
   box-sizing: border-box;
 }
 
 .co-textarea {
   width: 100%;
-  min-height: 60px;
+  min-height: 35px;
   background: transparent;
   border: none;
   color: #e2e8f0;
   resize: none;
   font-family: inherit;
-  line-height: 1.5;
-  padding: 8px;
+  line-height: 1.4;
+  padding: 4px;
   box-sizing: border-box;
 }
 
@@ -269,6 +275,15 @@
   border-radius: 4px;
   font-size: 0.8rem;
   z-index: 2;
+}
+
+.cap-table th {
+  padding: 8px 5px !important;
+  font-size: 0.8rem;
+}
+.cap-table td input {
+  font-size: 0.85rem;
+  padding: 5px 2px;
 }
 
 .link-btn {

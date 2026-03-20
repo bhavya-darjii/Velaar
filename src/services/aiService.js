@@ -356,3 +356,49 @@ export const generateSupplementaryLessonPlan = async (subjectName, modules) => {
     return null;
   }
 };
+
+export const generateDayWiseEnrichment = async (subjectName, roadmapTitles, textBooks = [], refBooks = []) => {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  
+  if (!roadmapTitles || roadmapTitles.length === 0) return null;
+
+  const topicsList = roadmapTitles.map((t, i) => `${i+1}. ${t}`).join("\\n");
+  const allBooks = [...textBooks, ...refBooks].map((b, i) => `B${i+1}: ${b}`).join("\\n");
+
+  const prompt = `
+    Role: Senior Academic Curriculum Planner.
+    Task: For each topic in the lecture series below for "${subjectName}", recommend applicable Book IDs and the Bloom's Taxonomy (BT) cognitive level.
+
+    Available Reference Books:
+    ${allBooks || "No specific books provided, use standard generic designations like 'T1, R1'."}
+
+    Topics:
+    ${topicsList}
+
+    CRITICAL INSTRUCTIONS:
+    1. Output an array of exactly ${roadmapTitles.length} items.
+    2. "books" should refer to the Book IDs (e.g., "B1, B3" or "T1, R2").
+    3. "bt" must be a single Bloom's Taxonomy keyword (e.g., "Understand", "Apply", "Analyze", "Evaluate", "Create").
+    
+    Output Format: return ONLY a raw JSON strictly matching this schema:
+    {
+      "enrichment": [
+        { "books": "B1, B2", "bt": "Understand" },
+        { "books": "B3", "bt": "Apply" }
+      ]
+    }
+  `;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    });
+    const data = await response.json();
+    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+    return result.enrichment;
+  } catch (error) {
+    console.error("DayWise Enrichment Error", error);
+    return null;
+  }
+};
