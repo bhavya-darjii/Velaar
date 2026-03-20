@@ -989,7 +989,7 @@ const LessonPlanPage = () => {
                background: 'white', 
                color: 'black', 
                fontSize: '1.2rem', 
-               padding: '15px 60px', 
+               padding: '12px 60px', 
                display: 'flex', 
                alignItems: 'center', 
                justifyContent: 'center', 
