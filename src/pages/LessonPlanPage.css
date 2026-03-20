@@ -243,10 +243,40 @@
 
 .sm-regen {
   position: absolute;
-  top: 8px;
-  right: 25px; /* Offset to completely bypass native Windows scrollbars */
+  bottom: 12px;
+  right: 12px;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.8rem;
   z-index: 2;
+}
+
+.lock-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+.lock-btn:hover { opacity: 0.8; }
+.lock-btn.locked { opacity: 1; }
+
+.bt-cell {
+  vertical-align: middle !important;
+}
+
+.lp-methodologies textarea {
+  width: 100%;
+  min-height: 150px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e2e8f0;
+  border-radius: 12px;
+  padding: 15px;
+  font-family: inherit;
+  resize: none;
+  line-height: 1.5;
+  box-sizing: border-box;
 }
