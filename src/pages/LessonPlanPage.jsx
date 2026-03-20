@@ -6,17 +6,75 @@ import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonP
 import './LessonPlanPage.css';
 
 const defaultProgramOutcomes = [
-  { code: 'PO1', title: 'Engineering Knowledge' },
-  { code: 'PO2', title: 'Problem Analysis' },
-  { code: 'PO3', title: 'Design/Development of Solutions' },
-  { code: 'PO4', title: 'Conduct Investigations of Complex Problems' },
-  { code: 'PO5', title: 'Engineering Tool Usage' },
-  { code: 'PO6', title: 'The Engineer and The World' },
-  { code: 'PO7', title: 'Ethics' },
-  { code: 'PO8', title: 'Individual and Collaborative Team Work' },
-  { code: 'PO9', title: 'Communication' },
-  { code: 'PO10', title: 'Project Management and Finance' },
-  { code: 'PO11', title: 'Life-Long Learning' },
+  "PO1: Engineering knowledge",
+  "PO2: Problem analysis",
+  "PO3: Design/development of solutions",
+  "PO4: Conduct investigations of complex problems",
+  "PO5: Modern tool usage",
+  "PO6: The engineer and society",
+  "PO7: Environment and sustainability",
+  "PO8: Ethics",
+  "PO9: Individual and team work",
+  "PO10: Communication",
+  "PO11: Project management and finance",
+  "PO12: Life-long learning"
+];
+
+const formatToDDMMYYYY = (dateString, fallbackYear = new Date().getFullYear()) => {
+  if (!dateString) return "";
+  if (dateString.includes('/')) return dateString; 
+  
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}/)) {
+     const [y, m, d] = dateString.split('T')[0].split('-');
+     return `${d}/${m}/${y}`;
+  }
+  
+  let d = new Date(`${dateString}, ${fallbackYear}`);
+  if (isNaN(d.getTime())) d = new Date(dateString);
+  
+  if (!isNaN(d.getTime())) {
+     const day = String(d.getDate()).padStart(2, '0');
+     const month = String(d.getMonth() + 1).padStart(2, '0');
+     return `${day}/${month}/${d.getFullYear()}`;
+  }
+  return dateString;
+};
+
+const defaultActivities = [
+  { sr: "1.", name: "Expert Talk on subject", date: "March 2026", venue: "Class room", co: "1 to 6" }
+];
+
+const defaultTermTests = [
+  { q: "1 a", bt1: "Understanding/Applying", co1: "CO1", bt2: "Understanding/Applying", co2: "CO4" },
+  { q: "1 b", bt1: "Understanding/Applying", co1: "CO1", bt2: "Understanding/Applying", co2: "CO4" },
+  { q: "1 c", bt1: "Understanding/Applying", co1: "CO1", bt2: "Understanding/Applying", co2: "CO4" },
+  { q: "2 a", bt1: "Understanding/Applying", co1: "CO2", bt2: "Understanding/Applying", co2: "CO5" },
+  { q: "2 b", bt1: "Understanding/Applying", co1: "CO2", bt2: "Understanding/Applying", co2: "CO5" },
+  { q: "3 a", bt1: "Understanding/Applying", co1: "CO3", bt2: "Understanding/Applying", co2: "CO6" },
+  { q: "3 b", bt1: "Understanding/Applying", co1: "CO3", bt2: "Understanding/Applying", co2: "CO6" }
+];
+
+const defaultEndSem = [
+  { 
+    c1: { q: "1A", bt: "Understanding/Applying", co: "CO1" },
+    c2: { q: "2B", bt: "Understanding/Applying", co: "CO5" },
+    c3: { q: "3C", bt: "Understanding/Applying", co: "CO3" }
+  },
+  { 
+    c1: { q: "1B", bt: "Understanding/Applying", co: "CO2" },
+    c2: { q: "2C", bt: "Understanding/Applying", co: "CO6" },
+    c3: { q: "4A", bt: "Understanding/Applying", co: "CO4" }
+  },
+  { 
+    c1: { q: "1C", bt: "Understanding/Applying", co: "CO3" },
+    c2: { q: "3A", bt: "Understanding/Applying", co: "CO1" },
+    c3: { q: "4B", bt: "Understanding/Applying", co: "CO5" }
+  },
+  { 
+    c1: { q: "2A", bt: "Understanding/Applying", co: "CO4" },
+    c2: { q: "3B", bt: "Understanding/Applying", co: "CO2" },
+    c3: { q: "4C", bt: "Understanding/Applying", co: "CO3" }
+  }
 ];
 
 const getDefaultAssessment = (modules) => (modules || []).map((m, i) => ({
@@ -631,6 +689,9 @@ const LessonPlanPage = () => {
                              const enrichment = lessonPlan.dayWiseEnrichment[idx] || { books: "-", bt: "-", method: "Black Board & PPT/DI" };
                              const mapDates = lessonPlan.dayWiseDates?.[div]?.[idx] || { proposed: lecture.date, actual: lecture.date };
                              
+                             const formattedProposed = formatToDDMMYYYY(mapDates.proposed || lecture.date);
+                             const formattedActual = formatToDDMMYYYY(mapDates.actual || lecture.date);
+
                              const localLecNo = processedRoadmap.slice(0, idx + 1).filter(l => l.modIdentifier === lecture.modIdentifier).length;
                              const firstModuleIdx = processedRoadmap.findIndex(l => l.modIdentifier === lecture.modIdentifier);
                              const moduleBT = lessonPlan.dayWiseEnrichment[firstModuleIdx]?.bt || enrichment.bt || "-";
@@ -650,8 +711,8 @@ const LessonPlanPage = () => {
                                    />
                                  </td>
                                  <td>
-                                   <input type="date" className="methodology-input" style={{textAlign: 'center', width: '100%', fontSize: '0.85rem', padding: '5px 2px'}} 
-                                     value={(mapDates.proposed || "").split('T')[0]} 
+                                   <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%', fontSize: '0.85rem', padding: '5px 2px'}} 
+                                     value={formattedProposed} 
                                      onChange={(e) => {
                                         const updatedDates = JSON.parse(JSON.stringify(lessonPlan.dayWiseDates));
                                         if(!updatedDates[div]) updatedDates[div] = {};
@@ -662,8 +723,8 @@ const LessonPlanPage = () => {
                                    />
                                  </td>
                                  <td>
-                                   <input type="date" className="methodology-input" style={{textAlign: 'center', width: '100%', fontSize: '0.85rem', padding: '5px 2px'}} 
-                                     value={(mapDates.actual || "").split('T')[0]} 
+                                   <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%', fontSize: '0.85rem', padding: '5px 2px'}} 
+                                     value={formattedActual} 
                                      onChange={(e) => {
                                         const updatedDates = JSON.parse(JSON.stringify(lessonPlan.dayWiseDates));
                                         if(!updatedDates[div]) updatedDates[div] = {};
@@ -702,6 +763,208 @@ const LessonPlanPage = () => {
                    </div>
                  )
                })}
+             </div>
+           )}
+
+           {/* 9. ACTIVITIES PLANNED */}
+           {lessonPlan.programOutcomes && (
+             <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
+               <h4 style={{marginBottom: '10px'}}>Activities Planned if any (optional)</h4>
+               <div style={{overflowX: 'auto', width: '100%'}}>
+                 <table className="lp-table cap-table" style={{textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: '900px'}}>
+                   <thead>
+                     <tr>
+                       <th rowSpan="2" style={{width: '60px'}}>Sr.<br/>No</th>
+                       <th colSpan="4">Activity Details</th>
+                     </tr>
+                     <tr>
+                       <th>Name of the Event<br/>(Expert Talk/Workshop/seminar/Industrial Visit /GD etc)</th>
+                       <th style={{width: '120px'}}>Date</th>
+                       <th style={{width: '120px'}}>Venue</th>
+                       <th style={{width: '100px'}}>CO.NO</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {(lessonPlan.activitiesPlanned || defaultActivities).map((row, idx) => (
+                       <tr key={idx}>
+                         <td style={{fontWeight: 'bold'}}>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.sr} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.activitiesPlanned || defaultActivities));
+                              updated[idx].sr = e.target.value;
+                              setLessonPlan({...lessonPlan, activitiesPlanned: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.name} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.activitiesPlanned || defaultActivities));
+                              updated[idx].name = e.target.value;
+                              setLessonPlan({...lessonPlan, activitiesPlanned: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.date} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.activitiesPlanned || defaultActivities));
+                              updated[idx].date = e.target.value;
+                              setLessonPlan({...lessonPlan, activitiesPlanned: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.venue} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.activitiesPlanned || defaultActivities));
+                              updated[idx].venue = e.target.value;
+                              setLessonPlan({...lessonPlan, activitiesPlanned: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.co} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.activitiesPlanned || defaultActivities));
+                              updated[idx].co = e.target.value;
+                              setLessonPlan({...lessonPlan, activitiesPlanned: updated});
+                           }} />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+           )}
+
+           {/* 10. QUESTION PAPER AND CO ANALYSIS */}
+           {lessonPlan.programOutcomes && (
+             <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
+               <h4 style={{marginBottom: '10px'}}>Question Paper and CO analysis</h4>
+               <div style={{overflowX: 'auto', width: '100%'}}>
+                 <table className="lp-table cap-table" style={{textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: '900px'}}>
+                   <thead>
+                     <tr>
+                       <th rowSpan="2" style={{width: '60px'}}>Q.<br/>No</th>
+                       <th colSpan="2">Term Test 1</th>
+                       <th colSpan="2">Term Test 2</th>
+                     </tr>
+                     <tr>
+                       <th>BT Level</th>
+                       <th style={{width: '100px'}}>CO</th>
+                       <th>BT Level</th>
+                       <th style={{width: '100px'}}>CO</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {(lessonPlan.termTestsAnalysis || defaultTermTests).map((row, idx) => (
+                       <tr key={idx}>
+                         <td style={{fontWeight: 'bold'}}>{row.q}</td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.bt1} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.termTestsAnalysis || defaultTermTests));
+                              updated[idx].bt1 = e.target.value;
+                              setLessonPlan({...lessonPlan, termTestsAnalysis: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.co1} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.termTestsAnalysis || defaultTermTests));
+                              updated[idx].co1 = e.target.value;
+                              setLessonPlan({...lessonPlan, termTestsAnalysis: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.bt2} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.termTestsAnalysis || defaultTermTests));
+                              updated[idx].bt2 = e.target.value;
+                              setLessonPlan({...lessonPlan, termTestsAnalysis: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.co2} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.termTestsAnalysis || defaultTermTests));
+                              updated[idx].co2 = e.target.value;
+                              setLessonPlan({...lessonPlan, termTestsAnalysis: updated});
+                           }} />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+               
+               <div style={{overflowX: 'auto', width: '100%', marginTop: '30px'}}>
+                 <table className="lp-table cap-table" style={{textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: '1100px'}}>
+                   <thead>
+                     <tr>
+                       <th colSpan="3">End Semester</th>
+                       <th colSpan="3">End Semester</th>
+                       <th colSpan="3">End Semester</th>
+                     </tr>
+                     <tr>
+                       <th style={{width: '80px'}}>Question<br/>No.</th>
+                       <th>BT Level</th>
+                       <th style={{width: '60px'}}>CO</th>
+                       <th style={{width: '80px'}}>Question<br/>No.</th>
+                       <th>BT Level</th>
+                       <th style={{width: '60px'}}>CO</th>
+                       <th style={{width: '80px'}}>Question<br/>No.</th>
+                       <th>BT Level</th>
+                       <th style={{width: '60px'}}>CO</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {(lessonPlan.endSemAnalysis || defaultEndSem).map((row, idx) => (
+                       <tr key={idx}>
+                         {/* Block 1 */}
+                         <td style={{fontWeight: 'bold'}}>{row.c1.q}</td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.c1.bt} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.endSemAnalysis || defaultEndSem));
+                              updated[idx].c1.bt = e.target.value;
+                              setLessonPlan({...lessonPlan, endSemAnalysis: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.c1.co} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.endSemAnalysis || defaultEndSem));
+                              updated[idx].c1.co = e.target.value;
+                              setLessonPlan({...lessonPlan, endSemAnalysis: updated});
+                           }} />
+                         </td>
+                         
+                         {/* Block 2 */}
+                         <td style={{fontWeight: 'bold'}}>{row.c2.q}</td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.c2.bt} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.endSemAnalysis || defaultEndSem));
+                              updated[idx].c2.bt = e.target.value;
+                              setLessonPlan({...lessonPlan, endSemAnalysis: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.c2.co} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.endSemAnalysis || defaultEndSem));
+                              updated[idx].c2.co = e.target.value;
+                              setLessonPlan({...lessonPlan, endSemAnalysis: updated});
+                           }} />
+                         </td>
+
+                         {/* Block 3 */}
+                         <td style={{fontWeight: 'bold'}}>{row.c3.q}</td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.c3.bt} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.endSemAnalysis || defaultEndSem));
+                              updated[idx].c3.bt = e.target.value;
+                              setLessonPlan({...lessonPlan, endSemAnalysis: updated});
+                           }} />
+                         </td>
+                         <td>
+                           <input type="text" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={row.c3.co} onChange={(e) => {
+                              const updated = JSON.parse(JSON.stringify(lessonPlan.endSemAnalysis || defaultEndSem));
+                              updated[idx].c3.co = e.target.value;
+                              setLessonPlan({...lessonPlan, endSemAnalysis: updated});
+                           }} />
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
              </div>
            )}
 
