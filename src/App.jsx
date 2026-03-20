@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import TeacherLayout from './layouts/TeacherLayout';
 import TeacherHome from './pages/TeacherHome';
 import ExamsPage from './pages/ExamsPage';
+import LessonPlanPage from './pages/LessonPlanPage';
 import StudentDashboard from './pages/StudentDashboard';
 import SyllabusUpload from './components/CourseGenerator';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -39,6 +40,7 @@ function App() {
             }>
               <Route index element={<TeacherHome />} />
               <Route path="exams" element={<ExamsPage />} />
+              <Route path="lesson-plan" element={<LessonPlanPage />} />
               {/* Developer Note: Append all NEW navigation tabs perfectly above this line */}
               <Route path="create-course" element={<SyllabusUpload />} />
             </Route>

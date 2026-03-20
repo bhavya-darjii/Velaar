@@ -213,3 +213,69 @@ export const gradeFullExam = async (syllabus, examData) => {
     return { score: 0, feedback: "Error reading AI response." };
   }
 };
+
+// --- 5. LESSON PLAN GENERATOR ---
+export const generateLessonPlan = async (subjectName, modules) => {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  
+  if (!modules || modules.length === 0) return null;
+
+  const moduleNames = modules.map(m => m.name || `Unit ${m.id}`).join(", ");
+  const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\n${m.extractedText || ""}`).join("\n\n");
+
+  const prompt = `
+    Role: Senior Academic Curriculum Planner.
+    Task: Create a highly detailed Lesson Plan and Course Outcomes grid for the subject: "${subjectName}".
+    
+    CRITICAL INSTRUCTIONS:
+    1. Base your unit outcomes exactly on the provided Modules and their descriptions.
+    2. Ensure outcomes use measurable verbs from Bloom's Taxonomy.
+    3. Generate a comprehensive globally-applicable "Course Description" (about 1 paragraph).
+    4. For *each* module provided, generate EXACTLY 2 measurable Outcomes.
+    5. For *each* module, assign one appropriate Bloom's Taxonomy cognitive level string (e.g., "Understand", "Apply", "Analyze", "Evaluate", "Create").
+    
+    Modules List: ${moduleNames}
+    
+    Module Contents for Context:
+    "${moduleTexts.substring(0, 30000)}"
+    
+    Output Format: return ONLY a raw JSON string matching exactly this schema:
+    {
+      "courseDescription": "A comprehensive course that explores...",
+      "unitOutcomes": [
+        {
+          "unitNo": 1,
+          "outcomes": "At the end of this unit a student will be able to:\\n1. Describe basic concepts.\\n2. Identify key components.",
+          "btLevel": "Understand"
+        }
+      ]
+    }
+  `;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error) {
+      console.error("Gemini Error:", data.error.message);
+      return null;
+    }
+
+    if (!data.candidates || !data.candidates[0]) {
+      return null;
+    }
+
+    const textResult = data.candidates[0].content.parts[0].text;
+    return JSON.parse(textResult);
+  } catch (error) {
+    console.error("Lesson Plan Generation Error:", error);
+    return null;
+  }
+};

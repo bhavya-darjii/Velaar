@@ -67,7 +67,14 @@ export const LiquidChrome = ({
           float ripple = sin(10.0 * dist - uTime * 2.0) * 0.03;
           uv += (diff / (dist + 0.0001)) * ripple * falloff;
 
-          vec3 color = uBaseColor / abs(sin(uTime - uv.y - uv.x));
+          // 1. Keep the original math with a tiny 0.01 buffer to prevent dividing by zero.
+          // This preserves the wide, thick streaks.
+          vec3 color = uBaseColor / (abs(sin(uTime - uv.y - uv.x)) + 0.01);
+          
+          // 2. [EDIT HERE]: Cap the maximum brightness so it isn't blindingly shiny.
+          // Adjust 0.85 down (e.g., 0.6) to make it duller, or closer to 1.0 for more shine.
+          color = min(color, vec3(0.65)); 
+
           return vec4(color, 1.0);
       }
 

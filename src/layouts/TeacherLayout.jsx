@@ -106,6 +106,9 @@ const TeacherLayout = () => {
           <li className={location.pathname === '/teacher/exams' ? 'active' : ''} onClick={() => { navigate('/teacher/exams'); setSidebarOpen(false); }}>
             Exam Center
           </li>
+          <li className={location.pathname === '/teacher/lesson-plan' ? 'active' : ''} onClick={() => { navigate('/teacher/lesson-plan'); setSidebarOpen(false); }}>
+            Lesson Plan
+          </li>
           {/* Developer Note: Append all NEW navigation tabs perfectly above this line */}
           <li className={`new-course-tab ${location.pathname === '/teacher/create-course' ? 'active' : ''}`} onClick={() => { navigate('/teacher/create-course'); setSidebarOpen(false); }}>
             + New Course
