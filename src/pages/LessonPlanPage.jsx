@@ -3,6 +3,7 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment } from '../services/aiService';
+import { exportLessonPlanToWord } from '../utils/wordExport';
 import './LessonPlanPage.css';
 
 const defaultProgramOutcomes = [
@@ -209,6 +210,21 @@ const LessonPlanPage = () => {
       } catch(e) { console.error("Save error", e); }
     } else {
       alert("Failed to generate Day-Wise Enrichment.");
+    }
+    setLoading(false);
+  };
+
+  const handleExportWord = async () => {
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, "courses", course.id), { lessonPlan });
+      setCourse({ ...course, lessonPlan });
+      
+      // Inherently synthesize docx binary buffer directly
+      await exportLessonPlanToWord(course, lessonPlan);
+    } catch (e) {
+      console.error(e);
+      alert("Error generating Document. Ensure layout is completed.");
     }
     setLoading(false);
   };
@@ -968,8 +984,28 @@ const LessonPlanPage = () => {
              </div>
            )}
 
-           <div className="lp-actions">
-             <button className="save-btn" onClick={handleSave}>Save Changes</button>
+           <div className="lp-actions" style={{justifyContent: 'center', marginTop: '40px', borderTop: 'none'}}>
+             <button style={{
+               background: 'white', 
+               color: 'black', 
+               fontSize: '1.2rem', 
+               padding: '15px 60px', 
+               display: 'flex', 
+               alignItems: 'center', 
+               justifyContent: 'center', 
+               gap: '10px', 
+               fontWeight: 'bold',
+               borderRadius: '6px',
+               border: '1px solid #ccc',
+               outline: 'none',
+               boxShadow: 'none',
+               cursor: 'pointer',
+               transition: 'all 0.3s ease'
+             }} 
+             onMouseDown={(e) => e.preventDefault()}
+             onClick={handleExportWord}>
+               <span>Export Lesson Plan</span>
+             </button>
            </div>
         </div>
       )}
