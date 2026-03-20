@@ -180,7 +180,7 @@ const LessonPlanPage = () => {
                 <li>Role Play</li>
                 <li>Problem based</li>
                 <li>Brain storming</li>
-                <li>any other</li>
+                <li>Any Other</li>
               </ul>
            </div>
 

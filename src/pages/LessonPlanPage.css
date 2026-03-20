@@ -93,8 +93,9 @@
   border-radius: 12px;
   padding: 15px;
   font-family: inherit;
-  resize: vertical;
+  resize: none; /* Strip manual resize handle */
   line-height: 1.5;
+  box-sizing: border-box; /* Stop horizontal overflow */
 }
 
 .lp-table-wrapper { 
@@ -133,7 +134,7 @@
   background: transparent;
   border: none;
   color: #e2e8f0;
-  resize: vertical;
+  resize: none; /* Strip manual resize handle */
   font-family: inherit;
   line-height: 1.4;
   padding: 5px;
@@ -242,8 +243,8 @@
 
 .sm-regen {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 8px;
+  right: 25px; /* Offset to completely bypass native Windows scrollbars */
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.8rem;
