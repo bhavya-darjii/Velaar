@@ -7,9 +7,10 @@
 /* Floating Sidebar */
 .teacher-sidebar {
   width: 300px;
-  background: rgba(10, 5, 20, 0.25); /* Ultra transparent glass base */
-  backdrop-filter: blur(30px); 
-  -webkit-backdrop-filter: blur(30px);
+  background-color: rgba(10, 5, 20, 0.25); /* Safe format */
+  -webkit-backdrop-filter: blur(30px) !important;
+  backdrop-filter: blur(30px) !important; /* Enforce against minifier */
+  transform: translateZ(0); /* Force GPU */
   border-right: none; 
   border-radius: 0 24px 24px 0; /* Massive rounded floating border */
   display: flex;
