@@ -117,10 +117,46 @@ const LessonPlanPage = () => {
 
   const handleGenerate = async () => {
     setLoading(true);
-    const lpData = await generateLessonPlan(course.subjectName, course.modules || []);
-    const suppData = await generateSupplementaryLessonPlan(course.subjectName, course.modules || []);
-    
-    if (lpData && suppData) {
+    let roadmapLine = [];
+    if (course.roadmap) {
+       roadmapLine = Array.isArray(course.roadmap) ? course.roadmap : Object.values(course.roadmap)[0] || [];
+    }
+    const topics = roadmapLine.map(l => l.title);
+
+    try {
+      const [lpData, suppData] = await Promise.all([
+        generateLessonPlan(course.subjectName, course.modules || []),
+        generateSupplementaryLessonPlan(course.subjectName, course.modules || [])
+      ]);
+
+      if (!lpData || !suppData) {
+        alert("Failed to generate AI Lesson Plan components. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      let enriched = [];
+      if (topics.length > 0) {
+        const enrichmentData = await generateDayWiseEnrichment(
+            course.subjectName, 
+            topics, 
+            suppData.textBooks, 
+            suppData.referenceBooks
+        );
+        if (enrichmentData) {
+            enriched = enrichmentData.map(e => ({ ...e, method: "Black Board & PPT/DI" }));
+        }
+      }
+
+      const defaultActualDates = {};
+      (course.divisions && course.divisions.length > 0 ? course.divisions : ["A"]).forEach(div => {
+         defaultActualDates[div] = {};
+         let divRoadmap = Array.isArray(course.roadmap) ? course.roadmap : (course.roadmap?.[div] || []);
+         divRoadmap.forEach((lec, idx) => {
+            defaultActualDates[div][idx] = { proposed: lec.date || "", actual: lec.date || "" };
+         });
+      });
+
       const defaultPlan = {
         ...lpData,
         unitOutcomes: lpData.unitOutcomes.map(u => ({
@@ -133,83 +169,18 @@ const LessonPlanPage = () => {
         courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `CO.${idx+1}` })),
         assessmentPlanning: getDefaultAssessment(course.modules),
         textBooks: suppData.textBooks,
-        referenceBooks: suppData.referenceBooks
-      };
-      
-      try {
-        await updateDoc(doc(db, "courses", course.id), { lessonPlan: defaultPlan });
-        setCourse({ ...course, lessonPlan: defaultPlan });
-        setLessonPlan(defaultPlan);
-      } catch(e) { console.error("Save error", e); }
-    } else {
-      alert("Failed to generate AI Lesson Plan. Please try again.");
-    }
-    setLoading(false);
-  };
-
-  const handleGenerateSupplementary = async () => {
-    setLoading(true);
-    const suppData = await generateSupplementaryLessonPlan(course.subjectName, course.modules || []);
-    if (suppData) {
-      const updatedPlan = {
-        ...lessonPlan,
-        programOutcomes: defaultProgramOutcomes,
-        courseOutcomes: suppData.courseOutcomes.map((co, idx) => ({ ...co, coNo: `CO.${idx+1}` })),
-        assessmentPlanning: lessonPlan.assessmentPlanning || getDefaultAssessment(course.modules),
-        textBooks: suppData.textBooks,
-        referenceBooks: suppData.referenceBooks
-      };
-      try {
-        await updateDoc(doc(db, "courses", course.id), { lessonPlan: updatedPlan });
-        setCourse({ ...course, lessonPlan: updatedPlan });
-        setLessonPlan(updatedPlan);
-      } catch(e) { console.error("Save error", e); }
-    } else {
-      alert("Failed to generate Outcomes & Books.");
-    }
-    setLoading(false);
-  };
-
-  const handleGenerateDayWiseEnrichment = async () => {
-    setLoading(true);
-    let roadmapLine = [];
-    if (course.roadmap) {
-       roadmapLine = Array.isArray(course.roadmap) ? course.roadmap : Object.values(course.roadmap)[0] || [];
-    }
-    const topics = roadmapLine.map(l => l.title);
-    
-    if (topics.length === 0) {
-      alert("No syllabus roadmap found! Please generate the core roadmap in the Course Dashboard first.");
-      setLoading(false);
-      return;
-    }
-
-    const enrichmentData = await generateDayWiseEnrichment(course.subjectName, topics, lessonPlan.textBooks, lessonPlan.referenceBooks);
-    if (enrichmentData) {
-      const enriched = enrichmentData.map(e => ({ ...e, method: "Black Board & PPT/DI" }));
-      
-      const defaultActualDates = {};
-      (course.divisions && course.divisions.length > 0 ? course.divisions : ["A"]).forEach(div => {
-         defaultActualDates[div] = {};
-         let divRoadmap = Array.isArray(course.roadmap) ? course.roadmap : (course.roadmap?.[div] || []);
-         divRoadmap.forEach((lec, idx) => {
-            defaultActualDates[div][idx] = { proposed: lec.date || "", actual: lec.date || "" };
-         });
-      });
-
-      const updatedPlan = {
-        ...lessonPlan,
+        referenceBooks: suppData.referenceBooks,
         dayWiseEnrichment: enriched,
-        dayWiseDates: lessonPlan.dayWiseDates || defaultActualDates
+        dayWiseDates: defaultActualDates
       };
       
-      try {
-        await updateDoc(doc(db, "courses", course.id), { lessonPlan: updatedPlan });
-        setCourse({ ...course, lessonPlan: updatedPlan });
-        setLessonPlan(updatedPlan);
-      } catch(e) { console.error("Save error", e); }
-    } else {
-      alert("Failed to generate Day-Wise Enrichment.");
+      await updateDoc(doc(db, "courses", course.id), { lessonPlan: defaultPlan });
+      setCourse({ ...course, lessonPlan: defaultPlan });
+      setLessonPlan(defaultPlan);
+
+    } catch(e) { 
+      console.error("Save error", e); 
+      alert("Error generating full lesson plan.");
     }
     setLoading(false);
   };
@@ -418,14 +389,6 @@ const LessonPlanPage = () => {
                 ))}
               </ul>
            </div>
-
-           {/* OUTCOMES FALLBACK INITIALIZER */}
-           {(!lessonPlan.programOutcomes || !lessonPlan.courseOutcomes) && (
-             <div style={{background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center'}}>
-               <p style={{marginBottom: '15px'}}>New Features Available! Initialize your Course/Program Outcomes and AI Book tracking.</p>
-               <button className="generate-btn" style={{marginTop: 0, padding: '10px 25px', fontSize: '1rem'}} onClick={handleGenerateSupplementary}>Initialize Remaining Outcomes & Books</button>
-             </div>
-           )}
 
            {(lessonPlan.programOutcomes && lessonPlan.courseOutcomes) && (
              <div className="outcomes-section fade-in">
