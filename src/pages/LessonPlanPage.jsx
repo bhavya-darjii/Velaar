@@ -468,7 +468,7 @@ const LessonPlanPage = () => {
                {/* 6. COURSE ASSESSMENT PLANNING */}
                {lessonPlan.assessmentPlanning && (
                  <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
-                   <h4 style={{marginBottom: '10px'}}>Course Assessment Planning (tick applicable method: -)</h4>
+                   <h4 style={{marginBottom: '10px'}}>Course Assessment Planning</h4>
                    <div style={{overflowX: 'auto', width: '100%'}}>
                      <table className="lp-table cap-table" style={{textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: '1000px'}}>
                        <thead>
