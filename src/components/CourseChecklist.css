@@ -182,3 +182,20 @@
   white-space: nowrap; /* Prevents text from breaking into a second line */
   flex-shrink: 0;      /* Prevents the badge from squishing when title is long */
 }
+
+/* =========================================
+   RESPONSIVE OVERRIDES
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .finish-btn {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+  .active-card {
+    padding: 15px;
+    border-radius: 12px;
+  }
+  .roadmap-mini {
+    padding: 15px;
+  }
+}

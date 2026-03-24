@@ -318,10 +318,54 @@
   border-radius: 4px;
   transition: all 0.2s;
   box-sizing: border-box;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .methodology-input:focus {
   outline: 1px solid rgba(168, 85, 247, 0.4);
   background: rgba(0,0,0,0.3);
   color: #fff;
+}
+
+/* =========================================
+   RESPONSIVE OVERRIDES
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .generate-btn {
+    padding: 12px 20px;
+    font-size: 1.05rem;
+  }
+  .save-btn, .regen-btn {
+    padding: 10px 18px;
+    font-size: 0.95rem;
+  }
+  .lesson-plan-grid {
+    padding: 15px;
+    border-radius: 12px;
+  }
+  .lp-header h2 {
+    font-size: 1.2rem;
+  }
+  .lp-description textarea {
+    padding: 10px;
+  }
+  .lp-table-wrapper {
+    margin-bottom: 20px;
+    /* Force horizontal scroll */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .lp-table {
+    min-width: 700px; /* Forces wide matrices to overflow instead of crushing */
+  }
+  .lp-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .lp-actions button {
+    width: 100%;
+  }
 }

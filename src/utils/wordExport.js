@@ -73,7 +73,7 @@ export const exportLessonPlanToWord = async (course, lp) => {
   // --- 1. Header ---
   sections.push(
     new Paragraph({
-      children: [new TextRun({ text: `${course.subjectName || "Subject"} (2025-26) - Faculty: ${lp.facultyName || course.professorName || "Unknown"}`, bold: true, size: 28, font: "Arial" })],
+      children: [new TextRun({ text: `${course.subjectName || "Subject"} (2025-26) - Faculty: Prof. ${course.teacherName || lp.facultyName || course.professorName || "Unknown"}`, bold: true, size: 28, font: "Arial" })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 200 }
     }),
@@ -110,7 +110,7 @@ export const exportLessonPlanToWord = async (course, lp) => {
   modulesToUse.forEach((mod, idx) => {
     const rawUnit = lp.unitOutcomes?.[idx] || {};
     const unitNo = rawUnit.unit || `Unit ${idx + 1}`;
-    const unitTitle = rawUnit.unit || mod.title || "-";
+    const unitTitle = mod.name || rawUnit.unit || "-";
     const uOutcomes = rawUnit.outcomes || "-";
     const tPractice = rawUnit.teachingPractice || "-";
     const formative = rawUnit.formative || "-";

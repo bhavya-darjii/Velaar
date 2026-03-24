@@ -365,10 +365,9 @@ const LessonPlanPage = () => {
                   "Any Other"
                 ]).map((method, idx) => (
                   <li key={idx}>
-                    <input 
-                      type="text" 
+                    <textarea 
                       className="methodology-input"
-                      size={Math.max((method || '').length + 2, 20)}
+                      style={{ width: '100%', resize: 'vertical', minHeight: '40px' }}
                       value={method}
                       onChange={(e) => {
                         const updated = [...(Array.isArray(lessonPlan.teachingMethodologies) ? lessonPlan.teachingMethodologies : [
@@ -587,7 +586,7 @@ const LessonPlanPage = () => {
                  <ul>
                     {lessonPlan.textBooks.map((book, idx) => (
                       <li key={idx}>
-                        <input type="text" className="methodology-input" size={Math.max((book || '').length + 2, 20)} value={book}
+                        <textarea className="methodology-input" style={{ width: '100%', resize: 'vertical', minHeight: '40px' }} value={book}
                           onChange={(e) => {
                             const updated = [...lessonPlan.textBooks];
                             updated[idx] = e.target.value;
@@ -612,7 +611,7 @@ const LessonPlanPage = () => {
                  <ul>
                     {lessonPlan.referenceBooks.map((book, idx) => (
                       <li key={idx}>
-                        <input type="text" className="methodology-input" size={Math.max((book || '').length + 2, 20)} value={book}
+                        <textarea className="methodology-input" style={{ width: '100%', resize: 'vertical', minHeight: '40px' }} value={book}
                           onChange={(e) => {
                             const updated = [...lessonPlan.referenceBooks];
                             updated[idx] = e.target.value;

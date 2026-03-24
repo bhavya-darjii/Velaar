@@ -149,3 +149,26 @@
   appearance: textfield; /* Safari and Chrome */
   -moz-appearance: textfield; /* Firefox */
 }
+
+/* =========================================
+   RESPONSIVE OVERRIDES
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .generate-btn {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+  .action-card {
+    padding: 15px;
+  }
+  .bt-chips-container {
+    gap: 5px;
+  }
+  .chip-text {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  .generate-btn {
+    padding: 12px;
+  }
+}

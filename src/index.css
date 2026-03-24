@@ -144,3 +144,7 @@ button:focus-visible {
     font-size: 16px !important; /* Prevents iOS Safari zoom on tap */
   }
 }
+
+textarea {
+  resize: none !important;
+}

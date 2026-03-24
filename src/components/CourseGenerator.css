@@ -578,3 +578,37 @@ select.glass-input:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4); 
 }
+
+/* =========================================
+   RESPONSIVE OVERRIDES
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .glass-btn {
+    padding: 12px;
+    font-size: 1rem;
+  }
+  .glass-container {
+    padding: 0;
+  }
+  .glass-card {
+    padding: 15px;
+    border-radius: 12px;
+  }
+  .glass-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  .row-inputs {
+    grid-template-columns: 1fr;
+  }
+  .action-row {
+    flex-direction: column;
+  }
+  .generate-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .form-section {
+    padding: 15px;
+  }
+}

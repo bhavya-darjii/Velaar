@@ -7,5 +7,6 @@
 @media screen and (max-width: 768px) {
   .teacher-home-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
 }

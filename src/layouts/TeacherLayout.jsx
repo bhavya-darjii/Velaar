@@ -59,7 +59,7 @@ const TeacherLayout = () => {
         if (!querySnapshot.empty) {
           const docData = querySnapshot.docs[0].data();
           const docId = querySnapshot.docs[0].id;
-          const courseData = { id: docId, ...docData };
+          const courseData = { id: docId, teacherName, ...docData };
           setCourse(courseData);
           
           let allLectures = [];
