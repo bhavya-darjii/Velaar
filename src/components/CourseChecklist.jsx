@@ -87,9 +87,16 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
   return (
     <section className="active-card">
       <div className="card-header">
-        <span className="tag-live" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
-          {liveStatusText}
-        </span>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+          <span className="tag-live" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+            {liveStatusText}
+          </span>
+          {currentLecture?.moduleName && (
+            <span style={{ background: 'rgba(0, 204, 255, 0.15)', color: '#00ccff', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(0, 204, 255, 0.3)', fontWeight: 'bold' }}>
+              {currentLecture.moduleName}
+            </span>
+          )}
+        </div>
         <h2>{currentLecture?.division ? `Div ${currentLecture.division} - ` : ""}Lecture {currentLecture?.lectureNum}: {currentLecture?.title}</h2>
       </div>
       

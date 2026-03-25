@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../services/firebase";
 import { collection, addDoc } from "firebase/firestore";
@@ -129,6 +129,21 @@ const CourseGenerator = () => {
   // Roadmap object containing arrays for each division
   const [generatedRoadmap, setGeneratedRoadmap] = useState({});
 
+  // --- LIFECYCLE GUARDS ---
+  useEffect(() => {
+    const isExtracting = modules.some((m) => m.fileStatus === "loading");
+    
+    const handleBeforeUnload = (e) => {
+      if (isExtracting) {
+        e.preventDefault();
+        e.returnValue = "PDFs are currently extracting. Leaving now will cancel the process.";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [modules]);
+
   // --- DIVISION HANDLERS ---
   const handleNumDivisionsChange = (e) => {
     const cleanValue = e.target.value.replace(/\D/g, "");
@@ -198,11 +213,20 @@ const CourseGenerator = () => {
   };
 
   const handleModuleFilesChange = async (index, e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
+    const rawFiles = Array.from(e.target.files);
+    if (!rawFiles.length) return;
+
+    const newFiles = rawFiles.map(f => ({
+       id: Math.random().toString(36).substring(2, 9),
+       fileObj: f,
+       name: f.name,
+       text: "",
+       status: "loading"
+    }));
 
     setModules((prev) => {
       const next = [...prev];
+      next[index].filesList = [...(next[index].filesList || []), ...newFiles];
       next[index].fileStatus = "loading";
       next[index].extractionProgress = "Waiting in queue...";
       return next;
@@ -215,57 +239,46 @@ const CourseGenerator = () => {
         return next;
       });
 
-      try {
-        let combinedText = "";
-        let successCount = 0;
-        let lastErr = null;
-
-        for (const file of files) {
-          try {
-            const text = await extractTextFromPDF(file, (status) => {
-              setModules((prev) => {
-                const next = [...prev];
-                next[index].extractionProgress = `Mod ${index + 1}: ${status}`;
-                return next;
-              });
+      for (let fi = 0; fi < newFiles.length; fi++) {
+        const fileItem = newFiles[fi];
+        try {
+          const text = await extractTextFromPDF(fileItem.fileObj, (status) => {
+            setModules((prev) => {
+              const nx = [...prev];
+              nx[index].extractionProgress = `${fileItem.name}: ${status}`;
+              return nx;
             });
-            if (text) {
-               combinedText += text + "\n\n";
-               successCount++;
-            }
-          } catch (fileErr) {
-            console.error(`Failed to extract ${file.name}:`, fileErr);
-            lastErr = fileErr;
+          });
+          
+          if (text) {
+             setModules(prev => {
+                const nx = [...prev];
+                const fList = nx[index].filesList.map(f => f.id === fileItem.id ? { ...f, text, status: "success" } : f);
+                nx[index].filesList = fList;
+                return nx;
+             });
           }
+        } catch (fileErr) {
+          console.error(`Failed to extract ${fileItem.name}:`, fileErr);
+          setModules(prev => {
+             const nx = [...prev];
+             const fList = nx[index].filesList.map(f => f.id === fileItem.id ? { ...f, status: "error" } : f);
+             nx[index].filesList = fList;
+             return nx;
+          });
         }
-
-        if (successCount === 0) {
-          if (files.length === 1) {
-            throw new Error(`Failed to extract text from the PDF. ${lastErr?.message || ""}`);
-          } else {
-            throw new Error(`Failed to extract text from all ${files.length} PDFs uploaded.`);
-          }
-        }
-
-        setModules((prev) => {
-          const next = [...prev];
-          next[index].extractedText = combinedText;
-          next[index].fileStatus = "success";
-          next[index].extractionProgress = "";
-          return next;
-        });
-      } catch (err) {
-        console.error(err);
-        alert(`Error reading PDFs for Module ${index + 1}: ` + err.message);
-        
-        setModules((prev) => {
-          const next = [...prev];
-          next[index].extractedText = "";
-          next[index].fileStatus = "error";
-          next[index].extractionProgress = "";
-          return next;
-        });
       }
+
+      setModules((prev) => {
+        const nx = [...prev];
+        const fList = nx[index].filesList || [];
+        const hasError = fList.some(f => f.status === "error");
+        
+        nx[index].extractedText = fList.filter(f => f.status === "success").map(f => f.text).join("\n\n");
+        nx[index].fileStatus = hasError ? "error" : "success";
+        nx[index].extractionProgress = "";
+        return nx;
+      });
     });
   };
 
@@ -334,9 +347,11 @@ const CourseGenerator = () => {
 
     try {
       // 1. Ask AI to break syllabus into lectures (One time cost)
+      const acceptedModulesList = modules.map((m) => m.name).join(", ");
       const { roadmap, usage } = await generateLectureRoadmap(
         aggregatedSyllabusText,
         Number(totalLectures),
+        acceptedModulesList
       );
 
       if (usage) {
@@ -411,12 +426,62 @@ const CourseGenerator = () => {
     setLoading(false);
   };
 
+  const handleDragStart = (e, moduleIndex, fileIndex) => {
+    e.dataTransfer.setData('moduleIndex', moduleIndex);
+    e.dataTransfer.setData('sourceIndex', fileIndex);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); 
+  };
+
+  const handleDrop = (e, targetModuleIndex, targetFileIndex) => {
+    e.preventDefault();
+    const sourceModuleIndex = parseInt(e.dataTransfer.getData('moduleIndex'));
+    const sourceIndex = parseInt(e.dataTransfer.getData('sourceIndex'));
+    
+    if (sourceModuleIndex !== targetModuleIndex) return;
+    if (sourceIndex === targetFileIndex) return;
+
+    setModules(prev => {
+      const next = [...prev];
+      const items = [...(next[targetModuleIndex].filesList || [])];
+      if (!items.length) return next;
+
+      const [draggedItem] = items.splice(sourceIndex, 1);
+      items.splice(targetFileIndex, 0, draggedItem);
+      
+      next[targetModuleIndex].filesList = items;
+      next[targetModuleIndex].extractedText = items.filter(f => f.status === "success").map(f => f.text).join("\n\n");
+      return next;
+    });
+  };
+
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <div className="glass-container" style={{ minHeight: 'auto', padding: '20px 0' }}>
-      <div className="glass-card" style={{ margin: '0 auto' }}>
-        <h1 className="glass-title">Create New Course</h1>
+    <>
+      {loading && (
+        <div className="generation-modal">
+          <div className="modal-content">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner-large">
+              <line x1="12" y1="2" x2="12" y2="6"></line>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+              <line x1="2" y1="12" x2="6" y2="12"></line>
+              <line x1="18" y1="12" x2="22" y2="12"></line>
+              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+            </svg>
+            <h2>{loadingStatus}</h2>
+            <p>Please wait while AI constructs your curriculum constraints...</p>
+          </div>
+        </div>
+      )}
+      <div className="glass-container" style={{ minHeight: 'auto', padding: '20px 0' }}>
+        <div className="glass-card" style={{ margin: '0 auto' }}>
+          <h1 className="glass-title">Create New Course</h1>
 
         {step === 1 && (
           <div className="form-content">
@@ -476,6 +541,7 @@ const CourseGenerator = () => {
                   className="glass-input"
                   value={numModules}
                   onChange={handleNumModulesChange}
+                  onFocus={(e) => e.target.select()}
                 />
               </div>
 
@@ -511,7 +577,7 @@ const CourseGenerator = () => {
                     </div>
 
                     <div className="input-group" style={{ marginTop: "10px" }}>
-                      <label>Upload PDFs for Module {mod.id}</label>
+                      <label>Upload PDF's for Module {mod.id}</label>
                       <div className="file-upload-wrapper">
                         <input
                           type="file"
@@ -520,7 +586,42 @@ const CourseGenerator = () => {
                           onChange={(e) => handleModuleFilesChange(index, e)}
                           className="glass-file-input"
                         />
-                        {(mod.extractedText || mod.fileStatus) && (
+                        
+                        {(mod.filesList && mod.filesList.length > 0) && (
+                          <div className="files-list" style={{ marginTop: '15px' }}>
+                            {mod.filesList.map((file, fIndex) => (
+                              <div 
+                                key={file.id} 
+                                draggable 
+                                onDragStart={(e) => handleDragStart(e, index, fIndex)}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, index, fIndex)}
+                                style={{
+                                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                  padding: '10px 14px', marginBottom: '8px', 
+                                  background: file.status === 'error' ? 'rgba(255, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)', 
+                                  borderRadius: '8px', cursor: 'grab', 
+                                  border: `1px solid ${file.status === 'error' ? 'rgba(255, 68, 68, 0.3)' : 'rgba(255,255,255,0.1)'}`
+                                }}
+                              >
+                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                                    <span style={{ opacity: 0.5, fontSize: '1.1rem', cursor: 'grab' }}>☰</span>
+                                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.9rem', maxWidth: '180px', color: '#fff' }}>
+                                      {file.name}
+                                    </span>
+                                 </div>
+                                 
+                                 <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
+                                   {file.status === 'loading' && <span style={{ color: '#ffcc00' }}>Extracting...</span>}
+                                   {file.status === 'success' && <span style={{ color: '#00ffcc', display: 'flex', alignItems: 'center' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>}
+                                   {file.status === 'error' && <span style={{ color: '#ff4444', display: 'flex', alignItems: 'center' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>}
+                                 </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {mod.extractionProgress && (
                           <div
                             style={{
                               display: "inline-flex",
@@ -530,42 +631,22 @@ const CourseGenerator = () => {
                               marginTop: "10px",
                               padding: "4px 12px",
                               borderRadius: "20px",
-                              background: mod.fileStatus === "error" ? "rgba(255, 68, 68, 0.15)" : mod.fileStatus === "loading" ? "rgba(255, 204, 0, 0.15)" : "rgba(0, 255, 204, 0.15)",
-                              color: mod.fileStatus === "error" ? "#ff4444" : mod.fileStatus === "loading" ? "#ffcc00" : "#00ffcc",
-                              border: `1px solid ${mod.fileStatus === "error" ? "rgba(255, 68, 68, 0.3)" : mod.fileStatus === "loading" ? "rgba(255, 204, 0, 0.3)" : "rgba(0, 255, 204, 0.3)"}`
+                              background: "rgba(255, 204, 0, 0.15)",
+                              color: "#ffcc00",
+                              border: "1px solid rgba(255, 204, 0, 0.3)"
                             }}
                           >
-                            {mod.fileStatus === "error" ? (
-                              <>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="10"></circle>
-                                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                </svg>
-                                Extraction Failed
-                              </>
-                            ) : mod.fileStatus === "loading" ? (
-                              <>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner">
-                                  <line x1="12" y1="2" x2="12" y2="6"></line>
-                                  <line x1="12" y1="18" x2="12" y2="22"></line>
-                                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                                  <line x1="2" y1="12" x2="6" y2="12"></line>
-                                  <line x1="18" y1="12" x2="22" y2="12"></line>
-                                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                                </svg>
-                                {mod.extractionProgress || "Waiting in queue..."}
-                              </>
-                            ) : (
-                              <>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                Extracted Successfully
-                              </>
-                            )}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner">
+                              <line x1="12" y1="2" x2="12" y2="6"></line>
+                              <line x1="12" y1="18" x2="12" y2="22"></line>
+                              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                              <line x1="2" y1="12" x2="6" y2="12"></line>
+                              <line x1="18" y1="12" x2="22" y2="12"></line>
+                              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                            </svg>
+                            {mod.extractionProgress}
                           </div>
                         )}
                       </div>
@@ -593,6 +674,7 @@ const CourseGenerator = () => {
                   className="glass-input"
                   value={numDivisions}
                   onChange={handleNumDivisionsChange}
+                  onFocus={(e) => e.target.select()}
                   placeholder="e.g. 2"
                   style={{ maxWidth: "150px" }}
                 />
@@ -766,6 +848,11 @@ const CourseGenerator = () => {
                     {lecture.time && (
                       <span className="time-tag">{lecture.time}</span>
                     )}
+                    {lecture.moduleName && (
+                      <span style={{ marginLeft: "10px", background: 'rgba(0, 204, 255, 0.15)', color: '#00ccff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', border: '1px solid rgba(0, 204, 255, 0.3)', whiteSpace: 'nowrap' }}>
+                        {lecture.moduleName}
+                      </span>
+                    )}
                   </div>
                   <div className="item-content">
                     <h3>{lecture.title}</h3>
@@ -794,6 +881,7 @@ const CourseGenerator = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

@@ -1,7 +1,7 @@
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
 // --- 1. ROADMAP GENERATOR (Splits Syllabus into Lectures across Modules) ---
-export const generateLectureRoadmap = async (syllabusText, totalLectures) => {
+export const generateLectureRoadmap = async (syllabusText, totalLectures, acceptedModules) => {
   // SAFETY CHECK: If text is missing or too short, stop immediately.
   if (!syllabusText || syllabusText.length < 50) {
     console.error("Syllabus text is empty or too short!");
@@ -18,7 +18,7 @@ export const generateLectureRoadmap = async (syllabusText, totalLectures) => {
     1. Base your roadmap STRICTLY on the provided text. Cover absolutely ALL modules provided in chronological order.
     2. You MUST generate EXACTLY ${totalLectures} lectures. No more, no less.
     3. If there are fewer lectures than modules, you MUST seamlessly combine multiple modules or topics into single lectures to safely compress and accommodate all content. Do not omit any core topics.
-    4. Keep track of which module each lecture belongs to.
+    4. Keep track of which module each lecture belongs to. You MUST select the "moduleName" EXACTLY from this provided list of accepted module names: [${acceptedModules}]. Do not abbreviate or invent names. If multiple topics are grouped into one lecture, designate the primary one.
     5. Do NOT hallucinate topics not present in the text.
     
     Syllabus Text: 
@@ -28,7 +28,7 @@ export const generateLectureRoadmap = async (syllabusText, totalLectures) => {
     [
       {
         "lectureNum": 1,
-        "moduleName": "Name of the Module",
+        "moduleName": "e.g., Exactly matching the accepted string",
         "title": "Topic Name",
         "description": "Brief summary.",
         "checklist": ["Point 1", "Point 2", "Point 3"]

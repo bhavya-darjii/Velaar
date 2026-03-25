@@ -164,8 +164,72 @@ input[type="number"] {
   animation: spin 1s linear infinite;
 }
 
+.spinner-large {
+  animation: spin 1s linear infinite;
+  color: #ffcc00;
+  margin-bottom: 20px;
+}
+
 @keyframes spin {
   100% {
     transform: rotate(360deg);
   }
+}
+
+*:focus {
+  outline: none !important;
+}
+
+/* Generation Overlay */
+.generation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: rgba(10, 15, 30, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.generation-modal .modal-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 50px 80px;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.generation-modal h2 {
+  color: #fff;
+  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.generation-modal p {
+  color: #a0aec0;
+  font-size: 1rem;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
