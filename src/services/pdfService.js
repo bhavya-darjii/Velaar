@@ -24,36 +24,40 @@ export const extractTextFromPDF = async (file, onProgress) => {
     const totalPages = pdf.numPages;
 
     for (let i = 1; i <= totalPages; i++) {
-      // 1. Get the page
-      const page = await pdf.getPage(i);
-      
-      // 2. Set scale to 2.0 for clear OCR reading
-      const viewport = page.getViewport({ scale: 2.0 });
-      
-      // 3. Create a canvas to "screenshot" the page
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+      try {
+        // 1. Get the page
+        const page = await pdf.getPage(i);
+        
+        // 2. Set scale to 2.0 for clear OCR reading
+        const viewport = page.getViewport({ scale: 2.0 });
+        
+        // 3. Create a canvas to "screenshot" the page
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
-      // 4. Render PDF page onto canvas
-      await page.render({ canvasContext: context, viewport: viewport }).promise;
+        // 4. Render PDF page onto canvas
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-      // 5. Convert screenshot to image blob
-      const blob = await new Promise(resolve => canvas.toBlob(resolve));
+        // 5. Convert screenshot to image blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve));
 
-      // 6. Run OCR (Tesseract) on the image
-      if (onProgress) onProgress(`Scanning Page ${i} of ${totalPages}...`);
-      
-      // Tesseract will download its own worker from a CDN automatically.
-      // This is generally allowed by browsers.
-      const result = await Tesseract.recognize(blob, 'eng');
+        // 6. Run OCR (Tesseract) on the image
+        if (onProgress) onProgress(`Scanning Page ${i} of ${totalPages}...`);
+        
+        // Tesseract will download its own worker from a CDN automatically.
+        // This is generally allowed by browsers.
+        const result = await Tesseract.recognize(blob, 'eng');
 
-      const pageText = result.data.text;
-      
-      // Only add text if it's not empty garbage
-      if (pageText.trim().length > 5) {
-        fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+        const pageText = result.data.text;
+        
+        // Only add text if it's not empty garbage
+        if (pageText.trim().length > 5) {
+          fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+        }
+      } catch (pageErr) {
+        console.warn(`Skipping extraction on Page ${i} due to structural error:`, pageErr);
       }
     }
 

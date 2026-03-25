@@ -6,6 +6,9 @@ import { extractTextFromPDF } from "../services/pdfService";
 import { generateLectureRoadmap } from "../services/aiService";
 import "./CourseGenerator.css";
 
+// Global queue to ensure sequential PDF OCR extraction across all modules smoothly
+let pdfExtractionQueue = Promise.resolve();
+
 // --- HELPER: SCHEDULING LOGIC ---
 const mapLecturesToSchedule = (
   roadmap,
@@ -198,27 +201,72 @@ const CourseGenerator = () => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    setLoading(true);
-    setLoadingStatus(`Extracting PDFs for Module ${index + 1}...`);
+    setModules((prev) => {
+      const next = [...prev];
+      next[index].fileStatus = "loading";
+      next[index].extractionProgress = "Waiting in queue...";
+      return next;
+    });
 
-    try {
-      let combinedText = "";
-      for (const file of files) {
-        const text = await extractTextFromPDF(file, (status) =>
-          setLoadingStatus(`Mod ${index + 1}: ${status}`),
-        );
-        combinedText += text + "\n\n";
+    pdfExtractionQueue = pdfExtractionQueue.then(async () => {
+      setModules((prev) => {
+        const next = [...prev];
+        next[index].extractionProgress = `Extracting PDFs for Module ${index + 1}...`;
+        return next;
+      });
+
+      try {
+        let combinedText = "";
+        let successCount = 0;
+        let lastErr = null;
+
+        for (const file of files) {
+          try {
+            const text = await extractTextFromPDF(file, (status) => {
+              setModules((prev) => {
+                const next = [...prev];
+                next[index].extractionProgress = `Mod ${index + 1}: ${status}`;
+                return next;
+              });
+            });
+            if (text) {
+               combinedText += text + "\n\n";
+               successCount++;
+            }
+          } catch (fileErr) {
+            console.error(`Failed to extract ${file.name}:`, fileErr);
+            lastErr = fileErr;
+          }
+        }
+
+        if (successCount === 0) {
+          if (files.length === 1) {
+            throw new Error(`Failed to extract text from the PDF. ${lastErr?.message || ""}`);
+          } else {
+            throw new Error(`Failed to extract text from all ${files.length} PDFs uploaded.`);
+          }
+        }
+
+        setModules((prev) => {
+          const next = [...prev];
+          next[index].extractedText = combinedText;
+          next[index].fileStatus = "success";
+          next[index].extractionProgress = "";
+          return next;
+        });
+      } catch (err) {
+        console.error(err);
+        alert(`Error reading PDFs for Module ${index + 1}: ` + err.message);
+        
+        setModules((prev) => {
+          const next = [...prev];
+          next[index].extractedText = "";
+          next[index].fileStatus = "error";
+          next[index].extractionProgress = "";
+          return next;
+        });
       }
-
-      const newModules = [...modules];
-      newModules[index].extractedText = combinedText;
-      setModules(newModules);
-    } catch (err) {
-      console.error(err);
-      alert(`Error reading PDFs for Module ${index + 1}: ` + err.message);
-    }
-    setLoading(false);
-    setLoadingStatus("");
+    });
   };
 
   // --- SCHEDULE HANDLERS ---
@@ -467,31 +515,58 @@ const CourseGenerator = () => {
                           onChange={(e) => handleModuleFilesChange(index, e)}
                           className="glass-file-input"
                         />
-                        {mod.extractedText && (
+                        {(mod.extractedText || mod.fileStatus) && (
                           <div
-                            className="success-status"
                             style={{
-                              fontSize: "0.8rem",
-                              marginTop: "5px",
-                              color: "#00ffcc",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "0.85rem",
+                              marginTop: "10px",
+                              padding: "4px 12px",
+                              borderRadius: "20px",
+                              background: mod.fileStatus === "error" ? "rgba(255, 68, 68, 0.15)" : mod.fileStatus === "loading" ? "rgba(255, 204, 0, 0.15)" : "rgba(0, 255, 204, 0.15)",
+                              color: mod.fileStatus === "error" ? "#ff4444" : mod.fileStatus === "loading" ? "#ffcc00" : "#00ffcc",
+                              border: `1px solid ${mod.fileStatus === "error" ? "rgba(255, 68, 68, 0.3)" : mod.fileStatus === "loading" ? "rgba(255, 204, 0, 0.3)" : "rgba(0, 255, 204, 0.3)"}`
                             }}
                           >
-                            ✔ Data Extracted for{" "}
-                            {mod.name || `Module ${mod.id}`}
+                            {mod.fileStatus === "error" ? (
+                              <>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                Extraction Failed
+                              </>
+                            ) : mod.fileStatus === "loading" ? (
+                              <>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner">
+                                  <line x1="12" y1="2" x2="12" y2="6"></line>
+                                  <line x1="12" y1="18" x2="12" y2="22"></line>
+                                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                                  <line x1="2" y1="12" x2="6" y2="12"></line>
+                                  <line x1="18" y1="12" x2="22" y2="12"></line>
+                                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                                </svg>
+                                {mod.extractionProgress || "Waiting in queue..."}
+                              </>
+                            ) : (
+                              <>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Extracted Successfully
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                 ))}
-                {loading && (
-                  <div
-                    className="loading-status"
-                    style={{ marginTop: "10px", color: "#ffcc00" }}
-                  >
-                    ✨ {loadingStatus}
-                  </div>
-                )}
               </div>
             </div>
 
