@@ -282,6 +282,46 @@ export const exportLessonPlanToWord = async (course, lp) => {
     ]}));
   });
   sections.push(new Table({ rows: esRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+  sections.push(new Paragraph({ spacing: { after: 400 } }));
+
+  // --- 13. CO-PO MAPPING TABLE ---
+  if (lp.courseOutcomes && lp.programOutcomes) {
+    sections.push(new Paragraph({ children: [new TextRun({ text: "Co Mapping with PO", bold: true, size: 24, font: "Arial" })], spacing: { after: 200 } }));
+    
+    // Header Row
+    const headerCells = [ cell("", { bg: "F0F0F0" }) ];
+    lp.programOutcomes.forEach((po, idx) => {
+      const poLabel = typeof po === "string" ? po.split(":")[0] : (po.code || `PO${idx+1}`);
+      headerCells.push(cell(poLabel, {bold: true, align: AlignmentType.CENTER, bg: "F0F0F0"}));
+    });
+    headerCells.push(cell("PSO1", {bold: true, align: AlignmentType.CENTER, bg: "F0F0F0"}));
+    headerCells.push(cell("PSO2", {bold: true, align: AlignmentType.CENTER, bg: "F0F0F0"}));
+    
+    const mappingRows = [new TableRow({ children: headerCells })];
+
+    lp.courseOutcomes.forEach((co, cIdx) => {
+      const rowCells = [cell(`CO${cIdx+1}`, {bold: true, align: AlignmentType.CENTER})];
+      
+      lp.programOutcomes.forEach((po, pIdx) => {
+        const poLabel = typeof po === "string" ? po.split(":")[0] : (po.code || `PO${pIdx+1}`);
+        const isMapped = (co.mappedPOs || "").toUpperCase().includes(poLabel.toUpperCase());
+        const defaultVal = isMapped ? "3" : "";
+        const val = (lp.coPoMapping || {})[`CO${cIdx+1}_${poLabel}`] !== undefined ? (lp.coPoMapping || {})[`CO${cIdx+1}_${poLabel}`] : defaultVal;
+        rowCells.push(cell(val, {align: AlignmentType.CENTER}));
+      });
+      
+      const pso1Val = (lp.coPoMapping || {})[`CO${cIdx+1}_PSO1`] !== undefined ? (lp.coPoMapping || {})[`CO${cIdx+1}_PSO1`] : ((co.mappedPOs || "").toUpperCase().includes("PSO1") ? "3" : "");
+      const pso2Val = (lp.coPoMapping || {})[`CO${cIdx+1}_PSO2`] !== undefined ? (lp.coPoMapping || {})[`CO${cIdx+1}_PSO2`] : ((co.mappedPOs || "").toUpperCase().includes("PSO2") ? "3" : "");
+
+      rowCells.push(cell(pso1Val, {align: AlignmentType.CENTER}));
+      rowCells.push(cell(pso2Val, {align: AlignmentType.CENTER}));
+      
+      mappingRows.push(new TableRow({ children: rowCells }));
+    });
+    
+    sections.push(new Table({ rows: mappingRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+    sections.push(new Paragraph({ spacing: { after: 400 } }));
+  }
 
   const doc = new Document({
     sections: [{

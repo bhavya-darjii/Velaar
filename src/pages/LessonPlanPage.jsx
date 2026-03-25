@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment } from '../services/aiService';
+import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping } from '../services/aiService';
 import { exportLessonPlanToWord } from '../utils/wordExport';
 import './LessonPlanPage.css';
 
@@ -93,6 +93,7 @@ const LessonPlanPage = () => {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
+  const [isMapping, setIsMapping] = useState(false);
   const [lessonPlan, setLessonPlan] = useState(null);
   const [lockedCols, setLockedCols] = useState({ teachingPractice: false, formative: false, summative: false });
 
@@ -945,6 +946,69 @@ const LessonPlanPage = () => {
                </div>
              </div>
            )}
+
+            {/* 11. CO-PO MAPPING */}
+            {lessonPlan.programOutcomes && (
+              <div className="lp-table-wrapper" style={{marginBottom: '40px'}}>
+                <h4 style={{marginBottom: '10px'}}>Co Mapping with PO</h4>
+                <div style={{overflowX: 'auto', width: '100%'}}>
+                  <table className="lp-table cap-table" style={{textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: '1000px'}}>
+                    <thead>
+                      <tr>
+                        <th style={{width: '60px'}}></th>
+                        {lessonPlan.programOutcomes.map((po, idx) => {
+                           const poLabel = typeof po === "string" ? po.split(":")[0] : (po.code || `PO${idx+1}`);
+                           return <th key={idx}>{poLabel}</th>;
+                        })}
+                        <th>PSO1</th>
+                        <th>PSO2</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(lessonPlan.courseOutcomes || []).map((co, cIdx) => (
+                        <tr key={cIdx}>
+                          <td style={{fontWeight: 'bold'}}>CO{cIdx + 1}</td>
+                          {lessonPlan.programOutcomes.map((po, pIdx) => {
+                             const poLabel = typeof po === "string" ? po.split(":")[0] : (po.code || `PO${pIdx+1}`);
+                             const mappingKey = `CO${cIdx+1}_${poLabel}`;
+                             const isMapped = (co.mappedPOs || "").toUpperCase().includes(poLabel.toUpperCase());
+                             const defaultVal = isMapped ? "3" : "";
+                             const val = (lessonPlan.coPoMapping || {})[mappingKey] !== undefined ? (lessonPlan.coPoMapping || {})[mappingKey] : defaultVal;
+                             return (
+                               <td key={pIdx}>
+                                 <input type="number" min="1" max="3" className="methodology-input" style={{textAlign: 'center', width: '100%'}} value={val} onChange={(e) => {
+                                    const updated = { ...(lessonPlan.coPoMapping || {}) };
+                                    updated[mappingKey] = e.target.value;
+                                    setLessonPlan({...lessonPlan, coPoMapping: updated});
+                                 }} />
+                               </td>
+                             );
+                          })}
+                          <td>
+                            <input type="number" min="1" max="3" className="methodology-input" style={{textAlign: 'center', width: '100%'}} 
+                               value={(lessonPlan.coPoMapping || {})[`CO${cIdx+1}_PSO1`] !== undefined ? (lessonPlan.coPoMapping || {})[`CO${cIdx+1}_PSO1`] : ((co.mappedPOs || "").toUpperCase().includes("PSO1") ? "3" : "")} 
+                               onChange={(e) => {
+                                  const updated = { ...(lessonPlan.coPoMapping || {}) };
+                                  updated[`CO${cIdx+1}_PSO1`] = e.target.value;
+                                  setLessonPlan({...lessonPlan, coPoMapping: updated});
+                               }} />
+                          </td>
+                          <td>
+                            <input type="number" min="1" max="3" className="methodology-input" style={{textAlign: 'center', width: '100%'}} 
+                               value={(lessonPlan.coPoMapping || {})[`CO${cIdx+1}_PSO2`] !== undefined ? (lessonPlan.coPoMapping || {})[`CO${cIdx+1}_PSO2`] : ((co.mappedPOs || "").toUpperCase().includes("PSO2") ? "3" : "")} 
+                               onChange={(e) => {
+                                  const updated = { ...(lessonPlan.coPoMapping || {}) };
+                                  updated[`CO${cIdx+1}_PSO2`] = e.target.value;
+                                  setLessonPlan({...lessonPlan, coPoMapping: updated});
+                               }} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
            <div className="lp-actions" style={{justifyContent: 'center', marginTop: '40px', borderTop: 'none'}}>
              <button style={{

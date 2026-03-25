@@ -103,8 +103,11 @@ const TeacherLayout = () => {
           <li className={location.pathname === '/teacher' ? 'active' : ''} onClick={() => { navigate('/teacher'); setSidebarOpen(false); }}>
             Home
           </li>
-          <li className={location.pathname === '/teacher/exams' ? 'active' : ''} onClick={() => { navigate('/teacher/exams'); setSidebarOpen(false); }}>
-            Exam Center
+          <li className={location.pathname === '/teacher/questionbank' ? 'active' : ''} onClick={() => { navigate('/teacher/questionbank'); setSidebarOpen(false); }}>
+            Question Bank
+          </li>
+          <li className={location.pathname === '/teacher/examination' ? 'active' : ''} onClick={() => { navigate('/teacher/examination'); setSidebarOpen(false); }}>
+            Examination
           </li>
           <li className={location.pathname === '/teacher/lesson-plan' ? 'active' : ''} onClick={() => { navigate('/teacher/lesson-plan'); setSidebarOpen(false); }}>
             Lesson Plan

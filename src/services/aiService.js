@@ -318,15 +318,16 @@ export const generateSupplementaryLessonPlan = async (subjectName, modules) => {
   const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\\n${m.extractedText || ""}`).join("\\n\\n");
 
   const prompt = `
-    Role: Senior Academic Curriculum Planner.
-    Task: Create Course Outcomes, map them to Program Outcomes (POs), and recommend Text/Reference books for "${subjectName}".
+    Role: Senior Academic Curriculum Planner and Accreditation (NBA/ABET) Expert.
+    Task: Create Course Outcomes, map them accurately to Program Outcomes (POs), and recommend Books for "${subjectName}".
     
     CRITICAL INSTRUCTIONS:
     1. Construct exactly ${modules.length} Course Outcomes (one per module).
     2. Each Course Outcome must be a VERY SHORT, 1-sentence description.
-    3. For each Course Outcome, map it to exactly THREE relevant Program Outcomes from PO1 to PO12. Use exactly this format: "PO4,PO5,PO6".
+    3. Map each Course Outcome to the most relevant Program Outcomes. Be highly intelligent and realistic (e.g., theory maps to PO1/PO2; advanced tech/tools map to PO4/PO5; ethics to PO8). Map to 3, 4, or 5 POs as appropriate. Use EXACTLY this comma-separated format: "PO1,PO2,PO5".
     4. Recommend exactly 3 standard Text Books as an array of strings (Author, 'Title', Publisher, Year).
     5. Recommend exactly 5 standard Reference Books as an array of strings (Author, 'Title', Publisher, Year).
+    6. Generate a strictly mirroring "coPoMapping" matrix. For EVERY PO listed in a Course Outcome's "mappedPOs" string, assign an integer correlation weight of 3 (Strong) or 2 (Moderate). You MUST NOT map or weight any POs that are missing from the mappedPOs string! The mappedPOs string and the matrix structure MUST flawlessly mirror each other.
     
     Modules List: 
     ${moduleNames}
@@ -339,6 +340,11 @@ export const generateSupplementaryLessonPlan = async (subjectName, modules) => {
           "mappedPOs": "PO4,PO5,PO6"
         }
       ],
+      "coPoMapping": {
+        "CO1_PO1": 3,
+        "CO1_PO5": 2,
+        "CO2_PSO1": 1
+      },
       "textBooks": ["Author, 'Title', Publisher, Year"],
       "referenceBooks": ["Author, 'Title', Publisher, Year"]
     }
@@ -399,6 +405,62 @@ export const generateDayWiseEnrichment = async (subjectName, roadmapTitles, text
     return result.enrichment;
   } catch (error) {
     console.error("DayWise Enrichment Error", error);
+    return null;
+  }
+};
+
+export const generateCoPoMapping = async (courseOutcomes, programOutcomes) => {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  if (!courseOutcomes || !programOutcomes) return null;
+
+  const coText = courseOutcomes.map((co, i) => `CO${i+1}: ${co.description}`).join("\n");
+  const poText = programOutcomes.map((po, i) => {
+    const poLabel = typeof po === "string" ? po : (po.code || `PO${i+1}`);
+    const poDesc = typeof po === "string" ? po : (po.title || "");
+    return `${poLabel}: ${poDesc}`;
+  }).join("\n");
+
+  const prompt = `
+    Role: Academic Curriculum Expert.
+    Task: Evaluate the intersection density and mapping correlation between Course Outcomes (COs) and Program Outcomes (POs).
+    
+    Course Outcomes:
+    ${coText}
+    
+    Program Outcomes:
+    ${poText}
+    
+    CRITICAL INSTRUCTIONS:
+    1. Base ratings strictly on semantic similarity and academic necessity.
+    2. Rate the correlation on an integer scale of 1 to 3:
+       - 3: High/Substantial correlation.
+       - 2: Medium/Moderate correlation.
+       - 1: Low/Slight correlation.
+    3. Omit the PO (leave it entirely out of the output) if there is NO logical correlation.
+    4. Provide weightings for PSO1 and PSO2 implicitly as well.
+    5. Format the output STRICTLY as a JSON dictionary matching this root structure.
+    
+    Example Output Format:
+    {
+      "mapping": {
+        "CO1_PO1": 3,
+        "CO1_PO5": 2,
+        "CO1_PSO2": 1,
+        "CO2_PO4": 3
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    });
+    const data = await response.json();
+    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+    return result.mapping;
+  } catch (error) {
+    console.error("CoPoMapping Error", error);
     return null;
   }
 };

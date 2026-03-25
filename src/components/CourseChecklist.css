@@ -35,6 +35,11 @@
   font-size: 1.8rem;
   margin: 0;
   line-height: 1.3;
+  color: #ffffff;
+}
+
+.active-card h2, .roadmap-mini li {
+  -webkit-text-fill-color: #ffffff;
 }
 
 @media screen and (max-width: 768px) {
@@ -178,7 +183,7 @@
   border-radius: 4px;
   font-size: 0.75rem;
   margin-right: 10px;
-  color: #aaa;
+  color: #ffffff;
   white-space: nowrap; /* Prevents text from breaking into a second line */
   flex-shrink: 0;      /* Prevents the badge from squishing when title is long */
 }
