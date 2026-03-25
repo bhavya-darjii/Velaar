@@ -317,6 +317,11 @@ const CourseGenerator = () => {
       return alert("Start Date cannot be after End Date.");
     }
 
+    const unextractedModules = modules.some((m) => !m.extractedText?.trim() || m.fileStatus === "loading" || m.fileStatus === "error");
+    if (unextractedModules) {
+      return alert("Action Blocked: Please upload and wait for successful PDF text extraction on EVERY module before generating the roadmap.");
+    }
+
     setLoading(true);
     setLoadingStatus("AI is architecting your course...");
 
