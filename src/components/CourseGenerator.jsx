@@ -347,7 +347,7 @@ const CourseGenerator = () => {
     }
 
     setLoading(true);
-    setLoadingStatus("AI is architecting your course...");
+    setLoadingStatus("Velaar AI is architecting your course...");
 
     const aggregatedSyllabusText = modules
       .map(

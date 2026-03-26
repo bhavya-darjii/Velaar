@@ -122,14 +122,6 @@
   margin-top: 10px;
 }
 
-.generate-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
-}
-
-.generate-btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
 
 .generate-btn:disabled {
   background: rgba(255, 255, 255, 0.1);

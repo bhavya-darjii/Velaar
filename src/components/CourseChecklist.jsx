@@ -98,7 +98,7 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
       {isCompleting && (
         <div style={{
            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
-           background: 'rgba(30, 215, 96, 0.95)', 
+           background: 'rgba(30, 215, 96, 0.4)', backdropFilter: 'blur(5px)',
            display: 'flex', alignItems: 'center', justifyContent: 'center', 
            zIndex: 10, animation: 'fadeInOverlay 0.3s ease-out'
         }}>

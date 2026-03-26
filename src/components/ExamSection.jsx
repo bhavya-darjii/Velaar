@@ -28,6 +28,9 @@ const ExamSection = ({ course }) => {
   const [examLoading, setExamLoading] = useState(false);
   const [numQuestions, setNumQuestions] = useState(10);
   const [selectedBT, setSelectedBT] = useState([]);
+  
+  const divisions = course?.divisions || ["A"];
+  const [selectedDiv, setSelectedDiv] = useState(divisions[0]);
 
   // Handle Checkbox toggles
   const handleBTChange = (val) => {
@@ -133,9 +136,7 @@ const ExamSection = ({ course }) => {
       if (Array.isArray(course.roadmap)) {
         allLectures = course.roadmap;
       } else {
-        Object.values(course.roadmap).forEach(lecs => {
-          allLectures = [...allLectures, ...lecs];
-        });
+        allLectures = course.roadmap[selectedDiv] || [];
       }
     }
 
@@ -188,6 +189,22 @@ const ExamSection = ({ course }) => {
       </div>
 
       {/* Settings Panel */}
+      {divisions.length > 1 && (
+        <div className="settings-group">
+          <label className="group-title">Select Handled Division</label>
+          <select 
+            className="custom-number-input" 
+            style={{ width: "100%", cursor: "pointer" }}
+            value={selectedDiv} 
+            onChange={(e) => setSelectedDiv(e.target.value)}
+          >
+            {divisions.map(d => (
+              <option key={d} value={d}>Division {d}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="settings-group">
         <label className="group-title">Number of Questions</label>
         <input
@@ -222,7 +239,7 @@ const ExamSection = ({ course }) => {
         onClick={handleGenerateExam}
         disabled={examLoading}
       >
-        {examLoading ? "AI Generating Word Doc..." : "Generate Question Bank"}
+        {examLoading ? "Velaar AI is generating Word Doc..." : "Generate Question Bank"}
       </button>
     </div>
   );
