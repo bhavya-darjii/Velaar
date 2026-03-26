@@ -1,5 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-const API_URL = `${BASE_URL}/pdf`;
+const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/pdf` : `${BASE_URL}/api/pdf`;
 
 export const extractTextFromPDF = async (file, onProgress) => {
   try {

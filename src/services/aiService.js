@@ -1,6 +1,7 @@
 // Wrapper service to connect to our secure Node.js backend
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-const API_URL = `${BASE_URL}/ai`;
+const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/ai` : `${BASE_URL}/api/ai`;
 
 export const generateLectureRoadmap = async (syllabusText, totalLectures, acceptedModules) => {
   try {
