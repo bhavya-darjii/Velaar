@@ -128,8 +128,26 @@ const ExamSection = ({ course }) => {
   const handleGenerateExam = async () => {
     setExamLoading(true);
 
-    const completedLectures =
-      course?.roadmap?.filter((l) => l.isCompleted) || [];
+    let allLectures = [];
+    if (course?.roadmap) {
+      if (Array.isArray(course.roadmap)) {
+        allLectures = course.roadmap;
+      } else {
+        Object.values(course.roadmap).forEach(lecs => {
+          allLectures = [...allLectures, ...lecs];
+        });
+      }
+    }
+
+    const uniqueTopics = new Set();
+    const completedLectures = [];
+
+    allLectures.forEach((l) => {
+      if (l.isCompleted && !uniqueTopics.has(l.title)) {
+        uniqueTopics.add(l.title);
+        completedLectures.push(l);
+      }
+    });
 
     if (completedLectures.length === 0) {
       alert("You haven't finished any lectures yet! Teach something first.");
