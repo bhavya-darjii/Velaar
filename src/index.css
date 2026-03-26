@@ -233,3 +233,68 @@ input[type="number"] {
   from { transform: translateY(40px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+/* File List Styles */
+.file-item-glass {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.file-item-glass.dragging {
+  opacity: 0.4;
+  transform: scale(0.98);
+  border: 1px dashed rgba(255, 255, 255, 0.4) !important;
+}
+
+.file-item-glass.drag-over {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid #00ccff !important;
+  transform: translateY(-2px);
+}
+
+.drag-handle {
+  opacity: 0.4;
+  font-size: 1.1rem;
+  cursor: grab;
+  color: #fff;
+  transition: opacity 0.2s;
+}
+
+.file-item-glass:hover .drag-handle {
+  opacity: 0.8;
+}
+
+.file-name-span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  max-width: 220px;
+  color: #fff;
+}
+
+.remove-file-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-file-btn:hover {
+  color: #ff4444;
+  transform: scale(1.2);
+}

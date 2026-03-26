@@ -92,7 +92,15 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
             {liveStatusText}
           </span>
           {currentLecture?.moduleName && (
-            <span style={{ background: 'rgba(0, 204, 255, 0.15)', color: '#00ccff', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(0, 204, 255, 0.3)', fontWeight: 'bold' }}>
+            <span className="tag-live" style={{ 
+              background: 'rgba(255, 255, 255, 0.1)', 
+              color: '#fff', 
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              fontWeight: '800'
+            }}>
               {currentLecture.moduleName}
             </span>
           )}

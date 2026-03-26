@@ -51,7 +51,7 @@
 .loading-spinner {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #a855f7;
+  color: #ffffff;
   animation: pulse 1.5s infinite;
 }
 
@@ -155,6 +155,7 @@
   color: #e2e8f0;
   resize: none;
   font-family: inherit;
+  font-weight: bold;
   line-height: 1.4;
   padding: 4px;
   box-sizing: border-box;

@@ -7,18 +7,17 @@ import { exportLessonPlanToWord } from '../utils/wordExport';
 import './LessonPlanPage.css';
 
 const defaultProgramOutcomes = [
-  "PO1: Engineering knowledge",
-  "PO2: Problem analysis",
-  "PO3: Design/development of solutions",
-  "PO4: Conduct investigations of complex problems",
-  "PO5: Modern tool usage",
-  "PO6: The engineer and society",
-  "PO7: Environment and sustainability",
-  "PO8: Ethics",
-  "PO9: Individual and team work",
-  "PO10: Communication",
-  "PO11: Project management and finance",
-  "PO12: Life-long learning"
+  { code: "PO1", title: "Engineering Knowledge" },
+  { code: "PO2", title: "Problem Analysis" },
+  { code: "PO3", title: "Design/Development of Solutions" },
+  { code: "PO4", title: "Conduct Investigations of Complex Problems" },
+  { code: "PO5", title: "Engineering Tool Usage" },
+  { code: "PO6", title: "The Engineer and The World" },
+  { code: "PO7", title: "Ethics" },
+  { code: "PO8", title: "Individual and Collaborative Team Work" },
+  { code: "PO9", title: "Communication" },
+  { code: "PO10", title: "Project Management and Finance" },
+  { code: "PO11", title: "Life-Long Learning" }
 ];
 
 const formatToDDMMYYYY = (dateString, fallbackYear = new Date().getFullYear()) => {
@@ -107,12 +106,13 @@ const LessonPlanPage = () => {
     } else if (course.lessonPlan) {
       const plan = course.lessonPlan;
       if (!plan.assessmentPlanning && course.modules) {
-        setLessonPlan({ ...plan, assessmentPlanning: getDefaultAssessment(course.modules) });
+        setLessonPlan({ ...plan, assessmentPlanning: getDefaultAssessment(course.modules), programOutcomes: defaultProgramOutcomes });
       } else {
-        setLessonPlan(plan);
+        setLessonPlan({ ...plan, programOutcomes: defaultProgramOutcomes });
       }
     }
   }, [course, navigate]);
+
   
   if (!course) return null;
 

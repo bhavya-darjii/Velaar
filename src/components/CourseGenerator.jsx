@@ -129,6 +129,9 @@ const CourseGenerator = () => {
   // Roadmap object containing arrays for each division
   const [generatedRoadmap, setGeneratedRoadmap] = useState({});
 
+  // Validation / Error Modal State
+  const [validationError, setValidationError] = useState(null);
+
   // --- LIFECYCLE GUARDS ---
   useEffect(() => {
     const isExtracting = modules.some((m) => m.fileStatus === "loading");
@@ -226,6 +229,7 @@ const CourseGenerator = () => {
 
     setModules((prev) => {
       const next = [...prev];
+      next[index] = { ...next[index] };
       next[index].filesList = [...(next[index].filesList || []), ...newFiles];
       next[index].fileStatus = "loading";
       next[index].extractionProgress = "Waiting in queue...";
@@ -235,6 +239,7 @@ const CourseGenerator = () => {
     pdfExtractionQueue = pdfExtractionQueue.then(async () => {
       setModules((prev) => {
         const next = [...prev];
+        next[index] = { ...next[index] };
         next[index].extractionProgress = `Extracting PDFs for Module ${index + 1}...`;
         return next;
       });
@@ -245,6 +250,7 @@ const CourseGenerator = () => {
           const text = await extractTextFromPDF(fileItem.fileObj, (status) => {
             setModules((prev) => {
               const nx = [...prev];
+              nx[index] = { ...nx[index] };
               nx[index].extractionProgress = `${fileItem.name}: ${status}`;
               return nx;
             });
@@ -253,6 +259,7 @@ const CourseGenerator = () => {
           if (text) {
              setModules(prev => {
                 const nx = [...prev];
+                nx[index] = { ...nx[index] };
                 const fList = nx[index].filesList.map(f => f.id === fileItem.id ? { ...f, text, status: "success" } : f);
                 nx[index].filesList = fList;
                 return nx;
@@ -262,6 +269,7 @@ const CourseGenerator = () => {
           console.error(`Failed to extract ${fileItem.name}:`, fileErr);
           setModules(prev => {
              const nx = [...prev];
+             nx[index] = { ...nx[index] };
              const fList = nx[index].filesList.map(f => f.id === fileItem.id ? { ...f, status: "error" } : f);
              nx[index].filesList = fList;
              return nx;
@@ -271,6 +279,7 @@ const CourseGenerator = () => {
 
       setModules((prev) => {
         const nx = [...prev];
+        nx[index] = { ...nx[index] };
         const fList = nx[index].filesList || [];
         const hasError = fList.some(f => f.status === "error");
         
@@ -280,6 +289,8 @@ const CourseGenerator = () => {
         return nx;
       });
     });
+
+    e.target.value = null; // Reset input field to allow re-uploading the same file
   };
 
   // --- SCHEDULE HANDLERS ---
@@ -319,20 +330,20 @@ const CourseGenerator = () => {
 
   // --- GENERATE ---
   const handleGenerate = async () => {
-    if (!totalLectures) return alert("Please specify total lectures.");
+    if (!totalLectures) return setValidationError("Please specify total lectures.");
 
     const missingNames = modules.some((m) => !m.name.trim());
     if (missingNames) {
-      return alert("Please enter a name for all modules.");
+      return setValidationError("Please enter a name for all modules.");
     }
 
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      return alert("Start Date cannot be after End Date.");
+      return setValidationError("Start Date cannot be after End Date.");
     }
 
     const unextractedModules = modules.some((m) => !m.extractedText?.trim() || m.fileStatus === "loading" || m.fileStatus === "error");
     if (unextractedModules) {
-      return alert("Action Blocked: Please upload and wait for successful PDF text extraction on EVERY module before generating the roadmap.");
+      return setValidationError("We're still processing your files! Please ensure all PDFs are successfully extracted before we generate the roadmap.");
     }
 
     setLoading(true);
@@ -387,7 +398,7 @@ const CourseGenerator = () => {
       setStep(2);
     } catch (err) {
       console.error("AI Generation Failed:", err);
-      alert("AI Generation Failed: " + err.message);
+      setValidationError("AI Generation Failed: " + err.message);
     }
     setLoading(false);
     setLoadingStatus("");
@@ -395,7 +406,7 @@ const CourseGenerator = () => {
 
   // --- SAVE ---
   const handleSaveCourse = async () => {
-    if (!auth.currentUser) return alert("Not logged in");
+    if (!auth.currentUser) return setValidationError("You must be logged in to save courses.");
     setLoading(true);
     setLoadingStatus("Saving to Cloud...");
 
@@ -421,30 +432,71 @@ const CourseGenerator = () => {
       console.log("Course saved successfully with ID: ", docRef.id);
       navigate("/teacher");
     } catch (err) {
-      alert("Save failed: " + err.message);
+      setValidationError("Cloud Save Failed: " + err.message);
     }
     setLoading(false);
+  };
+
+  const removeFile = (moduleIndex, fileId) => {
+    setModules(prev => {
+      const next = [...prev];
+      next[moduleIndex] = { ...next[moduleIndex] };
+      const filteredList = (next[moduleIndex].filesList || []).filter(f => f.id !== fileId);
+      next[moduleIndex].filesList = filteredList;
+      
+      // Update the module's cumulative extracted text
+      next[moduleIndex].extractedText = filteredList
+        .filter(f => f.status === "success")
+        .map(f => f.text)
+        .join("\n\n---\n\n");
+      
+      // Update status if no files left or check if all remaining are success
+      if (filteredList.length === 0) {
+        next[moduleIndex].fileStatus = null;
+      } else {
+        const hasError = filteredList.some(f => f.status === "error");
+        const allSuccess = filteredList.every(f => f.status === "success");
+        if (hasError) next[moduleIndex].fileStatus = "error";
+        else if (allSuccess) next[moduleIndex].fileStatus = "success";
+      }
+      
+      return next;
+    });
   };
 
   const handleDragStart = (e, moduleIndex, fileIndex) => {
     e.dataTransfer.setData('moduleIndex', moduleIndex);
     e.dataTransfer.setData('sourceIndex', fileIndex);
+    e.currentTarget.classList.add('dragging');
+  };
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove('dragging');
   };
 
   const handleDragOver = (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+  };
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove('drag-over');
   };
 
   const handleDrop = (e, targetModuleIndex, targetFileIndex) => {
     e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    
     const sourceModuleIndex = parseInt(e.dataTransfer.getData('moduleIndex'));
     const sourceIndex = parseInt(e.dataTransfer.getData('sourceIndex'));
     
+    if (isNaN(sourceModuleIndex) || isNaN(sourceIndex)) return;
     if (sourceModuleIndex !== targetModuleIndex) return;
     if (sourceIndex === targetFileIndex) return;
 
     setModules(prev => {
       const next = [...prev];
+      next[targetModuleIndex] = { ...next[targetModuleIndex] };
       const items = [...(next[targetModuleIndex].filesList || [])];
       if (!items.length) return next;
 
@@ -452,7 +504,13 @@ const CourseGenerator = () => {
       items.splice(targetFileIndex, 0, draggedItem);
       
       next[targetModuleIndex].filesList = items;
-      next[targetModuleIndex].extractedText = items.filter(f => f.status === "success").map(f => f.text).join("\n\n");
+      
+      // Recalculate extracted text to match new order
+      next[targetModuleIndex].extractedText = items
+        .filter(f => f.status === "success")
+        .map(f => f.text)
+        .join("\n\n---\n\n");
+        
       return next;
     });
   };
@@ -462,9 +520,14 @@ const CourseGenerator = () => {
   return (
     <>
       {loading && (
-        <div className="generation-modal">
-          <div className="modal-content">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner-large">
+        <div className="generation-modal" style={{ background: 'rgba(10, 15, 30, 0.7)', backdropFilter: 'blur(20px)' }}>
+          <div className="modal-content" style={{ 
+            border: '1px solid rgba(255, 255, 255, 0.1)', 
+            minWidth: '320px', 
+            maxWidth: '420px',
+            padding: '40px'
+          }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner-large" style={{ color: '#ffffff', marginBottom: '20px' }}>
               <line x1="12" y1="2" x2="12" y2="6"></line>
               <line x1="12" y1="18" x2="12" y2="22"></line>
               <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
@@ -474,8 +537,10 @@ const CourseGenerator = () => {
               <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
               <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
             </svg>
-            <h2>{loadingStatus}</h2>
-            <p>Please wait while AI constructs your curriculum constraints...</p>
+            <h2 style={{ color: '#ffffff', fontSize: '1.5rem', marginBottom: '8px' }}>One moment...</h2>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              {loadingStatus || "Processing..."}
+            </p>
           </div>
         </div>
       )}
@@ -510,6 +575,7 @@ const CourseGenerator = () => {
                     className="glass-input"
                     value={totalLectures}
                     onChange={(e) => setTotalLectures(e.target.value)}
+                    onFocus={(e) => e.target.select()}
                   />
                 </div>
                 <div>
@@ -594,27 +660,37 @@ const CourseGenerator = () => {
                                 key={file.id} 
                                 draggable 
                                 onDragStart={(e) => handleDragStart(e, index, fIndex)}
+                                onDragEnd={handleDragEnd}
                                 onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
                                 onDrop={(e) => handleDrop(e, index, fIndex)}
+                                className="file-item-glass"
                                 style={{
-                                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                  padding: '10px 14px', marginBottom: '8px', 
                                   background: file.status === 'error' ? 'rgba(255, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)', 
-                                  borderRadius: '8px', cursor: 'grab', 
                                   border: `1px solid ${file.status === 'error' ? 'rgba(255, 68, 68, 0.3)' : 'rgba(255,255,255,0.1)'}`
                                 }}
                               >
                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                                    <span style={{ opacity: 0.5, fontSize: '1.1rem', cursor: 'grab' }}>☰</span>
-                                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.9rem', maxWidth: '180px', color: '#fff' }}>
+                                    <span className="drag-handle">☰</span>
+                                    <span className="file-name-span">
                                       {file.name}
                                     </span>
                                  </div>
                                  
-                                 <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
-                                   {file.status === 'loading' && <span style={{ color: '#ffcc00' }}>Extracting...</span>}
-                                   {file.status === 'success' && <span style={{ color: '#00ffcc', display: 'flex', alignItems: 'center' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>}
-                                   {file.status === 'error' && <span style={{ color: '#ff4444', display: 'flex', alignItems: 'center' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>}
+                                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                   <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
+                                     {file.status === 'loading' && <span style={{ color: '#ffcc00' }}>Extracting...</span>}
+                                     {file.status === 'success' && <span style={{ color: '#00ffcc', display: 'flex', alignItems: 'center' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>}
+                                     {file.status === 'error' && <span style={{ color: '#ff4444', display: 'flex', alignItems: 'center' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>}
+                                   </div>
+                                   
+                                   <button 
+                                     className="remove-file-btn" 
+                                     onClick={() => removeFile(index, file.id)}
+                                     title="Remove File"
+                                   >
+                                     ×
+                                   </button>
                                  </div>
                               </div>
                             ))}
@@ -849,7 +925,7 @@ const CourseGenerator = () => {
                       <span className="time-tag">{lecture.time}</span>
                     )}
                     {lecture.moduleName && (
-                      <span style={{ marginLeft: "10px", background: 'rgba(0, 204, 255, 0.15)', color: '#00ccff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', border: '1px solid rgba(0, 204, 255, 0.3)', whiteSpace: 'nowrap' }}>
+                      <span className="module-tag" style={{ marginLeft: "10px" }}>
                         {lecture.moduleName}
                       </span>
                     )}
@@ -881,6 +957,36 @@ const CourseGenerator = () => {
         )}
       </div>
     </div>
+
+    {validationError && (
+      <div className="generation-modal" style={{ background: 'rgba(10, 15, 30, 0.7)', backdropFilter: 'blur(20px)' }}>
+        <div className="modal-content" style={{ 
+          border: '1px solid rgba(255, 255, 255, 0.1)', 
+          minWidth: '320px', 
+          maxWidth: '420px',
+          padding: '40px'
+        }}>
+          <div style={{ color: '#ffcc00', marginBottom: '15px' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Just a moment...</h2>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', marginBottom: '25px', lineHeight: '1.6' }}>
+            {validationError}
+          </p>
+          <button 
+            className="glass-btn primary" 
+            onClick={() => setValidationError(null)}
+            style={{ width: '100%', padding: '10px', fontSize: '0.9rem' }}
+          >
+            I'll wait
+          </button>
+        </div>
+      </div>
+    )}
     </>
   );
 };
