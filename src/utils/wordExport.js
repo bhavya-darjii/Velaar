@@ -1,5 +1,6 @@
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/export";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_URL = `${BASE_URL}/export`;
 
 export const exportLessonPlanToWord = async (course, lp) => {
   try {
