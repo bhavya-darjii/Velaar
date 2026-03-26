@@ -52,10 +52,11 @@ export const generateLectureRoadmap = async (req, res) => {
     if (!data.candidates || !data.candidates[0]) return res.status(500).json({ error: "Empty candidate" });
 
     const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
     const usage = data.usageMetadata;
 
     return res.status(200).json({
-      roadmap: JSON.parse(textResult),
+      roadmap: JSON.parse(cleanJsonStr),
       usage: { input: usage.promptTokenCount, output: usage.candidatesTokenCount },
     });
   } catch (error) {
@@ -104,7 +105,9 @@ export const generateQuestionsFromTopics = async (req, res) => {
 
     const data = await response.json();
     if (data.error || !data.candidates) return res.status(200).json([]);
-    return res.status(200).json(JSON.parse(data.candidates[0].content.parts[0].text));
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    return res.status(200).json(JSON.parse(cleanJsonStr));
   } catch (error) {
     console.error(error);
     return res.status(200).json([]);
@@ -133,7 +136,9 @@ export const generateQuestionsFromSyllabus = async (req, res) => {
 
     const data = await response.json();
     if (data.error || !data.candidates) return res.status(200).json([]);
-    return res.status(200).json(JSON.parse(data.candidates[0].content.parts[0].text));
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    return res.status(200).json(JSON.parse(cleanJsonStr));
   } catch (error) {
     console.error(error);
     return res.status(200).json([]);
@@ -173,7 +178,10 @@ export const gradeFullExam = async (req, res) => {
     const data = await response.json();
     if (data.error || !data.candidates) return res.status(200).json({ score: 0, feedback: "AI Grading failed." });
 
-    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleanJsonStr);
+    
     if (result.score > 10) result.score = 10;
     return res.status(200).json(result);
   } catch (error) {
@@ -229,7 +237,9 @@ export const generateLessonPlan = async (req, res) => {
 
     const data = await response.json();
     if (data.error) return res.status(500).json({ error: data.error.message });
-    return res.status(200).json(JSON.parse(data.candidates[0].content.parts[0].text));
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    return res.status(200).json(JSON.parse(cleanJsonStr));
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Lesson Plan Generation Error" });
@@ -309,7 +319,9 @@ export const generateSupplementaryLessonPlan = async (req, res) => {
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
     });
     const data = await response.json();
-    return res.status(200).json(JSON.parse(data.candidates[0].content.parts[0].text));
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    return res.status(200).json(JSON.parse(cleanJsonStr));
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Suppl Gen Error" });
@@ -404,7 +416,9 @@ export const generateCoPoMapping = async (req, res) => {
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
     });
     const data = await response.json();
-    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleanJsonStr);
     return res.status(200).json(result.mapping);
   } catch (error) {
     console.error(error);
