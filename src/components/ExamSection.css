@@ -64,7 +64,7 @@
   background: rgba(0, 0, 0, 0.4);
 }
 
-/* Custom Chips (Replacing Checkboxes) */
+/* Custom Chips (Used for both BT Levels and Divisions) */
 .bt-chips-container {
   display: flex;
   flex-wrap: wrap;
@@ -78,7 +78,7 @@
 }
 
 .bt-chip input {
-  display: none; /* Hide the ugly default checkbox */
+  display: none; 
 }
 
 .chip-text {
@@ -97,7 +97,6 @@
   color: #fff;
 }
 
-/* When the hidden checkbox is checked, style the chip-text */
 .bt-chip input:checked + .chip-text {
   background: linear-gradient(135deg, #9b59b6, #8e44ad);
   border-color: #9b59b6;
@@ -122,7 +121,6 @@
   margin-top: 10px;
 }
 
-
 .generate-btn:disabled {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.4);
@@ -138,8 +136,8 @@
 }
 
 .custom-number-input[type=number] {
-  appearance: textfield; /* Safari and Chrome */
-  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield; 
+  -moz-appearance: textfield; 
 }
 
 /* =========================================
@@ -159,8 +157,5 @@
   .chip-text {
     padding: 6px 12px;
     font-size: 0.8rem;
-  }
-  .generate-btn {
-    padding: 12px;
   }
 }

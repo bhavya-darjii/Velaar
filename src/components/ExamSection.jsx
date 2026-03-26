@@ -30,16 +30,23 @@ const ExamSection = ({ course }) => {
   const [selectedBT, setSelectedBT] = useState([]);
   
   const divisions = course?.divisions || ["A"];
-  const [selectedDiv, setSelectedDiv] = useState(divisions[0]);
+  // Now an array to support multiple division selections!
+  const [selectedDivs, setSelectedDivs] = useState([divisions[0]]);
 
-  // Handle Checkbox toggles
+  // Handle BT Checkbox toggles
   const handleBTChange = (val) => {
     setSelectedBT((prev) =>
       prev.includes(val) ? prev.filter((item) => item !== val) : [...prev, val],
     );
   };
 
-  // --- WORD DOCUMENT GENERATOR ---
+  // Handle Division Checkbox toggles
+  const handleDivChange = (val) => {
+    setSelectedDivs((prev) =>
+      prev.includes(val) ? prev.filter((item) => item !== val) : [...prev, val],
+    );
+  };
+
   // --- WORD DOCUMENT GENERATOR ---
   const exportToWord = async (questions) => {
     // 1. Create Table Header with the new CO column
@@ -136,7 +143,12 @@ const ExamSection = ({ course }) => {
       if (Array.isArray(course.roadmap)) {
         allLectures = course.roadmap;
       } else {
-        allLectures = course.roadmap[selectedDiv] || [];
+        // Merge lectures from ALL selected divisions
+        selectedDivs.forEach((div) => {
+          if (course.roadmap[div]) {
+            allLectures = [...allLectures, ...course.roadmap[div]];
+          }
+        });
       }
     }
 
@@ -151,7 +163,7 @@ const ExamSection = ({ course }) => {
     });
 
     if (completedLectures.length === 0) {
-      alert("You haven't finished any lectures yet! Teach something first.");
+      alert("You haven't finished any lectures in the selected divisions yet! Teach something first.");
       setExamLoading(false);
       return;
     }
@@ -191,17 +203,21 @@ const ExamSection = ({ course }) => {
       {/* Settings Panel */}
       {divisions.length > 1 && (
         <div className="settings-group">
-          <label className="group-title">Select Handled Division</label>
-          <select 
-            className="custom-number-input" 
-            style={{ width: "100%", cursor: "pointer" }}
-            value={selectedDiv} 
-            onChange={(e) => setSelectedDiv(e.target.value)}
-          >
-            {divisions.map(d => (
-              <option key={d} value={d}>Division {d}</option>
+          <label className="group-title">Select Handled Division(s)</label>
+          {/* Reusing the exact same BT Chip classes here */}
+          <div className="bt-chips-container">
+            {divisions.map((d) => (
+              <label key={d} className="bt-chip">
+                <input
+                  type="checkbox"
+                  value={d}
+                  checked={selectedDivs.includes(d)}
+                  onChange={() => handleDivChange(d)}
+                />
+                <span className="chip-text">Div {d}</span>
+              </label>
             ))}
-          </select>
+          </div>
         </div>
       )}
 
