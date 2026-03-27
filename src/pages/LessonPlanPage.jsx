@@ -92,6 +92,7 @@ const LessonPlanPage = () => {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isMapping, setIsMapping] = useState(false);
   const [lessonPlan, setLessonPlan] = useState(null);
   const [lockedCols, setLockedCols] = useState({ teachingPractice: false, formative: false, summative: false });
@@ -111,7 +112,29 @@ const LessonPlanPage = () => {
         setLessonPlan({ ...plan, programOutcomes: defaultProgramOutcomes });
       }
     }
-  }, [course, navigate]);
+  }, [course?.id, navigate]); // Only re-run if course ID changes
+
+  // DEBOUNCED AUTO-SAVE LOGIC
+  useEffect(() => {
+    if (!lessonPlan || !course?.id) return;
+
+    // Check if lessonPlan is actually different from context to avoid loops
+    if (JSON.stringify(lessonPlan) === JSON.stringify(course.lessonPlan)) return;
+
+    const timer = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await updateDoc(doc(db, "courses", course.id), { lessonPlan });
+        setCourse(prev => ({ ...prev, lessonPlan }));
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+      } finally {
+        setTimeout(() => setIsSaving(false), 800);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [lessonPlan, course?.id, setCourse]);
 
   
   if (!course) return null;
@@ -244,8 +267,17 @@ const LessonPlanPage = () => {
         <div className="lesson-plan-grid glass">
            {loading && <div className="saving-overlay">Processing changes...</div>}
            <div className="lp-header">
-             <h2>{course.subjectName} ({new Date().getFullYear()}-{new Date().getFullYear().toString().slice(-2)}) - Faculty – Prof. {course.teacherName || "Teacher"}</h2>
-             <h3>Course Outcomes, Mapping of COs with POs, Course Assessment and Lesson Plan</h3>
+             <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
+                <div>
+                  <h2>{course.subjectName} ({new Date().getFullYear()}-{new Date().getFullYear().toString().slice(-2)}) - Faculty – Prof. {course.teacherName || "Teacher"}</h2>
+                  <h3>Course Outcomes, Mapping of COs with POs, Course Assessment and Lesson Plan</h3>
+                </div>
+                {isSaving && (
+                  <div className="saving-status-pill fade-in">
+                    <span className="dot"></span> Syncing to Cloud...
+                  </div>
+                )}
+             </div>
              <p>
                Semester-<input className="inline-input" placeholder="IV" value={lessonPlan.semester || ""} onChange={(e) => setLessonPlan({...lessonPlan, semester: e.target.value})} />
                 DIV - {course.divisions?.length ? course.divisions.join(' & ') : "A"} Course Code:-
