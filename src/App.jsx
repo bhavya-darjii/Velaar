@@ -8,6 +8,7 @@ import TeacherHome from './pages/TeacherHome';
 import ExamsPage from './pages/ExamsPage';
 import LessonPlanPage from './pages/LessonPlanPage';
 import ExaminationPage from './pages/ExaminationPage';
+import ExaminationEditor from './pages/ExaminationEditor';
 import StudentDashboard from './pages/StudentDashboard';
 import SyllabusUpload from './components/CourseGenerator';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -43,6 +44,7 @@ function App() {
               <Route path="questionbank" element={<ExamsPage />} />
               <Route path="lesson-plan" element={<LessonPlanPage />} />
               <Route path="examination" element={<ExaminationPage />} />
+              <Route path="examination/:examId" element={<ExaminationEditor />} />
               {/* Developer Note: Append all NEW navigation tabs perfectly above this line */}
               <Route path="create-course" element={<SyllabusUpload />} />
             </Route>

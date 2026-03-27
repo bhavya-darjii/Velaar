@@ -342,3 +342,246 @@ export const exportLessonPlanToWord = async (req, res) => {
     res.status(500).json({ error: "Failed to generate Word document." });
   }
 };
+
+import PizZip from "pizzip";
+import Docxtemplater from "docxtemplater";
+import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+
+if (fs.existsSync(path.resolve(process.cwd(), 'server', '.env'))) {
+    dotenv.config({ path: path.resolve(process.cwd(), 'server', '.env') });
+} else {
+    dotenv.config();
+}
+
+export const exportTemplatedExam = async (req, res) => {
+  try {
+    const { course, examType, pattern, headerConfig, numSets = 1, division = "A" } = req.body;
+
+    if (!pattern || pattern.length === 0) {
+      return res.status(400).json({ error: "No paper pattern found." });
+    }
+
+    const { date, duration, maxMarks, scheme, regularExam } = headerConfig || {
+      date: new Date().toLocaleDateString(), duration: "02.5 Hours", maxMarks: "60", scheme: "III", regularExam: "SY Semester: IV"
+    };
+
+    // 1. Gather Syllabus Topics
+    let topics = [];
+    if (course.roadmap && course.roadmap.modules) {
+      course.roadmap.modules.forEach(mod => {
+        topics.push(...mod.topics.map(t => t.title));
+      });
+    } else if (Array.isArray(course.roadmap)) {
+      topics = course.roadmap.map(l => l.title);
+    } else if (course.roadmap && course.roadmap[division]) {
+      topics = course.roadmap[division].map(l => l.title);
+    } else if (course.modules) {
+      topics = course.modules.map(m => m.name);
+    }
+    const topicsList = topics.length > 0 ? topics.join(", ") : "General Course Content";
+
+    // Build the dynamic prompt request structure based on the user's exact pattern.
+    let promptStructureMap = {};
+    pattern.forEach((q) => {
+       q.subs.forEach(sub => {
+           let internalId = `Q${q.id}_${sub.id}`;
+           promptStructureMap[internalId] = {
+             q: `[String: Write a ${sub.marks}-mark question testing ${sub.bt} concepts about the syllabus topics]`,
+             co: `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this generated question based on the syllabus]`
+           };
+       });
+    });
+
+    const prompt = `
+      Role: University Exam Setter.
+      Task: Generate ${pattern.reduce((acc, q) => acc + q.subs.length, 0)} exam questions based STRICTLY on the following syllabus topics: [${topicsList}].
+      Course: ${course.subjectName || "Algorithm Analysis"}
+
+      INSTRUCTIONS:
+      You must respond with ONLY A RAW JSON OBJECT covering EXACTLY the keys in the structure below.
+      Ensure the difficulty matches the requested Bloom's Taxonomy string for each specific question.
+      No markdown formatting, no code blocks, just pure JSON.
+
+      STRUCTURE TO FILL:
+      ${JSON.stringify(promptStructureMap, null, 2)}
+    `;
+
+    const AI_KEY = process.env.GOOGLE_API_KEY;
+    if (!AI_KEY) throw new Error("Server API Key missing");
+
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign, BorderStyle } = await import("docx");
+
+    const hText = (text, bold = false, size = 20) => new Paragraph({ 
+      children: [new TextRun({ text: String(text || ""), bold, size, font: "Times New Roman" })],
+      alignment: AlignmentType.CENTER
+    });
+
+    const cell = (text, opts = {}) => new TableCell({
+      children: [new Paragraph({ 
+        children: [new TextRun({ text: String(text || ""), bold: opts.bold || false, size: 20, font: "Times New Roman" })],
+        alignment: opts.align || AlignmentType.LEFT
+      })],
+      verticalAlign: VerticalAlign.CENTER,
+      margins: { top: 100, bottom: 100, left: 100, right: 100 },
+      width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined
+    });
+
+    const noBorder = { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} };
+
+    // Function to generate 1 complete Document Buffer given AI Data
+    const generateDocxBuffer = async (aiData) => {
+      // Setup dynamic semester date parsing
+      let semesterMonths = `May - Jun ${new Date().getFullYear()}`;
+      if (course.startDate && course.endDate) {
+          try {
+              const startM = new Date(course.startDate).toLocaleString('default', { month: 'short' });
+              const endM = new Date(course.endDate).toLocaleString('default', { month: 'short' });
+              const year = new Date(course.endDate).getFullYear();
+              if (startM !== "Invalid Date" && endM !== "Invalid Date" && !isNaN(year)) {
+                  semesterMonths = `${startM} - ${endM} ${year}`;
+              }
+          } catch(e) {}
+      }
+
+      // Convert standard browser YYYY-MM-DD back to DD/MM/YYYY text
+      let formattedDate = date;
+      try {
+          if (date && date.includes("-")) {
+              const [y, m, d] = date.split('-');
+              formattedDate = `${d}/${m}/${y}`;
+          }
+      } catch(e) {}
+
+      const headerTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [
+            new TableCell({
+              columnSpan: 3,
+              margins: { top: 150, bottom: 50, left: 150, right: 150 },
+              borders: { bottom: { style: BorderStyle.NONE } },
+              children: [
+                hText("K. J. Somaiya Institute of Technology, Sion, Mumbai-22", true, 24),
+                hText("(Autonomous College Affiliated to University of Mumbai)", true, 18),
+                new Paragraph({ spacing: { after: 100 } }),
+                hText(semesterMonths, false, 18),
+                hText(`B. Tech Program: Artificial Intelligence & Data Science Scheme : ${scheme}`, false, 18),
+                hText(`Regular Examination: ${regularExam}`, false, 18),
+                hText(`Course Code: AIC404 and Course Name: ${course.subjectName || "Algorithm Analysis"}`, false, 18),
+              ]
+            })
+          ]}),
+          new TableRow({ children: [
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `Date of Exam: ${formattedDate}`, size: 18, font: "Times New Roman" })], alignment: AlignmentType.LEFT })], margins: { top: 50, bottom: 100, left: 150, right: 100 }, borders: { top: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `Duration: ${duration}`, size: 18, font: "Times New Roman" })], alignment: AlignmentType.CENTER })], margins: { top: 50, bottom: 100, left: 100, right: 100 }, borders: { top: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } } }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `Max. Marks: ${maxMarks}`, size: 18, font: "Times New Roman" })], alignment: AlignmentType.RIGHT })], margins: { top: 50, bottom: 100, left: 100, right: 150 }, borders: { top: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE } } })
+          ]})
+        ]
+      });
+
+      const instructions = [
+        new Paragraph({ children: [new TextRun({ text: "Instructions:", bold: true, font: "Times New Roman", size: 20 })] }),
+        new Paragraph({ children: [new TextRun({ text: "(1) All questions are compulsory.", bold: true, font: "Times New Roman", size: 20 })] }),
+        new Paragraph({ children: [new TextRun({ text: "(2) Draw neat diagrams wherever applicable.", bold: true, font: "Times New Roman", size: 20 })] }),
+        new Paragraph({ children: [new TextRun({ text: "(3) Assume suitable data, if necessary.", bold: true, font: "Times New Roman", size: 20 })], spacing: { after: 200 } })
+      ];
+
+      const tRows = [
+        new TableRow({ children: [
+          cell("Q. No.", { bold: true, align: AlignmentType.CENTER, width: 10 }),
+          cell("Question", { bold: true, align: AlignmentType.CENTER, width: 65 }),
+          cell("Max.\nMarks", { bold: true, align: AlignmentType.CENTER, width: 10 }),
+          cell("CO", { bold: true, align: AlignmentType.CENTER, width: 7.5 }),
+          cell("BT\nlevel", { bold: true, align: AlignmentType.CENTER, width: 7.5 })
+        ]})
+      ];
+
+      pattern.forEach((q) => {
+        tRows.push(new TableRow({ children: [
+          cell(`Q.${q.id}`, { bold: true, align: AlignmentType.CENTER }),
+          cell(q.title, { bold: true }),
+          cell(String(q.marks), { align: AlignmentType.CENTER }),
+          cell("", { borders: noBorder }), cell("", { borders: noBorder })
+        ]}));
+
+        // Write actual subquestions
+        q.subs.forEach((sub) => {
+           let internalId = `Q${q.id}_${sub.id}`;
+           let aiQuestionData = aiData[internalId] || { q: "Error generating question", co: "CO1" };
+           
+           // If the AI somehow returned just a string (fallback), wrap it
+           if (typeof aiQuestionData === 'string') {
+               aiQuestionData = { q: aiQuestionData, co: "CO-Auto" };
+           }
+
+           tRows.push(new TableRow({ children: [
+             cell(`${sub.id})`, { align: AlignmentType.CENTER, bold: true }),
+             cell(aiQuestionData.q),
+             cell(String(sub.marks), { align: AlignmentType.CENTER }),
+             cell(aiQuestionData.co, { align: AlignmentType.CENTER }),
+             cell(sub.bt || "", { align: AlignmentType.CENTER })
+           ]}));
+        });
+      });
+
+      const mainTable = new Table({ rows: tRows, width: { size: 100, type: WidthType.PERCENTAGE } });
+      const pd = new Document({ sections: [{ properties: {}, children: [...headerParas, ...instructions, mainTable] }] });
+      return await Packer.toBuffer(pd);
+    };
+
+    // We generate files based on numSets
+    let generatedBuffers = [];
+    for (let s = 1; s <= numSets; s++) {
+        let aiData;
+        try {
+          const fetchResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_KEY}`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              contents: [{ parts: [{ text: prompt + `\n\nGenerate Set variant #${s} (ensure uniquely different wordings and core logic permutations).` }] }],
+              generationConfig: { responseMimeType: "application/json", temperature: 0.8 }
+            }),
+          });
+          const data = await fetchResp.json();
+          if (data.error) throw new Error(data.error.message);
+          let textResult = data.candidates[0].content.parts[0].text;
+          const jsonStart = textResult.indexOf('{');
+          const jsonEnd = textResult.lastIndexOf('}');
+          if (jsonStart === -1) throw new Error("JSON not found in response.");
+          aiData = JSON.parse(textResult.substring(jsonStart, jsonEnd + 1));
+        } catch (perr) {
+          console.error("AI Gen Failed for iteration ", s, perr);
+          throw new Error("AI failed to process questions for Set " + s);
+        }
+
+        const docxBuffer = await generateDocxBuffer(aiData);
+        generatedBuffers.push({ name: `${course.subjectName || "Exam"}_${examType}_Set_${s}.docx`, buffer: docxBuffer });
+    }
+
+    if (numSets === 1) {
+        res.setHeader('Content-Disposition', `attachment; filename="${generatedBuffers[0].name}"`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        return res.send(generatedBuffers[0].buffer);
+    } else {
+        const masterZip = new PizZip();
+        generatedBuffers.forEach(b => {
+           masterZip.file(b.name, b.buffer.toString('binary'), { binary: true });
+        });
+        const zipBuffer = masterZip.generate({ type: "nodebuffer", compression: "DEFLATE" });
+        res.setHeader('Content-Disposition', `attachment; filename="${course.subjectName || "Exam"}_${examType}_Batch.zip"`);
+        res.setHeader('Content-Type', 'application/zip');
+        return res.send(zipBuffer);
+    }
+
+  } catch (error) {
+    console.error("Templater Gen Error:", error);
+    
+    let detailedMsg = error.message;
+    if (error.properties && error.properties.errors) {
+      detailedMsg = "Docx Template Error: " + error.properties.errors.map(e => e.message || e.name).join(", ");
+    }
+
+    res.status(500).json({ error: detailedMsg || error.toString() || "Failed to inject questions into template." });
+  }
+};

@@ -1,0 +1,253 @@
+/* =========================================
+   EXAMINATION EDITOR - INTERACTIVE BUILDER
+   ========================================= */
+
+.editor-container {
+  min-height: auto;
+  padding: 40px 0;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  color: white;
+}
+
+.editor-header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.back-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a78bfa;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  padding: 8px 16px;
+  background: rgba(167, 139, 250, 0.1);
+  border-radius: 8px;
+}
+.back-arrow:hover {
+  background: rgba(167, 139, 250, 0.3);
+  color: #fff;
+}
+
+.header-title-group h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+  color: #fff;
+}
+.header-title-group p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.btn-secondary-outline {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid #a78bfa;
+  color: #a78bfa;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary-outline:hover {
+  background: #a78bfa;
+  color: #1e1b4b;
+}
+
+/* Question Blocks */
+.question-block {
+  background: rgba(30, 20, 50, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(155, 89, 182, 0.25);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+.question-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #e0cffc;
+}
+
+.subquestion-row {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.subquestion-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.bt-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bt-pill {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.bt-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.bt-pill.active {
+  background: #a78bfa;
+  color: #1a103c;
+  border-color: #a78bfa;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+}
+
+/* Bottom Generation Configurator */
+.generation-configurator {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.batch-input-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.batch-input-group label {
+  font-weight: 600;
+  color: #fff;
+}
+.batch-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(167, 139, 250, 0.5);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  width: 100px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.btn-super-generate {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+}
+.btn-super-generate:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+}
+.btn-super-generate:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Edit Mode Utilities */
+.edit-input-title {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  width: 100%;
+  font-size: 1.05rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.edit-input-title:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.edit-input-small {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  width: 60px;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.edit-input-small:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: none;
+  color: #fca5a5;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fee2e2;
+}
+.btn-add-sub {
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+  border: 1px dashed rgba(167, 139, 250, 0.5);
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: 600;
+}
+.btn-add-sub:hover {
+  background: rgba(167, 139, 250, 0.3);
+}

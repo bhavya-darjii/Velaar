@@ -1,12 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { db, auth } from '../services/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import './ExaminationPage.css';
+
+const EXAM_TYPES = [
+  { id: 'tt1', title: 'Term Test 1', desc: 'Auto-mapped to Course Outcomes 1-3' },
+  { id: 'tt2', title: 'Term Test 2', desc: 'Auto-mapped to Course Outcomes 4-6' },
+  { id: 'endSem', title: 'End Semester Exam', desc: 'Comprehensive Course Coverage' }
+];
 
 const ExaminationPage = () => {
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      if (!auth.currentUser) return;
+      try {
+        const q = query(collection(db, "courses"), where("teacherId", "==", auth.currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          setCourse({ id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() });
+        }
+      } catch (err) {
+        console.error("Failed to load course details", err);
+      }
+      setLoading(false);
+    };
+    fetchCourse();
+  }, []);
+
+  const handleNavigateToEditor = (examId) => {
+    navigate(`/teacher/examination/${examId}`);
+  };
+
+  if (loading) return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}>Loading Examination Module...</div>;
+  if (!course) return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}>Course not found.</div>;
+
   return (
-    <div className="glass-container" style={{ minHeight: 'auto', padding: '20px 0' }}>
-      <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto', width: '100%', textAlign: 'center', padding: '60px 20px' }}>
-        <h2 style={{color: 'white', margin: 0, fontSize: '2.5rem', fontWeight: 800}}>Examination Module</h2>
-        <p style={{color: '#cbd5e1', margin: '20px 0 0 0', fontSize: '1.2rem', fontWeight: 600}}>Coming Soon!</p>
-        <p style={{color: '#94a3b8', margin: '10px 0 0 0', fontSize: '1rem'}}>This section is currently being constructed.</p>
+    <div className="glass-container" style={{ minHeight: 'auto', padding: '40px 0' }}>
+      <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+        <div className="exams-header" style={{marginBottom: "30px", textAlign: "center"}}>
+          <h2 style={{color: 'white', margin: 0, fontSize: '2rem', fontWeight: 800}}>Institutional Examinations</h2>
+          <p style={{color: '#ccc', margin: '10px 0 0 0', fontSize: '1rem'}}>
+            Dynamically compile correctly formatted College-issued Word Documents based on your syllabus.
+          </p>
+        </div>
+
+        <div className="examination-grid">
+          {EXAM_TYPES.map(exam => (
+            <div className="exam-card fade-in" key={exam.id}>
+              <div>
+                <h3>{exam.title}</h3>
+                <p>{exam.desc}</p>
+              </div>
+              
+              <div className="exam-actions" style={{ marginTop: '30px' }}>
+                <button 
+                  className="btn-generate" 
+                  style={{ width: '100%', padding: '16px', fontSize: '1.1rem' }}
+                  onClick={() => handleNavigateToEditor(exam.id)}
+                >
+                  Generate Question Paper
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
