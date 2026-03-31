@@ -266,21 +266,17 @@ const LessonPlanPage = () => {
       ) : (
         <div className="lesson-plan-grid glass">
            {loading && <div className="saving-overlay">Processing changes...</div>}
-           <div className="lp-header">
-             <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
-                <div>
-                  <h2>{course.subjectName} ({new Date().getFullYear()}-{new Date().getFullYear().toString().slice(-2)}) - Faculty – Prof. {course.teacherName || "Teacher"}</h2>
-                  <h3>Course Outcomes, Mapping of COs with POs, Course Assessment and Lesson Plan</h3>
-                </div>
-                {isSaving && (
-                  <div className="saving-status-pill fade-in">
-                    <span className="dot"></span> Syncing to Cloud...
-                  </div>
-                )}
+           {isSaving && (
+             <div className="saving-status-pill fade-in" style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10 }}>
+               <span className="dot"></span> Syncing to Cloud...
              </div>
+           )}
+           <div className="lp-header">
+             <h2>{course.subjectName} ({new Date().getFullYear()}-{new Date().getFullYear().toString().slice(-2)}) - Faculty – Prof. {course.teacherName || "Teacher"}</h2>
+             <h3>Course Outcomes, Mapping of COs with POs, Course Assessment and Lesson Plan</h3>
              <p>
                Semester-<input className="inline-input" placeholder="IV" value={lessonPlan.semester || ""} onChange={(e) => setLessonPlan({...lessonPlan, semester: e.target.value})} />
-                DIV - {course.divisions?.length ? course.divisions.join(' & ') : "A"} Course Code:-
+               DIV - {course.divisions?.length ? course.divisions.join(' & ') : "A"} Course Code:-
                <input className="inline-input" placeholder="AIA&E404" value={lessonPlan.courseCode || ""} onChange={(e) => setLessonPlan({...lessonPlan, courseCode: e.target.value})} />
              </p>
            </div>
