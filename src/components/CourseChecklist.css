@@ -2,11 +2,11 @@
    ACTIVE LECTURE CARD (Left Column)
    ========================================= */
 .active-card {
-  background: rgba(20, 10, 40, 0.5);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(155, 89, 182, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  /* Crisp pristine white */
+  border: 1px solid #e2e8f0;
+  /* Crisp soft border */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
   padding: 30px;
   border-radius: 24px;
   display: flex;
@@ -18,8 +18,10 @@
 }
 
 .tag-live {
-  background: #ff4757;
-  color: white;
+  background: rgba(16, 185, 129, 0.15);
+  /* Light green translucent */
+  color: #047857;
+  /* Deep green */
   font-size: 0.75rem;
   padding: 5px 10px;
   border-radius: 6px;
@@ -28,18 +30,19 @@
   text-transform: uppercase;
   display: inline-block;
   margin-bottom: 10px;
-  box-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .active-card h2 {
   font-size: 1.8rem;
   margin: 0;
   line-height: 1.3;
-  color: #ffffff;
+  color: #0f172a;
 }
 
-.active-card h2, .roadmap-mini li {
-  -webkit-text-fill-color: #ffffff;
+.active-card h2,
+.roadmap-mini li {
+  -webkit-text-fill-color: #0f172a;
 }
 
 @media screen and (max-width: 768px) {
@@ -57,52 +60,55 @@
 
 .checklist-area h3 {
   font-size: 1.1rem;
-  color: #d1c4e9;
+  color: #10b981;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 5px;
 }
 
 .instruction {
-  color: rgba(255, 255, 255, 0.5);
+  color: #64748b;
   font-size: 0.9rem;
   margin-bottom: 20px;
 }
 
+/* Soft green translucent wells */
 .check-item {
   display: flex;
   align-items: center;
   gap: 15px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(16, 185, 129, 0.05);
   padding: 16px;
   margin-bottom: 12px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  color: #334155;
 }
 
 .check-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(16, 185, 129, 0.1);
   transform: translateX(4px);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 /* CHECKED STATE */
 .check-item.checked {
-  background: rgba(46, 125, 50, 0.2);
-  border-color: rgba(76, 175, 80, 0.5);
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .check-item.checked span {
   text-decoration: line-through;
-  color: rgba(255, 255, 255, 0.5);
+  color: #94a3b8;
 }
 
 /* CUSTOM CHECKBOX CIRCLE */
 .checkbox-circle {
   width: 24px;
   height: 24px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(16, 185, 129, 0.4);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -110,13 +116,14 @@
   font-size: 14px;
   transition: all 0.2s;
   flex-shrink: 0;
+  background: #ffffff;
 }
 
 .check-item.checked .checkbox-circle {
-  background: #4caf50;
-  border-color: #4caf50;
+  background: #10b981;
+  border-color: #10b981;
   color: white;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
 /* =========================================
@@ -125,37 +132,41 @@
 .finish-btn {
   width: 100%;
   padding: 16px;
-  background: #ffffff;
-  color: #000000;
-  border: none;
+  background: rgba(16, 185, 129, 0.25);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 12px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   margin-top: 15px;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-  transition: transform 0.2s, background 0.2s;
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .finish-btn:hover {
-  transform: translateY(-2px);
-  background: #f0f0f0;
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
 }
 
 /* =========================================
    SIDEBAR ROADMAP
    ========================================= */
 .roadmap-mini {
-  background: rgba(0, 0, 0, 0.4);
+  background: #ffffff;
   padding: 20px;
   border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
 }
 
 .roadmap-mini h3 {
   margin-top: 0;
   font-size: 1rem;
-  color: #aaa;
+  color: #64748b;
 }
 
 .roadmap-mini ul {
@@ -166,8 +177,8 @@
 
 .roadmap-mini li {
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  color: #334155;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -178,14 +189,16 @@
 }
 
 .mini-num {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(16, 185, 129, 0.15);
+  /* Light green translucent */
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.75rem;
   margin-right: 10px;
-  color: #ffffff;
-  white-space: nowrap; /* Prevents text from breaking into a second line */
-  flex-shrink: 0;      /* Prevents the badge from squishing when title is long */
+  color: #047857;
+  /* Deep green */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* =========================================
@@ -196,18 +209,27 @@
     padding: 12px;
     font-size: 0.95rem;
   }
+
   .active-card {
     padding: 15px;
     border-radius: 12px;
   }
+
   .roadmap-mini {
     padding: 15px;
   }
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(30px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .slide-in-right {
@@ -215,12 +237,27 @@
 }
 
 @keyframes scaleUp {
-  0% { transform: scale(0.5); opacity: 0; }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }

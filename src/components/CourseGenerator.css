@@ -13,27 +13,21 @@
 .glass-card {
   width: 100%;
   max-width: 900px;
-  background: rgba(20, 10, 40, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
   border-radius: 24px;
   padding: 20px 40px 40px 40px; 
-  color: white;
+  color: #0f172a;
   animation: fadeIn 0.5s ease-out;
 }
 
 /* --- HIDE NUMBER SPINNERS --- */
-
-/* Chrome, Safari, Edge, Opera */
 .no-spinner::-webkit-outer-spin-button,
 .no-spinner::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-/* Firefox */
 .no-spinner {
   -moz-appearance: textfield;
   appearance: textfield;
@@ -47,8 +41,7 @@
 .glass-title {
   font-size: 2rem;
   margin-bottom: 30px;
-  /* CHANGED: Removed gradient, made it solid white like the image title */
-  color: #ffffff;
+  color: #0f172a;
   text-align: center;
   font-weight: 800;
 }
@@ -61,10 +54,10 @@
 }
 
 .form-section {
-  background: rgba(0, 0, 0, 0.2);
+  background: #f8fafc;
   padding: 25px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #e2e8f0;
 }
 
 /* SPACING GROUP */
@@ -85,7 +78,7 @@
 label {
   display: block;
   margin-bottom: 8px;
-  color: #d1d5db;
+  color: #64748b;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -94,66 +87,60 @@ label {
 
 .glass-input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   padding: 12px 16px;
   border-radius: 10px;
-  color: white;
+  color: #0f172a;
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .glass-input::placeholder {
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: #94a3b8 !important;
 }
 
-/* CHANGED: Focus state matches 'Get Started' vibe (White Glow) */
 .glass-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #ffffff;
+  background: #ffffff;
+  border-color: #10b981;
 }
 
 .glass-input option {
-  background-color: #ffffff; /* Black background for the dropdown list */
-  color: #000000;            /* White text */
+  background-color: #ffffff;
+  color: #0f172a;            
 }
 
-/* --- CUSTOM GLASS DROPDOWNS --- */
-
-/* 1. Hide default ugly arrow and add a custom sleek white one */
+/* --- CUSTOM DROPDOWNS --- */
 select.glass-input {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
 
-/* 2. Target the Time Scheduler dropdowns specifically to fix the inline React styles */
 select.time-select {
-  padding-right: 30px !important; /* Make room for the custom arrow */
-  width: auto !important; /* Override the hardcoded 60px in React so it doesn't clip */
+  padding-right: 30px !important; 
+  width: auto !important; 
   min-width: 75px;
   text-align: left;
 }
 
-/* 3. Style the expanded dropdown list (OS level) */
 .glass-input option {
-  background-color: #1a0f2e; /* Deep dark purple/black to match your card */
-  color: #ffffff;
+  background-color: #ffffff; 
+  color: #0f172a;
   font-weight: 500;
-  padding: 10px; /* Note: Padding on options only works in some browsers, but helps when it does */
+  padding: 10px; 
 }
 
-/* 4. Fix focus state for the dropdowns */
 select.glass-input:focus {
-  border-color: rgba(140, 190, 255, 0.6);
-  box-shadow: 0 0 10px rgba(140, 190, 255, 0.2);
+  border-color: #10b981;
+  box-shadow: none;
   outline: none;
 }
 
@@ -165,10 +152,10 @@ select.glass-input:focus {
 
 .glass-file-input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  color: #ccc;
+  color: #64748b;
   cursor: pointer;
   padding: 8px;
   box-sizing: border-box;
@@ -177,16 +164,13 @@ select.glass-input:focus {
 }
 
 .glass-file-input:hover {
-  border-color: #ffffff;
+  border-color: #cbd5e1;
 }
 
-/* CHANGED: Internal File Button -> "Learn More" style (default) to "Get Started" style (hover) */
 .glass-file-input::file-selector-button {
-  background: #ffffff;
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: black;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   padding: 8px 16px;
   margin-right: 15px;
   border-radius: 8px;
@@ -195,80 +179,69 @@ select.glass-input:focus {
   transition: all 0.3s ease;
 }
 
-
 .loading-status {
-  color: rgba(255, 255, 255, 0.8);
+  color: #64748b;
   margin-top: 10px;
   font-size: 0.9rem;
 }
 
 .success-status {
-  color: #ffffff;
+  color: #10b981;
   margin-top: 10px;
   font-size: 0.9rem;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  text-shadow: none;
 }
 
 /* --- SCHEDULER STYLES --- */
-
 .scheduler-title {
   text-align: center;
   font-size: 1.5rem;
-  color: #ffffff;
+  color: #0f172a;
   margin-top: 0;
   margin-bottom: 20px;
   font-weight: bold;
 }
 
-/* DIVISION TABS - DAY TAB STYLE MAPPING */
-/* DIVISION TABS - EXACT DAY TAB CLONE */
+/* DIVISION TABS */
 .division-tabs {
   display: flex;
-  gap: 8px; /* Matching day-tabs gap */
-  margin-bottom: 15px; /* Matching day-tabs margin */
+  gap: 8px; 
+  margin-bottom: 15px; 
 }
 
 .division-tab {
-  /* Inherited from .day-tab */
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s;
   position: relative;
-  
-  /* Custom Layout Property */
   flex: 1; 
-  
-  /* Reset Behaviors */
   outline: none;
   -webkit-tap-highlight-color: transparent; 
 }
 
-/* Hover state from day-tab logic */
 .division-tab:hover {
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: #cbd5e1;
 }
 
-/* Active State - EXACT clone of .day-tab.active */
 .division-tab.active {
-  background: #ffffff;
-  color: #000000;
-  font-weight: 700;
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+  font-weight: 800;
   outline: none;
-  border-color: #ffffff; /* Ensures no dark border from button defaults */
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
-/* Stability on click */
 .division-tab:focus, .division-tab:active {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: #e2e8f0;
 }
 
 .division-tab.active:focus {
-  border-color: #ffffff;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .day-tabs {
@@ -276,61 +249,55 @@ select.glass-input:focus {
   gap: 8px;
   margin-bottom: 15px;
   overflow-x: auto;
-  /* CHANGED: Added top/bottom padding so the shadow/glow doesn't get cut off */
   padding: 15px 5px; 
 }
 
-/* INDIVIDUAL TABS */
 .day-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s;
   position: relative;
   min-width: 60px;
-  
-  /* CHANGED: These lines stop the click border/highlight */
   outline: none;
   -webkit-tap-highlight-color: transparent; 
 }
 
-/* Active Tab -> "Get Started" Style (Solid White, Black Text) */
-/* Active Tab - White Background, Black Text, No Bold, No Border */
 .day-tab.active {
-  background: #ffffff;
-  color: #000000;
-  font-weight: 700;       /* Prevents text from becoming bolder */
-  outline: none;             /* Removes the black focus outline/border */
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+  font-weight: 800;
+  border-color: rgba(16, 185, 129, 0.3);
+  outline: none;
 }
 
 .day-tab:focus, .day-tab:active {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.15); /* Keep border stable on click */
+  border-color: #e2e8f0; 
 }
 
-/* Dot -> White on inactive dark tab, Black on active white tab */
 .day-tab .dot {
   position: absolute;
   top: 6px;
   right: 6px;
   width: 6px;
   height: 6px;
-  background: #ffffff;
+  background: #e2e8f0;
   border-radius: 50%;
 }
 
 .day-tab.active .dot {
-  background: #000000;
+  background: #10b981;
 }
 
 .time-adder {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
+  background: #ffffff;
   padding: 10px;
   border-radius: 12px;
   margin-bottom: 15px;
@@ -338,7 +305,7 @@ select.glass-input:focus {
 
 .current-day-label {
   font-weight: bold;
-  color: #fff;
+  color: #0f172a;
   min-width: 40px;
 }
 
@@ -347,11 +314,10 @@ select.glass-input:focus {
   padding: 8px;
 }
 
-/* Add Time Button -> Default: Glass, Hover: White */
 .add-time-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
   padding: 6.5px 16px;
   border-radius: 8px;
   font-weight: bold;
@@ -360,10 +326,10 @@ select.glass-input:focus {
 }
 
 .add-time-btn:hover {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: none;
 }
 
 .slots-display {
@@ -374,7 +340,7 @@ select.glass-input:focus {
 }
 
 .empty-msg {
-  color: rgba(255, 255, 255, 0.3);
+  color: #94a3b8;
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -383,12 +349,12 @@ select.glass-input:focus {
   display: flex;
   align-items: center;
   gap: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 8px;
 }
 
 .day-slot-group strong {
-  color: white;
+  color: #0f172a;
   width: 40px;
 }
 
@@ -398,11 +364,10 @@ select.glass-input:focus {
   gap: 8px;
 }
 
-/* Time Pill -> Glassy style */
 .time-pill {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   padding: 4px 10px;
   border-radius: 15px;
   font-size: 0.85rem;
@@ -413,14 +378,14 @@ select.glass-input:focus {
 }
 
 .time-pill:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .time-pill button {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: #94a3b8;
   cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
@@ -430,7 +395,7 @@ select.glass-input:focus {
 }
 
 .time-pill button:hover {
-  color: #ffffff;
+  color: #ef4444;
 }
 
 /* BUTTONS */
@@ -446,39 +411,36 @@ select.glass-input:focus {
   margin-top: 10px;
 }
 
-/* Primary Button -> Default: "Learn More" (Glass) -> Hover: "Get Started" (White/Black) */
 .glass-btn.primary {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
   color: white;
 }
 
 .glass-btn.primary:hover {
-  background: #ffffff;
-  color: #000000;
+  background: #059669;
+  color: white;
   transform: translateY(-2px);
 }
 
 .glass-btn.primary:disabled {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.3);
+  background: #f1f5f9;
+  color: #94a3b8;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-/* Secondary Button -> Remains Glassy */
 .glass-btn.secondary {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
 }
 
 .glass-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #ffffff;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 /* PREVIEW SECTION */
@@ -497,17 +459,17 @@ select.glass-input:focus {
 }
 
 .lecture-count {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f1f5f9;
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ddd;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
 }
 
 .glass-list-item {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 15px;
@@ -516,8 +478,8 @@ select.glass-input:focus {
 
 .glass-list-item:hover {
   transform: translateX(5px);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 .item-meta {
@@ -526,11 +488,10 @@ select.glass-input:focus {
   margin-bottom: 10px;
 }
 
-/* Lecture Badge -> Glassy (Learn More style) */
 .lecture-badge {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #047857;
   font-size: 0.8rem;
   padding: 4px 8px;
   border-radius: 4px;
@@ -538,25 +499,25 @@ select.glass-input:focus {
 }
 
 .date-tag, .time-tag, .module-tag {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f1f5f9;
   font-size: 0.8rem;
   padding: 4px 10px;
   border-radius: 4px;
-  color: #ddd;
-  border: none;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .item-content h3 {
   margin: 0 0 10px 0;
-  color: #ffffff;
+  color: #0f172a;
   font-size: 1.1rem;
 }
 
 .item-content ul {
   padding-left: 20px;
   margin: 0;
-  color: #ccc;
+  color: #334155;
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -571,14 +532,14 @@ select.glass-input:focus {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1); 
+  background: #f8fafc; 
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2); 
+  background: #cbd5e1; 
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4); 
+  background: #94a3b8; 
 }
 
 /* =========================================

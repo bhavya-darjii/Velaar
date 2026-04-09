@@ -8,7 +8,7 @@
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
-  color: white;
+  color: #0f172a;
 }
 
 .editor-header-nav {
@@ -22,79 +22,78 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #a78bfa;
+  color: #64748b;
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 500;
   transition: all 0.2s;
   padding: 8px 16px;
-  background: rgba(167, 139, 250, 0.1);
+  background: #f1f5f9;
   border-radius: 8px;
 }
 .back-arrow:hover {
-  background: rgba(167, 139, 250, 0.3);
-  color: #fff;
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .header-title-group h2 {
   font-size: 2.2rem;
   font-weight: 800;
   margin: 0 0 5px 0;
-  color: #fff;
+  color: #0f172a;
 }
 .header-title-group p {
   margin: 0;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .btn-secondary-outline {
   padding: 10px 20px;
   background: transparent;
-  border: 1px solid #a78bfa;
-  color: #a78bfa;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 .btn-secondary-outline:hover {
-  background: #a78bfa;
-  color: #1e1b4b;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 /* Question Blocks */
 .question-block {
-  background: rgba(30, 20, 50, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(155, 89, 182, 0.25);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   margin-bottom: 24px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
 }
 
 .question-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 15px;
   margin-bottom: 15px;
 }
 .question-header h3 {
   margin: 0;
   font-size: 1.3rem;
-  color: #e0cffc;
+  color: #0f172a;
 }
 
 .subquestion-row {
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.15);
+  background: #f8fafc;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #e2e8f0;
 }
 
 .subquestion-header {
@@ -102,7 +101,7 @@
   justify-content: space-between;
   margin-bottom: 12px;
   font-weight: 500;
-  color: #fff;
+  color: #0f172a;
 }
 
 .bt-pill-group {
@@ -113,31 +112,31 @@
 
 .bt-pill {
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #64748b;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   user-select: none;
 }
 .bt-pill:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: #f8fafc;
+  color: #0f172a;
 }
 .bt-pill.active {
-  background: #a78bfa;
-  color: #1a103c;
-  border-color: #a78bfa;
-  font-weight: 600;
-  box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+  background: rgba(16, 185, 129, 0.15); /* Light green translucent */
+  color: #047857; /* Deep green */
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: none;
 }
 
 /* Bottom Generation Configurator */
 .generation-configurator {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
   border-radius: 12px;
   padding: 24px;
   margin-top: 40px;
@@ -153,12 +152,12 @@
 }
 .batch-input-group label {
   font-weight: 600;
-  color: #fff;
+  color: #0f172a;
 }
 .batch-input {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(167, 139, 250, 0.5);
-  color: white;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   padding: 10px 15px;
   border-radius: 8px;
   width: 100px;
@@ -167,33 +166,37 @@
 }
 
 .btn-super-generate {
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
-  color: white;
+  background: rgba(16, 185, 129, 0.25);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.3);
   padding: 16px 32px;
   border-radius: 12px;
   font-size: 1.2rem;
-  font-weight: 700;
-  border: none;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
 }
 .btn-super-generate:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
 }
 .btn-super-generate:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
   box-shadow: none;
   cursor: not-allowed;
 }
 
 /* Edit Mode Utilities */
 .edit-input-title {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   padding: 10px 14px;
   border-radius: 8px;
   width: 100%;
@@ -203,14 +206,14 @@
 }
 .edit-input-title:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #ffffff;
+  border-color: #10b981;
 }
 
 .edit-input-small {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   padding: 8px;
   border-radius: 6px;
   width: 60px;
@@ -220,13 +223,13 @@
 }
 .edit-input-small:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: #10b981;
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.1);
   border: none;
-  color: #fca5a5;
+  color: #ef4444;
   padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
@@ -234,13 +237,13 @@
   white-space: nowrap;
 }
 .btn-danger:hover {
-  background: rgba(239, 68, 68, 0.25);
-  color: #fee2e2;
+  background: rgba(239, 68, 68, 0.2);
+  color: #dc2626;
 }
 .btn-add-sub {
-  background: rgba(167, 139, 250, 0.15);
-  color: #a78bfa;
-  border: 1px dashed rgba(167, 139, 250, 0.5);
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
   padding: 10px;
   border-radius: 8px;
   width: 100%;
@@ -249,5 +252,6 @@
   font-weight: 600;
 }
 .btn-add-sub:hover {
-  background: rgba(167, 139, 250, 0.3);
+  background: #f1f5f9;
+  color: #0f172a;
 }

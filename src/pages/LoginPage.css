@@ -15,15 +15,13 @@
 .login-card {
   width: 100%;
   max-width: 400px;
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
   padding: 45px 35px;
   border-radius: 28px;
   text-align: center;
-  color: #ffffff;
+  color: #0f172a;
 }
 
 /* 3. Brand Header */
@@ -31,15 +29,12 @@
   font-size: 3.5rem;
   font-weight: 900;
   margin: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #10b981; /* Green */
   letter-spacing: -2px;
 }
 
 .login-subtitle {
-  color: rgba(255, 255, 255, 0.5);
+  color: #64748b;
   font-size: 0.95rem;
   margin-bottom: 35px;
   font-weight: 500;
@@ -55,9 +50,9 @@
 .login-input {
   width: 100%;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
   border-radius: 14px;
   font-size: 16px;
   outline: none;
@@ -67,43 +62,47 @@
 
 /* --- Placeholder Styling --- */
 .login-input::placeholder {
-  color: rgba(255, 255, 255, 0.8); /* Pure white with a hint of transparency for style */
-  opacity: 1; /* Ensures Firefox doesn't dim it */
+  color: #94a3b8;
+  opacity: 1;
 }
 
 /* For older browsers */
 .login-input:-ms-input-placeholder {
-  color: #ffffff;
+  color: #94a3b8;
 }
 
 .login-input::-ms-input-placeholder {
-  color: #ffffff;
+  color: #94a3b8;
 }
 
 .login-input:focus {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 0, 0, 0.4);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
 /* 5. Primary Button */
 .login-btn {
   margin-top: 15px;
+  width: 100%;
   padding: 16px;
-  background: #ffffff;
-  color: #0f172a; /* Dark Navy text */
+  background: rgba(16, 185, 129, 0.25);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.3);
   font-size: 16px;
-  font-weight: 700;
-  border: none;
+  font-weight: 800;
   border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .login-btn:hover {
-  background: #f1f5f9;
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
 }
 
 .login-btn:active {
@@ -111,7 +110,10 @@
 }
 
 .login-btn:disabled {
-  background: rgba(255, 255, 255, 0.5);
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -119,11 +121,11 @@
 .login-footer {
   margin-top: 25px;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #64748b;
 }
 
 .login-link {
-  color: #ffffff;
+  color: #10b981;
   font-weight: 700;
   cursor: pointer;
   margin-left: 6px;
@@ -140,13 +142,14 @@
 @media screen and (max-width: 480px) {
   .login-card {
     /* Reduced width and padding for a tighter fit on phones */
-    max-width: 75%; 
+    max-width: 75%;
     padding: 25px 20px;
     border-radius: 20px;
   }
-  
+
   .login-title {
-    font-size: 2.4rem; /* Slightly smaller title for small screens */
+    font-size: 2.4rem;
+    /* Slightly smaller title for small screens */
   }
 
   .login-subtitle {
@@ -155,7 +158,8 @@
   }
 
   .login-input {
-    padding: 12px; /* Smaller inputs */
+    padding: 12px;
+    /* Smaller inputs */
     font-size: 14px;
   }
 
@@ -170,7 +174,7 @@
 
 /* 8. Liquid Error Handling */
 .liquid-error {
-  background: rgba(255, 71, 87, 0.15); 
+  background: rgba(255, 71, 87, 0.15);
   border: 1px solid rgba(255, 71, 87, 0.4);
   color: #ff4757;
   padding: 12px 15px;
@@ -184,8 +188,21 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
 }

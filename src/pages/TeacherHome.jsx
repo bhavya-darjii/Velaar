@@ -6,13 +6,14 @@ const TeacherHome = () => {
   const { course, setCourse, currentLecture, setCurrentLecture } = useOutletContext();
 
   if (!course) {
-    return <div className="loading-screen" style={{color: 'white', display:'flex', justifyContent:'center', alignItems:'center', height:'50vh', fontSize:'1.5rem'}}>Loading active course...</div>;
+    return <div className="loading-screen" style={{ color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', fontSize: '1.5rem' }}>Loading active course...</div>;
   }
 
   return (
-    <div className="teacher-home-grid">
-      {/* Left Col: Active Lecture & Checklist */}
-      <ActiveLecture 
+    <>
+      <div className="teacher-home-grid">
+        {/* Left Col: Active Lecture & Checklist */}
+      <ActiveLecture
         course={course}
         setCourse={setCourse}
         currentLecture={currentLecture}
@@ -21,12 +22,13 @@ const TeacherHome = () => {
 
       {/* Right Col: Roadmap History */}
       <aside className="sidebar">
-        <RoadmapSidebar 
-          course={course} 
-          currentLecture={currentLecture} 
+        <RoadmapSidebar
+          course={course}
+          currentLecture={currentLecture}
         />
       </aside>
     </div>
+  </>
   );
 };
 

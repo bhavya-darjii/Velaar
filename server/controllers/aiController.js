@@ -66,52 +66,121 @@ export const generateLectureRoadmap = async (req, res) => {
 };
 
 export const generateQuestionsFromTopics = async (req, res) => {
-  const { completedTopics, examLength, btPreferences = [] } = req.body;
+  const { completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = "", pastNumericals = [] } = req.body;
   if (!completedTopics || completedTopics.length === 0) return res.status(200).json([]);
   
-  const topicsList = completedTopics.join(", ");
+  const syllabusTopicsStr = completedTopics.join(", ");
+
   const prefText = btPreferences.length > 0 
     ? `PRIORITY: Give strong preference to generating questions with these BT Levels: [${btPreferences.join(", ")}]. However, include a few from other levels to maintain a realistic exam balance.`
     : `Provide a balanced mix of all BT levels.`;
 
-  const prompt = `
-    Role: Academic Exam Setter.
-    Task: Create exactly ${examLength} exam questions.
-    Constraint: You must ONLY ask questions based on these specific topics: [${topicsList}].
-    
-    CRITICAL INSTRUCTIONS:
-    1. Do NOT ask about anything else outside of the provided topics.
-    2. Classify each question according to Bloom's Taxonomy (BT) Levels.
-    3. Use ONLY these exact abbreviations: R (Remember), U (Understand), Ap (Apply), An (Analyze), E (Evaluate), C (Create).
-    4. Assign a Course Outcome (CO) to each question based on logical topic groupings. Use the format "CO1", "CO2", "CO3", etc.
-    5. ${prefText}
+  const numTheory = Math.max(0, examLength - numericalCount);
+  const numNumerical = Math.min(examLength, numericalCount);
 
-    Output Format: return ONLY a raw JSON array of objects.
-    Example: 
-    [
-      { "question": "Define artificial intelligence.", "courseOutcome": "CO1", "btLevel": "R" },
-      { "question": "Use DFID to evaluate a real-world problem.", "courseOutcome": "CO3", "btLevel": "Ap" }
-    ]
-  `;
+  // Helper to call AI
+  const callAI = async (promptText, systemInstructionText) => {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          systemInstruction: { parts: [{ text: systemInstructionText }] },
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        }),
+      });
+      const data = await response.json();
+      if (data.error || !data.candidates) return [];
+      const textResult = data.candidates[0].content.parts[0].text;
+      const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+      try {
+        return JSON.parse(cleanJsonStr);
+      } catch (e) {
+        return [];
+      }
+  };
 
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-      }),
-    });
+  let theoryQuestions = [];
+  let numericalQuestions = [];
 
-    const data = await response.json();
-    if (data.error || !data.candidates) return res.status(200).json([]);
-    const textResult = data.candidates[0].content.parts[0].text;
-    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
-    return res.status(200).json(JSON.parse(cleanJsonStr));
-  } catch (error) {
-    console.error(error);
-    return res.status(200).json([]);
+  // --- 1. GENERATE THEORY QUESTIONS ---
+  if (numTheory > 0) {
+    const theorySystem = `You are a strict Academic Exam Specialist. Generate high-quality THEORETICAL/CONCEPTUAL questions based ONLY on the provided syllabus topics. Do NOT generate any mathematical or numerical calculation problems.`;
+    const theoryPrompt = `
+      Task: Create exactly ${numTheory} THEORETICAL exam questions.
+      
+      ==== SYLLABUS TOPICS ====
+      [${syllabusTopicsStr}]
+      
+      ==== CORE INSTRUCTIONS ====
+      1. Classify each question using Bloom's Taxonomy (BT) Levels (R, U, Ap, An, E, C).
+      2. Assign a Course Outcome (CO) like "CO1", "CO2", "CO3".
+      3. ${prefText}
+      4. MUST NOT be numerical questions.
+
+      ==== STRICT OUTPUT FORMAT ====
+      Return ONLY a raw JSON array of objects.
+      [
+        { "question": "Explain the concept of...", "courseOutcome": "CO1", "btLevel": "U" }
+      ]
+    `;
+    theoryQuestions = await callAI(theoryPrompt, theorySystem);
   }
+
+  // --- 2. GENERATE NUMERICAL QUESTIONS ---
+  if (numNumerical > 0) {
+    const isFullExample = numericalPrompt && (numericalPrompt.includes('?') || numericalPrompt.length > 50 || numericalPrompt.includes('=') || numericalPrompt.includes('[') || /\d/.test(numericalPrompt));
+    
+    const numSystem = `You are a Universal Academic Problem Rewriter. Your ONLY task is to generate numerical/mathematical problems based exactly on the user's guidance. DO NOT invent topics. If the user provides an example (e.g., an array, a graph, an equation), generate a mathematically similar problem with DIFFERENT values.`;
+    
+    // We intentionally OMIT the syllabus string here so it doesn't get confused!
+    const numPrompt = `
+      Task: Create exactly ${numNumerical} NUMERICAL/MATHEMATICAL exam questions.
+      
+      ==== NUMERICAL GUIDANCE (ABSOLUTE SOURCE OF TRUTH) ====
+      ${numericalPrompt ? `"${numericalPrompt}"` : "Generate numerical problems based on general engineering/science applications."}
+
+      ${isFullExample ? `
+      ⚠️ TEMPLATE REWRITING MODE:
+      The guidance above is a SPECIFIC PROBLEM/EXAMPLE. You MUST:
+      1. Generate the EXACT SAME TYPE of problem (same algorithm/concept/domain).
+      2. CHANGE the specific values (e.g. use a different array, different graph edges, different voltage).
+      3. Do NOT generate numericals from any other topic.
+      ` : `
+      ⚠️ TOPIC MODE: Use the guidance above as the exact subject area.
+      `}
+
+      ${pastNumericals && pastNumericals.length > 0 ? `
+      ==== PAST GENERATED EXAMPLES TO EMULATE (STYLE/DIFFICULTY REFERENCE) ====
+      ${pastNumericals.map((q, i) => `${i+1}. ${q}`).join('\n')}
+      (Use these past examples strictly as a stylistic reference to maintain consistency.)
+      ` : ""}
+
+      ==== CORE INSTRUCTIONS ====
+      1. Classify each question using Bloom's Taxonomy (BT) Levels (Ap, An, E, C).
+      2. Assign a Course Outcome (CO) like "CO1", "CO2", "CO3".
+      3. EVERY question MUST require a concrete calculation, diagram, or algorithmic trace (e.g., BFS on a graph).
+
+      ==== STRICT OUTPUT FORMAT ====
+      Return ONLY a raw JSON array of objects.
+      [
+        { "question": "Calculate the output given adj = [[...]]...", "courseOutcome": "CO2", "btLevel": "Ap" }
+      ]
+    `;
+    const fetchedNumericals = await callAI(numPrompt, numSystem);
+    if (Array.isArray(fetchedNumericals)) {
+      numericalQuestions = fetchedNumericals.map(q => ({ ...q, isNumerical: true }));
+    }
+  }
+
+  // Safely combine ensuring we return exactly an array
+  let combined = [...(Array.isArray(theoryQuestions) ? theoryQuestions : []), ...(Array.isArray(numericalQuestions) ? numericalQuestions : [])];
+  
+  // Mix them up slightly if there are both so they aren't completely segregated
+  if (combined.length > 1 && numTheory > 0 && numNumerical > 0) {
+     combined = combined.sort(() => Math.random() - 0.5);
+  }
+
+  return res.status(200).json(combined);
 };
 
 export const generateQuestionsFromSyllabus = async (req, res) => {

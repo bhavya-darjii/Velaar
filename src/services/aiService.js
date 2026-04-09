@@ -16,11 +16,11 @@ export const generateLectureRoadmap = async (syllabusText, totalLectures, accept
   }
 };
 
-export const generateQuestionsFromTopics = async (completedTopics, examLength, btPreferences = []) => {
+export const generateQuestionsFromTopics = async (completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = "", pastNumericals = []) => {
   try {
     const res = await fetch(`${API_URL}/generate-questions-topics`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completedTopics, examLength, btPreferences })
+      body: JSON.stringify({ completedTopics, examLength, btPreferences, numericalCount, numericalPrompt, pastNumericals })
     });
     return await res.json();
   } catch (error) {

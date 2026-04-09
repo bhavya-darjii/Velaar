@@ -27,6 +27,8 @@ const BT_OPTIONS = [
 const ExamSection = ({ course }) => {
   const [examLoading, setExamLoading] = useState(false);
   const [numQuestions, setNumQuestions] = useState(10);
+  const [numericalCount, setNumericalCount] = useState(0);
+  const [numericalPrompt, setNumericalPrompt] = useState("");
   const [selectedBT, setSelectedBT] = useState([]);
   
   const divisions = course?.divisions || ["A"];
@@ -176,12 +178,23 @@ const ExamSection = ({ course }) => {
         topics,
         numQuestions,
         selectedBT,
+        numericalCount,
+        numericalPrompt,
+        course.pastNumericals || []
       );
+
+      // Extract new numericals to feed back into context memory limit to 5
+      const newNumericals = questions.filter(q => q.isNumerical).map(q => q.question);
+      let updatedNumericals = [...(course.pastNumericals || [])];
+      if (newNumericals.length > 0) {
+        updatedNumericals = [...newNumericals, ...updatedNumericals].slice(0, 5);
+      }
 
       // Save to Firestore
       await updateDoc(doc(db, "courses", course.id), {
         activeExam: questions,
         lastExamDate: new Date(),
+        pastNumericals: updatedNumericals
       });
 
       // Trigger Word Download
@@ -228,10 +241,46 @@ const ExamSection = ({ course }) => {
           min="1"
           max="50"
           value={numQuestions}
-          onChange={(e) => setNumQuestions(Number(e.target.value))}
+          onChange={(e) => {
+            const val = Number(e.target.value);
+            setNumQuestions(val);
+            if (numericalCount > val) setNumericalCount(val);
+          }}
           className="custom-number-input"
         />
       </div>
+
+      <div className="settings-group">
+        <label className="group-title">Incude Numericals (Max: {numQuestions})</label>
+        <input
+          type="number"
+          min="0"
+          max={numQuestions}
+          value={numericalCount}
+          onChange={(e) => setNumericalCount(Math.min(Number(e.target.value), numQuestions))}
+          className="custom-number-input"
+          placeholder="0 for Theory Only"
+        />
+        <p style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '5px'}}>
+          {numericalCount > 0 ? `Velaar will generate ${numericalCount} numericals & ${numQuestions - numericalCount} theory questions.` : "Theory-only question bank will be generated."}
+        </p>
+      </div>
+
+      {numericalCount > 0 && (
+        <div className="settings-group">
+          <label className="group-title">Numerical Guidance</label>
+          <textarea
+            className="custom-number-input"
+            style={{ width: '100%', minHeight: '100px', padding: '12px', fontSize: '0.9rem', resize: 'vertical' }}
+            placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""}
+            value={numericalPrompt}
+            onChange={(e) => setNumericalPrompt(e.target.value)}
+          />
+          <p style={{fontSize: '0.75rem', color: '#94a3b8', marginTop: '5px'}}>
+            <em>*Works for any subject. Paste a topic for fresh problems, or paste a full example and the AI will rewrite it with different values.</em>
+          </p>
+        </div>
+      )}
 
       <div className="settings-group">
         <label className="group-title">Prioritize BT Levels</label>

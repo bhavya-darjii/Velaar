@@ -8,12 +8,17 @@
 /* Floating Sidebar */
 .teacher-sidebar {
   width: 300px;
-  background-color: rgba(10, 5, 20, 0.25); /* Safe format */
+  background-color: rgba(16, 185, 129, 0.15);
+  /* Light green translucent */
+  /* Safe format */
   -webkit-backdrop-filter: blur(30px) !important;
-  backdrop-filter: blur(30px) !important; /* Enforce against minifier */
-  transform: translateZ(0); /* Force GPU */
-  border-right: none; 
-  border-radius: 0 24px 24px 0; /* Massive rounded floating border */
+  backdrop-filter: blur(30px) !important;
+  /* Enforce against minifier */
+  transform: translateZ(0);
+  /* Force GPU */
+  border-right: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 0 24px 24px 0;
+  /* Massive rounded floating border */
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -22,7 +27,8 @@
   bottom: 15px;
   z-index: 100;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Floating shadow */
+  box-shadow: 5px 0 30px rgba(0, 0, 0, 0.05);
+  /* Soft detached shadow */
 }
 
 .teacher-sidebar.open {
@@ -31,15 +37,18 @@
 
 .sidebar-header {
   display: flex;
-  justify-content: flex-end; /* Pushes close button to the right */
+  justify-content: flex-end;
+  /* Pushes close button to the right */
   align-items: center;
   padding: 20px 25px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+  /* Green divider */
 }
 
 .sidebar-header h2 {
   margin: 0;
-  color: #fff;
+  color: #ffffff;
+  /* White */
   font-weight: 900;
 }
 
@@ -47,7 +56,7 @@
   background: transparent;
   border: none;
   font-size: 24px;
-  color: #fff;
+  color: #ffffff;
   cursor: pointer;
 }
 
@@ -57,7 +66,8 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  flex: 1; /* Allows the container to expand vertically */
+  flex: 1;
+  /* Allows the container to expand vertically */
 }
 
 /* Anchors +New Course to the absolute bottom of the sidebar */
@@ -68,7 +78,8 @@
 
 .sidebar-links li {
   padding: 16px 20px;
-  color: #ccc;
+  color: #ffffff;
+  /* White */
   cursor: pointer;
   border-radius: 16px;
   margin: 8px 20px;
@@ -77,16 +88,20 @@
 }
 
 .sidebar-links li:hover {
-  background: rgba(255, 255, 255, 0.12); /* Liquid glass hover */
-  transform: translateX(6px); /* Smooth slide right */
-  color: #fff;
+  background: rgba(16, 185, 129, 0.2);
+  /* Liquid glass hover */
+  transform: translateX(6px);
+  /* Smooth slide right */
+  color: #ffffff;
 }
 
 .sidebar-links li.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(16, 185, 129, 0.3);
   color: #ffffff;
+  /* White */
   font-weight: 800;
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1); /* Glass popup lighting */
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+  /* Glass popup lighting */
 }
 
 /* Overlay for mobile */
@@ -111,43 +126,49 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 1400px; /* Stretch Home Schedule wider! */
+  max-width: 1400px;
+  /* Stretch Home Schedule wider! */
   margin: 0 auto;
-  padding: 40px 5%; 
+  padding: 40px 5%;
   box-sizing: border-box;
 }
 
 .hamburger-btn {
-  background: rgba(255, 255, 255, 0.05); /* Liquid glass base */
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  /* Crisp white background */
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   width: 44px;
   height: 44px;
-  font-size: 20px; /* Subtle size */
-  color: #ffffff;
+  font-size: 20px;
+  color: #0f172a;
+  /* Black/Slate color */
   cursor: pointer;
-  margin-right: 35px; /* Farther from textual subject line */
+  margin-right: 35px;
   padding: 0;
   display: flex;
   justify-content: center;
-  align-items: center; /* Perfect box center */
+  align-items: center;
   margin-top: 5px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  /* Soft light shadow */
 }
 
 .hamburger-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.08); /* Float effect */
-  box-shadow: 0 5px 20px rgba(255, 255, 255, 0.08);
+  background: #f8fafc;
+  transform: scale(1.08);
+  /* Float effect */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
 
 .hamburger-btn:focus,
 .hamburger-btn:active,
 .close-btn:focus,
 .close-btn:active {
-  outline: none; /* Strip default Chrome black/white click borders */
+  outline: none;
+  /* Strip default Chrome click borders */
 }
 
 .header-left {
@@ -168,27 +189,31 @@
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.5px;
-  color: #fff;
+  color: #0f172a;
+  /* Deep slate / black */
   line-height: 1.3;
 }
 
 .subtitle {
-  color: rgba(224, 207, 252, 0.9);
+  color: #64748b;
+  /* Slate gray */
   font-size: 1.2rem;
   margin-top: 5px;
   margin-bottom: 0;
 }
 
 .progress-badge {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(16, 185, 129, 0.15);
+  /* Light Green translucent */
   padding: 8px 16px;
   border-radius: 20px;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+  border: 1px solid rgba(16, 185, 129, 0.3);
   font-size: 0.9rem;
   white-space: nowrap;
   backdrop-filter: blur(4px);
-  color: #fff;
+  color: #047857;
+  /* Deep green */
 }
 
 .outlet-container {
@@ -198,13 +223,23 @@
 }
 
 @media screen and (min-width: 1024px) {
+
   /* No automatic sidebar opening anymore to allow overlaps */
-  .hamburger-btn { display: flex; } /* Always show hamburger */
-  .close-btn { display: block; }    /* Always show close button */
-  
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Always show hamburger */
+  .close-btn {
+    display: block;
+  }
+
+  /* Always show close button */
+
   .main-content {
-    margin: 0 auto; 
-    max-width: 1600px; /* Desktop mega stretch for schedule cards! */
+    margin: 0 auto;
+    max-width: 1600px;
+    /* Desktop mega stretch for schedule cards! */
   }
 }
 
@@ -214,7 +249,7 @@
   font-weight: 900;
   margin: 0 auto;
   text-align: center;
-  color: rgba(255, 255, 255, 0.7); /* Softly translucent */
+  color: #0f172a;
   letter-spacing: -2px;
   text-shadow: none;
 }
@@ -230,7 +265,7 @@
     position: relative;
     box-sizing: border-box;
   }
-  
+
   .dash-header {
     flex-direction: column;
     align-items: center;

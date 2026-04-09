@@ -49,20 +49,23 @@
 }
 
 .new-course-btn {
-  background: #ffffff;
-  color: #000000;
-  border: none;
+  background: rgba(16, 185, 129, 0.25);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.3);
   padding: 8px 16px;
   border-radius: 8px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .new-course-btn:hover {
-  background: #e2e8f0;
-  transform: translateY(-2px);
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
 }
 
 .progress-badge {

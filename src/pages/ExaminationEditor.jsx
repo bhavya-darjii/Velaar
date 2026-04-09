@@ -4,20 +4,39 @@ import { db, auth } from '../services/firebase';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import './ExaminationEditor.css';
 
-const DEFAULT_PATTERN = [
-  { id: '1', title: 'Solve any two questions out of three: (05 marks each)', marks: 10, subs: [{ id: 'a', marks: 5, bt: '' }, { id: 'b', marks: 5, bt: '' }, { id: 'c', marks: 5, bt: '' }] },
-  { id: '2', title: 'Solve any two questions out of three: (05 marks each)', marks: 10, subs: [{ id: 'a', marks: 5, bt: '' }, { id: 'b', marks: 5, bt: '' }, { id: 'c', marks: 5, bt: '' }] },
-  { id: '3', title: 'Solve any two questions out of three: (10 marks each)', marks: 20, subs: [{ id: 'a', marks: 10, bt: '' }, { id: 'b', marks: 10, bt: '' }, { id: 'c', marks: 10, bt: '' }] },
-  { id: '4', title: 'Solve any two questions out of three: (10 marks each)', marks: 20, subs: [{ id: 'a', marks: 10, bt: '' }, { id: 'b', marks: 10, bt: '' }, { id: 'c', marks: 10, bt: '' }] }
+const TT_PATTERN = [
+  { id: '1', title: 'Answer any two questions out of three: (04 marks each)', marks: 8, subs: [{ id: 'a', marks: 4, bt: '', isNumerical: false }, { id: 'b', marks: 4, bt: '', isNumerical: false }, { id: 'c', marks: 4, bt: '', isNumerical: false }] },
+  { id: '2', title: 'Answer any two questions out of three: (04 marks each)', marks: 8, subs: [{ id: 'a', marks: 4, bt: '', isNumerical: false }, { id: 'b', marks: 4, bt: '', isNumerical: false }, { id: 'c', marks: 4, bt: '', isNumerical: false }] },
+  { id: '3', title: 'Answer any one question out of two: (04 marks each)', marks: 4, subs: [{ id: 'a', marks: 4, bt: '', isNumerical: false }, { id: 'b', marks: 4, bt: '', isNumerical: false }] }
 ];
 
-const DEFAULT_HEADER = {
-  date: "", // Must be filled compulsorily
+const ENDSEM_PATTERN = [
+  { id: '1', title: 'Solve any two questions out of three: (05 marks each)', marks: 10, subs: [{ id: 'a', marks: 5, bt: '', isNumerical: false }, { id: 'b', marks: 5, bt: '', isNumerical: false }, { id: 'c', marks: 5, bt: '', isNumerical: false }] },
+  { id: '2', title: 'Solve any two questions out of three: (05 marks each)', marks: 10, subs: [{ id: 'a', marks: 5, bt: '', isNumerical: false }, { id: 'b', marks: 5, bt: '', isNumerical: false }, { id: 'c', marks: 5, bt: '', isNumerical: false }] },
+  { id: '3', title: 'Solve any two questions out of three: (10 marks each)', marks: 20, subs: [{ id: 'a', marks: 10, bt: '', isNumerical: false }, { id: 'b', marks: 10, bt: '', isNumerical: false }, { id: 'c', marks: 10, bt: '', isNumerical: false }] },
+  { id: '4', title: 'Solve any two questions out of three: (10 marks each)', marks: 20, subs: [{ id: 'a', marks: 10, bt: '', isNumerical: false }, { id: 'b', marks: 10, bt: '', isNumerical: false }, { id: 'c', marks: 10, bt: '', isNumerical: false }] }
+];
+
+const todayIso = new Date().toISOString().split('T')[0];
+
+const TT_HEADER = {
+  date: todayIso,
+  duration: "1 Hour",
+  maxMarks: "20",
+  scheme: "III",
+  regularExam: "SY Semester: IV"
+};
+
+const ENDSEM_HEADER = {
+  date: todayIso,
   duration: "02.5 Hours",
   maxMarks: "60",
   scheme: "III",
-  regularExam: "" // Must be filled compulsorily
+  regularExam: "SY Semester: IV"
 };
+
+const DEFAULT_PATTERN = ENDSEM_PATTERN;
+const DEFAULT_HEADER = ENDSEM_HEADER;
 
 const BT_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 
@@ -31,6 +50,7 @@ const ExaminationEditor = () => {
   const [headerConfig, setHeaderConfig] = useState(DEFAULT_HEADER);
   const [isEditMode, setIsEditMode] = useState(false);
   const [numSets, setNumSets] = useState(1);
+  const [numericalPrompt, setNumericalPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState('');
   const [validationError, setValidationError] = useState(null);
@@ -47,14 +67,34 @@ const ExaminationEditor = () => {
           const docId = querySnapshot.docs[0].id;
           setCourse({ id: docId, ...courseData });
 
+          // Choose relevant default template if not already saved
+          const isTT = examId === 'tt1' || examId === 'tt2';
+          const localDefaultPattern = isTT ? TT_PATTERN : ENDSEM_PATTERN;
+          const localDefaultHeader = isTT ? TT_HEADER : ENDSEM_HEADER;
+
           // Load Saved Pattern or Default
           const savedPatterns = courseData.examPatterns || {};
           if (savedPatterns[examId]) {
-            setPattern(savedPatterns[examId].pattern || DEFAULT_PATTERN);
-            setHeaderConfig(savedPatterns[examId].headerConfig || DEFAULT_HEADER);
+            // Migration: Ensure 'isNumerical' exists in loaded patterns
+            let loadedPattern = savedPatterns[examId].pattern || localDefaultPattern;
+            
+            // Fix for TT1 caching the EndSem pattern from previous versions
+            if (isTT && loadedPattern.length === 4) {
+                loadedPattern = localDefaultPattern;
+            }
+            
+            loadedPattern = loadedPattern.map(q => ({
+               ...q,
+               subs: q.subs.map(s => ({ isNumerical: false, ...s }))
+            }));
+            
+            setPattern(loadedPattern);
+            setHeaderConfig(savedPatterns[examId].headerConfig || localDefaultHeader);
+            setNumericalPrompt(savedPatterns[examId].numericalPrompt || "");
           } else {
-            setPattern(DEFAULT_PATTERN);
-            setHeaderConfig(DEFAULT_HEADER);
+            setPattern(localDefaultPattern);
+            setHeaderConfig(localDefaultHeader);
+            setNumericalPrompt("");
           }
         }
       } catch (err) {
@@ -66,11 +106,18 @@ const ExaminationEditor = () => {
   }, [examId]);
 
   // 2. Debounced Auto-Save
-  const savePatternToDb = useCallback(async (currentPattern, currentHeader) => {
+  const savePatternToDb = useCallback(async (currentPattern, currentHeader, currentPrompt) => {
     if (!course) return;
     setAutoSaveStatus('Saving...');
     try {
-      const updatedPatterns = { ...(course.examPatterns || {}), [examId]: { pattern: currentPattern, headerConfig: currentHeader } };
+      const updatedPatterns = { 
+        ...(course.examPatterns || {}), 
+        [examId]: { 
+          pattern: currentPattern, 
+          headerConfig: currentHeader,
+          numericalPrompt: currentPrompt
+        } 
+      };
       await updateDoc(doc(db, "courses", course.id), { examPatterns: updatedPatterns });
       setAutoSaveStatus('All changes saved.');
       setTimeout(() => setAutoSaveStatus(''), 3000);
@@ -82,9 +129,9 @@ const ExaminationEditor = () => {
 
   useEffect(() => {
     if (loading || !course) return;
-    const timeoutId = setTimeout(() => { savePatternToDb(pattern, headerConfig); }, 1500);
+    const timeoutId = setTimeout(() => { savePatternToDb(pattern, headerConfig, numericalPrompt); }, 1500);
     return () => clearTimeout(timeoutId);
-  }, [pattern, headerConfig, savePatternToDb, loading, course]);
+  }, [pattern, headerConfig, numericalPrompt, savePatternToDb, loading, course]);
 
   // 3. UI Handlers for Modifying Pattern Configs
   const handleBtChange = (qIndex, subIndex, level) => {
@@ -100,6 +147,12 @@ const ExaminationEditor = () => {
     setPattern(updated);
   };
 
+  const toggleNumerical = (qIndex, subIndex) => {
+    const updated = [...pattern];
+    updated[qIndex].subs[subIndex].isNumerical = !updated[qIndex].subs[subIndex].isNumerical;
+    setPattern(updated);
+  };
+
   const handleSubStructuralChange = (qIndex, subIndex, field, value) => {
     const updated = [...pattern];
     updated[qIndex].subs[subIndex][field] = value;
@@ -109,7 +162,7 @@ const ExaminationEditor = () => {
   const addSubQuestion = (qIndex) => {
     const updated = [...pattern];
     const newId = String.fromCharCode(97 + updated[qIndex].subs.length); // a, b, c, d...
-    updated[qIndex].subs.push({ id: newId, marks: 5, bt: '' });
+    updated[qIndex].subs.push({ id: newId, marks: 5, bt: '', isNumerical: false });
     setPattern(updated);
   };
 
@@ -171,7 +224,9 @@ const ExaminationEditor = () => {
           examType: examId,
           pattern: pattern,
           headerConfig: headerConfig,
-          numSets: numSets
+          numSets: numSets,
+          numericalPrompt: numericalPrompt,
+          pastNumericals: course?.pastNumericals || []
         })
       });
 
@@ -224,34 +279,19 @@ const ExaminationEditor = () => {
             {isEditMode 
               ? "Structurally modify the paper layout. Changes autosave instantly." 
               : "Select precise Bloom's Taxonomy brackets to map questions accurately."}
-            <span style={{marginLeft: '15px', color: '#a78bfa'}}>{autoSaveStatus}</span>
+            <span style={{marginLeft: '15px', color: '#10b981'}}>{autoSaveStatus}</span>
           </p>
         </div>
       </div>
 
-      {isEditMode && (
-        <div className="question-block" style={{border: '1px dashed rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.02)'}}>
-          <h3 style={{color: '#fff', marginTop: 0}}>Institutional Meta-Data</h3>
-          <div style={{display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr)', gap: '20px', marginTop: '20px'}}>
-            <div>
-              <label style={{color: '#e2e8f0', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase'}}>Max. Marks</label>
-              <input type="text" className="edit-input-title" style={{marginTop: '8px'}} value={headerConfig.maxMarks} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} />
-              <p style={{color: '#94a3b8', fontSize: '0.85rem', marginTop: '8px'}}>The rest of the dynamic metadata fields (Date, Exam Text) are configured at the generation step below.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Read-Only Header Configuration Summary */}
-      {!isEditMode && (
-        <div className="question-block" style={{padding: '15px 24px', display: 'flex', flexWrap: 'wrap', gap: '20px', background: 'rgba(255,255,255,0.02)', border: 'none'}}>
-           <div style={{color: '#fff', fontSize: '0.95rem'}}><strong style={{color:'#94a3b8'}}>Date:</strong> {headerConfig.date}</div>
-           <div style={{color: '#fff', fontSize: '0.95rem'}}><strong style={{color:'#94a3b8'}}>Marks:</strong> {headerConfig.maxMarks}</div>
-           <div style={{color: '#fff', fontSize: '0.95rem'}}><strong style={{color:'#94a3b8'}}>Duration:</strong> {headerConfig.duration}</div>
-           <div style={{color: '#fff', fontSize: '0.95rem'}}><strong style={{color:'#94a3b8'}}>Scheme:</strong> {headerConfig.scheme}</div>
-           <div style={{color: '#fff', fontSize: '0.95rem'}}><strong style={{color:'#94a3b8'}}>Academic Year:</strong> {headerConfig.regularExam}</div>
-        </div>
-      )}
+      {/* Editable Header Configuration Summary */}
+      <div className="question-block" style={{padding: '15px 24px', display: 'flex', flexWrap: 'wrap', gap: '20px', background: '#f8fafc', border: '1px solid #e2e8f0'}}>
+         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: 'auto', fontSize: '0.95rem', height: '32px'}} value={headerConfig.date} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '60px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.maxMarks} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '100px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.duration} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '60px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.scheme} onChange={e => setHeaderConfig({...headerConfig, scheme: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '150px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.regularExam} onChange={e => setHeaderConfig({...headerConfig, regularExam: e.target.value})} /></div>
+      </div>
 
       <div className="pattern-builder">
         {pattern.map((q, qIndex) => (
@@ -260,7 +300,7 @@ const ExaminationEditor = () => {
             <div className="question-header">
               {isEditMode ? (
                 <div style={{display:'flex', gap:'10px', width: '100%', alignItems: 'center'}}>
-                  <span style={{color: 'white', fontWeight: 'bold'}}>Q.{q.id}</span>
+                  <span style={{color: '#0f172a', fontWeight: 'bold'}}>Q.{q.id}</span>
                   <input type="text" className="edit-input-title" value={q.title} onChange={e => handleStructuralChange(qIndex, 'title', e.target.value)} />
                   <span style={{color: 'gray'}}>Max:</span>
                   <input type="number" className="edit-input-small" value={q.marks} onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value)||0)} />
@@ -268,8 +308,8 @@ const ExaminationEditor = () => {
                 </div>
               ) : (
                 <>
-                  <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#94a3b8', fontWeight:'normal'}}>{q.title}</span></h3>
-                  <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#fff'}}>{q.marks} Marks</div>
+                  <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#64748b', fontWeight:'normal'}}>{q.title}</span></h3>
+                  <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#0f172a'}}>{q.marks} Marks</div>
                 </>
               )}
             </div>
@@ -287,21 +327,36 @@ const ExaminationEditor = () => {
                         <button className="btn-danger" style={{padding: '4px 8px'}} onClick={() => removeSubQuestion(qIndex, subIndex)}>Remove</button>
                       </div>
                     ) : (
-                      <span style={{color: 'rgba(255, 255, 255, 0.7)'}}>[ {sub.marks} Marks | Auto CO ]</span>
+                      <span style={{color: '#64748b'}}>[ {sub.marks} Marks | Auto CO ]</span>
                     )}
                   </div>
                   
                   {!isEditMode && (
-                    <div className="bt-pill-group">
-                      {BT_LEVELS.map(lvl => (
-                        <div 
-                          key={lvl} 
-                          className={`bt-pill ${sub.bt === lvl ? 'active' : ''}`}
-                          onClick={() => handleBtChange(qIndex, subIndex, lvl)}
-                        >
-                          {lvl}
-                        </div>
-                      ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="bt-pill-group">
+                        {BT_LEVELS.map(lvl => (
+                          <div 
+                            key={lvl} 
+                            className={`bt-pill ${sub.bt === lvl ? 'active' : ''}`}
+                            onClick={() => handleBtChange(qIndex, subIndex, lvl)}
+                          >
+                            {lvl}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div 
+                        className={`bt-pill ${sub.isNumerical ? 'active' : ''}`} 
+                        style={{ 
+                          background: sub.isNumerical ? '#10b981' : '#ffffff',
+                          color: sub.isNumerical ? '#ffffff' : '#10b981',
+                          border: '1px solid #10b981',
+                          boxShadow: 'none'
+                        }}
+                        onClick={() => toggleNumerical(qIndex, subIndex)}
+                      >
+                        Numerical Question
+                      </div>
                     </div>
                   )}
                 </div>
@@ -325,26 +380,31 @@ const ExaminationEditor = () => {
       </div>
 
       {!isEditMode && (
-        <div className="generation-configurator" style={{ marginTop: '50px' }}>
+        <div className="q-card generation-configurator" style={{ marginTop: '50px' }}>
           
-          <div style={{display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '25px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '10px'}}>
-             <h3 style={{color: 'white', margin: '0 0 5px 0'}}>Generative Pre-Flight Parameters</h3>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '25px', borderBottom: '1px solid #e2e8f0', marginBottom: '10px'}}>
+             <h3 style={{color: '#0f172a', margin: '0 0 5px 0'}}>Generative Pre-Flight Parameters</h3>
              
-             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
-               <div>
-                 <label style={{display: 'block', color: '#fff', fontWeight: 600, marginBottom: '8px'}}>Date of Exam <span style={{color: '#ef4444'}}>*</span></label>
-                 <input type="date" className="edit-input-title" style={{margin: 0}} value={headerConfig.date} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} />
-               </div>
-               <div>
-                 <label style={{display: 'block', color: '#fff', fontWeight: 600, marginBottom: '8px'}}>Regular Examination <span style={{color: '#ef4444'}}>*</span></label>
-                 <input type="text" placeholder="e.g. SY Semester: IV" className="edit-input-title" style={{margin: 0}} value={headerConfig.regularExam} onChange={e => setHeaderConfig({...headerConfig, regularExam: e.target.value})} />
-               </div>
+             
+
+             <div style={{marginTop: '10px'}}>
+               <label style={{display: 'block', color: '#0f172a', fontWeight: 600, marginBottom: '8px'}}>Numerical Guidance</label>
+               <textarea 
+                 placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""} 
+                 className="edit-input-title" 
+                 style={{margin: 0, minHeight: '80px', width: '100%', fontSize: '0.9rem', resize: 'vertical', padding: '10px'}} 
+                 value={numericalPrompt} 
+                 onChange={e => setNumericalPrompt(e.target.value)} 
+               />
+               <p style={{color: '#94a3b8', fontSize: '0.8rem', marginTop: '6px', lineHeight: '1.5'}}>
+                 <em>*Works for any subject. Paste a topic for fresh problems, or paste a full example and the AI will rewrite it with different values.</em>
+               </p>
              </div>
           </div>
           
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
             <div>
-              <h3 style={{color: 'white', margin: '0 0 5px 0'}}>Final Export Calibration</h3>
+              <h3 style={{color: '#0f172a', margin: '0 0 5px 0'}}>Final Export Calibration</h3>
               <p style={{color: '#94a3b8', margin: 0}}>Select how many entirely distinct question papers you need to generate.</p>
             </div>
             

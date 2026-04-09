@@ -741,7 +741,7 @@ const CourseGenerator = () => {
                 className="input-group"
                 style={{ marginTop: "10px", marginBottom: "20px" }}
               >
-                <label style={{ fontSize: "0.9rem", color: "#ccc" }}>
+                <label style={{ fontSize: "0.9rem", color: "#0f172a" }}>
                   Number of Divisions to teach
                 </label>
                 <input

@@ -357,7 +357,7 @@ if (fs.existsSync(path.resolve(process.cwd(), 'server', '.env'))) {
 
 export const exportTemplatedExam = async (req, res) => {
   try {
-    const { course, examType, pattern, headerConfig, numSets = 1, division = "A" } = req.body;
+    const { course, examType, pattern, headerConfig, numSets = 1, division = "A", numericalPrompt = "", pastNumericals = [] } = req.body;
 
     if (!pattern || pattern.length === 0) {
       return res.status(400).json({ error: "No paper pattern found." });
@@ -380,33 +380,94 @@ export const exportTemplatedExam = async (req, res) => {
     } else if (course.modules) {
       topics = course.modules.map(m => m.name);
     }
-    const topicsList = topics.length > 0 ? topics.join(", ") : "General Course Content";
+    const topicsList = topics.join(", ");
+
+    // Detect if the numericalPrompt looks like a full example/problem
+    const looksLikeExample = numericalPrompt && (
+      numericalPrompt.includes('?') || 
+      numericalPrompt.length > 50 || 
+      numericalPrompt.includes('=') || 
+      numericalPrompt.includes('[') ||
+      numericalPrompt.includes('adj') ||
+      numericalPrompt.includes('graph') ||
+      numericalPrompt.includes('node') ||
+      /\d/.test(numericalPrompt)
+    );
 
     // Build the dynamic prompt request structure based on the user's exact pattern.
-    let promptStructureMap = {};
+    let theoryStructureMap = {};
+    let numericalStructureMap = {};
+    
+    let hasTheory = false;
+    let hasNumerical = false;
+
     pattern.forEach((q) => {
        q.subs.forEach(sub => {
            let internalId = `Q${q.id}_${sub.id}`;
-           promptStructureMap[internalId] = {
-             q: `[String: Write a ${sub.marks}-mark question testing ${sub.bt} concepts about the syllabus topics]`,
-             co: `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this generated question based on the syllabus]`
-           };
+           if (sub.isNumerical) {
+               hasNumerical = true;
+               numericalStructureMap[internalId] = {
+                 q: `[String: MANDATORY mathematical/numerical problem. EVERY numerical must require concrete calculation/algorithmic trace.]`,
+                 co: `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this question]`
+               };
+           } else {
+               hasTheory = true;
+               theoryStructureMap[internalId] = {
+                 q: `[String: Write a ${sub.marks}-mark THEORETICAL/CONCEPTUAL question testing ${sub.bt} concepts about the syllabus topics. Do NOT include calculations.]`,
+                 co: `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this question]`
+               };
+           }
        });
     });
 
-    const prompt = `
-      Role: University Exam Setter.
-      Task: Generate ${pattern.reduce((acc, q) => acc + q.subs.length, 0)} exam questions based STRICTLY on the following syllabus topics: [${topicsList}].
-      Course: ${course.subjectName || "Algorithm Analysis"}
+    const buildPrompt = (type, structureMap, variantNum) => {
+      if (type === 'theory') {
+        return `
+          Task: Generate ${Object.keys(structureMap).length} THEORETICAL exam questions for Variant #${variantNum}.
+          
+          ==== SYLLABUS TOPICS ====
+          [${topicsList}]
+          
+          INSTRUCTIONS:
+          1. Generate conceptually strong, theoretical questions based ONLY on the syllabus topics above.
+          2. MUST NOT be numerical questions.
+          3. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
 
-      INSTRUCTIONS:
-      You must respond with ONLY A RAW JSON OBJECT covering EXACTLY the keys in the structure below.
-      Ensure the difficulty matches the requested Bloom's Taxonomy string for each specific question.
-      No markdown formatting, no code blocks, just pure JSON.
+          STRUCTURE TO FILL:
+          ${JSON.stringify(structureMap, null, 2)}
+        `;
+      } else {
+        return `
+          Task: Generate ${Object.keys(structureMap).length} NUMERICAL exam questions for Variant #${variantNum}.
+          
+          ==== NUMERICAL GUIDANCE (ABSOLUTE SOURCE OF TRUTH) ====
+          ${numericalPrompt ? `"${numericalPrompt}"` : "Generate numerical problems based on general engineering/science applications."}
+          
+          ${looksLikeExample ? `
+          ⚠️ TEMPLATE REWRITING MODE:
+          The guidance above is a SPECIFIC PROBLEM/EXAMPLE. You MUST:
+          1. Generate the EXACT SAME TYPE of problem (same algorithm, same concept, same domain).
+          2. CHANGE the specific values (e.g., use a different array, different graph edges, different voltage).
+          3. Do NOT generate numericals from any other topic.
+          ` : `
+          ⚠️ TOPIC MODE: Use the guidance above as the exact subject area.
+          `}
 
-      STRUCTURE TO FILL:
-      ${JSON.stringify(promptStructureMap, null, 2)}
-    `;
+          ${pastNumericals && pastNumericals.length > 0 ? `
+          ==== PAST GENERATED EXAMPLES TO EMULATE (STYLE/DIFFICULTY REFERENCE) ====
+          ${pastNumericals.map((q, i) => `${i+1}. ${q}`).join('\n')}
+          (Use these past examples strictly as a stylistic reference to maintain consistency across generation sets.)
+          ` : ""}
+
+          INSTRUCTIONS:
+          1. Generate mathematically solvable problems strictly following the guidance above.
+          2. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
+
+          STRUCTURE TO FILL:
+          ${JSON.stringify(structureMap, null, 2)}
+        `;
+      }
+    };
 
     const AI_KEY = process.env.GOOGLE_API_KEY;
     if (!AI_KEY) throw new Error("Server API Key missing");
@@ -527,29 +588,56 @@ export const exportTemplatedExam = async (req, res) => {
       });
 
       const mainTable = new Table({ rows: tRows, width: { size: 100, type: WidthType.PERCENTAGE } });
-      const pd = new Document({ sections: [{ properties: {}, children: [...headerParas, ...instructions, mainTable] }] });
+      const pd = new Document({ sections: [{ properties: {}, children: [headerTable, ...instructions, mainTable] }] });
       return await Packer.toBuffer(pd);
     };
 
     // We generate files based on numSets
     let generatedBuffers = [];
+
+    const callAI = async (promptText) => {
+        const systemInstruction = `You are a strict Universal Academic Exam Specialist.
+        YOUR ONLY JOB is to generate EXACTLY the requested JSON structure. No explanations, no markdown. Answer purely based on the context provided in the prompt.`;
+        
+        const fetchResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_KEY}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            contents: [{ parts: [{ text: promptText }] }],
+            generationConfig: { responseMimeType: "application/json", temperature: 0.8 }
+          }),
+        });
+        const data = await fetchResp.json();
+        if (data.error) throw new Error(data.error.message);
+        let textResult = data.candidates[0].content.parts[0].text;
+        const jsonStart = textResult.indexOf('{');
+        const jsonEnd = textResult.lastIndexOf('}');
+        if (jsonStart === -1) throw new Error("JSON not found in response");
+        return JSON.parse(textResult.substring(jsonStart, jsonEnd + 1));
+    };
+
     for (let s = 1; s <= numSets; s++) {
-        let aiData;
+        let aiData = {};
         try {
-          const fetchResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_KEY}`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              contents: [{ parts: [{ text: prompt + `\n\nGenerate Set variant #${s} (ensure uniquely different wordings and core logic permutations).` }] }],
-              generationConfig: { responseMimeType: "application/json", temperature: 0.8 }
-            }),
-          });
-          const data = await fetchResp.json();
-          if (data.error) throw new Error(data.error.message);
-          let textResult = data.candidates[0].content.parts[0].text;
-          const jsonStart = textResult.indexOf('{');
-          const jsonEnd = textResult.lastIndexOf('}');
-          if (jsonStart === -1) throw new Error("JSON not found in response.");
-          aiData = JSON.parse(textResult.substring(jsonStart, jsonEnd + 1));
+            const promises = [];
+            
+            let theoryIndex = -1;
+            let numericalIndex = -1;
+
+            if (hasTheory) {
+               theoryIndex = promises.length;
+               promises.push(callAI(buildPrompt('theory', theoryStructureMap, s)));
+            }
+            if (hasNumerical) {
+               numericalIndex = promises.length;
+               promises.push(callAI(buildPrompt('numerical', numericalStructureMap, s)));
+            }
+
+            const results = await Promise.all(promises);
+
+            if (hasTheory) Object.assign(aiData, results[theoryIndex]);
+            if (hasNumerical) Object.assign(aiData, results[numericalIndex]);
+
         } catch (perr) {
           console.error("AI Gen Failed for iteration ", s, perr);
           throw new Error("AI failed to process questions for Set " + s);

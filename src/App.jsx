@@ -17,23 +17,16 @@ function App() {
   return (
     <Router>
       <div className="app-layout">
-        
-        {/* BACKGROUND LAYER (Stays fixed behind every page) */}
-        <div className="background-layer">
-          <LiquidChrome
-            baseColor={[0.1, 0.1, 0.3]}
-            speed={1}
-            amplitude={0.13}
-            interactive={true}
-          />
-        </div>
+
+        {/* GLOBAL SOLID LIGHT BACKGROUND */}
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, backgroundColor: '#f4f6f8' }} />
 
         {/* CONTENT LAYER (Switches based on the URL) */}
         <div className="content-layer">
           <Routes>
             {/* When the app starts ('/'), show Login Page */}
             <Route path="/" element={<LoginPage />} />
-            
+
             {/* Teacher Dashboard nested routes safely mapped into ProtectedRoute block */}
             <Route path="/teacher" element={
               <ProtectedRoute allowedRoles={['teacher', 'admin']}>
