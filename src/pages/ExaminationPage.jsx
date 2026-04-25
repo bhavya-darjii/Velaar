@@ -43,8 +43,8 @@ const ExaminationPage = () => {
     <div className="glass-container" style={{ minHeight: 'auto', padding: '40px 0' }}>
       <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}>
         <div className="exams-header" style={{marginBottom: "30px", textAlign: "center"}}>
-          <h2 style={{color: '#0f172a', margin: 0, fontSize: '2rem', fontWeight: 800}}>Institutional Examinations</h2>
-          <p style={{color: '#64748b', margin: '10px 0 0 0', fontSize: '1rem'}}>
+          <h2 style={{color: '#ffffff', margin: 0, fontSize: '2rem', fontWeight: 800}}>Institutional Examinations</h2>
+          <p style={{color: '#94a3b8', margin: '10px 0 0 0', fontSize: '1rem'}}>
             Dynamically compile correctly formatted College-issued Word Documents based on your syllabus.
           </p>
         </div>

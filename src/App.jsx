@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import LiquidChrome from './components/LiquidChrome';
+import { useState, useEffect } from 'react';
+import Plasma from './components/Plasma/Plasma';
 
 import LoginPage from './pages/LoginPage';
 import TeacherLayout from './layouts/TeacherLayout';
@@ -14,12 +15,30 @@ import SyllabusUpload from './components/CourseGenerator';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
+  const [themeColor, setThemeColor] = useState('#008080');
+
+  useEffect(() => {
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+    if (color) {
+      setThemeColor(color);
+    }
+  }, []);
+
   return (
     <Router>
       <div className="app-layout">
 
-        {/* GLOBAL SOLID LIGHT BACKGROUND */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, backgroundColor: '#f4f6f8' }} />
+        {/* GLOBAL PLASMA BACKGROUND */}
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+          <Plasma 
+            color={themeColor} 
+            speed={2.1}
+            direction="pingpong"
+            scale={3}
+            opacity={1}
+            mouseInteractive={true}
+          />
+        </div>
 
         {/* CONTENT LAYER (Switches based on the URL) */}
         <div className="content-layer">

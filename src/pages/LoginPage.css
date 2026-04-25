@@ -1,6 +1,5 @@
 /* src/components/LoginPage.css */
 
-/* 1. Main Wrapper - Centers the card perfectly */
 .login-container {
   width: 100%;
   min-height: 100vh;
@@ -15,13 +14,15 @@
 .login-card {
   width: 100%;
   max-width: 400px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
   padding: 45px 35px;
   border-radius: 28px;
   text-align: center;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 /* 3. Brand Header */
@@ -29,12 +30,12 @@
   font-size: 3.5rem;
   font-weight: 900;
   margin: 0;
-  color: #10b981; /* Green */
+  color: #ffffff;
   letter-spacing: -2px;
 }
 
 .login-subtitle {
-  color: #64748b;
+  color: #94a3b8;
   font-size: 0.95rem;
   margin-bottom: 35px;
   font-weight: 500;
@@ -50,9 +51,9 @@
 .login-input {
   width: 100%;
   padding: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.05); /* Dark translucent */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   border-radius: 14px;
   font-size: 16px;
   outline: none;
@@ -60,25 +61,15 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- Placeholder Styling --- */
 .login-input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
   opacity: 1;
 }
 
-/* For older browsers */
-.login-input:-ms-input-placeholder {
-  color: #94a3b8;
-}
-
-.login-input::-ms-input-placeholder {
-  color: #94a3b8;
-}
-
 .login-input:focus {
-  border-color: #10b981;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  border-color: var(--accent-teal);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.15);
 }
 
 /* 5. Primary Button */
@@ -86,97 +77,69 @@
   margin-top: 15px;
   width: 100%;
   padding: 16px;
-  background: rgba(16, 185, 129, 0.25);
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
   font-size: 16px;
   font-weight: 800;
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: none;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: none;
 }
 
 .login-btn:hover {
-  background: #10b981;
-  color: #ffffff;
-  border-color: #10b981;
-}
-
-.login-btn:active {
-  transform: translateY(0);
+  background: var(--btn-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
 }
 
 .login-btn:disabled {
-  background: #f1f5f9;
-  color: #94a3b8;
-  border: 1px solid #e2e8f0;
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #64748b;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* 6. Footer Links */
 .login-footer {
   margin-top: 25px;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .login-link {
-  color: #10b981;
+  color: var(--accent-teal);
   font-weight: 700;
   cursor: pointer;
   margin-left: 6px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
   transition: opacity 0.2s;
 }
 
 .login-link:hover {
   opacity: 0.8;
+  text-decoration: underline;
 }
 
 /* 7. Mobile Responsiveness */
 @media screen and (max-width: 480px) {
   .login-card {
-    /* Reduced width and padding for a tighter fit on phones */
-    max-width: 75%;
-    padding: 25px 20px;
+    max-width: 85%;
+    padding: 30px 20px;
     border-radius: 20px;
   }
-
-  .login-title {
-    font-size: 2.4rem;
-    /* Slightly smaller title for small screens */
-  }
-
-  .login-subtitle {
-    margin-bottom: 20px;
-    font-size: 0.85rem;
-  }
-
-  .login-input {
-    padding: 12px;
-    /* Smaller inputs */
-    font-size: 14px;
-  }
-
-  .login-btn {
-    padding: 12px;
-  }
-
-  .login-footer {
-    font-size: 0.8rem;
-  }
+  .login-title { font-size: 2.5rem; }
+  .login-subtitle { margin-bottom: 25px; }
+  .login-input, .login-btn { padding: 14px; }
 }
 
 /* 8. Liquid Error Handling */
 .liquid-error {
-  background: rgba(255, 71, 87, 0.15);
-  border: 1px solid rgba(255, 71, 87, 0.4);
-  color: #ff4757;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
   padding: 12px 15px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -188,21 +151,7 @@
 }
 
 @keyframes shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-5px);
-  }
-
-  50% {
-    transform: translateX(5px);
-  }
-
-  75% {
-    transform: translateX(-5px);
-  }
+  0%, 100% { transform: translateX(0); }
+  25%, 75% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
 }

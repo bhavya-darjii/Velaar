@@ -208,10 +208,6 @@ const ExamSection = ({ course }) => {
 
   return (
     <div className="action-card">
-      <div className="card-header">
-        <h3>Exam Control</h3>
-        <p>Create a test based strictly on what you have taught so far.</p>
-      </div>
 
       {/* Settings Panel */}
       {divisions.length > 1 && (

@@ -13,12 +13,14 @@
 .glass-card {
   width: 100%;
   max-width: 900px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
   border-radius: 24px;
   padding: 20px 40px 40px 40px; 
-  color: #0f172a;
+  color: #ffffff;
   animation: fadeIn 0.5s ease-out;
 }
 
@@ -41,7 +43,7 @@
 .glass-title {
   font-size: 2rem;
   margin-bottom: 30px;
-  color: #0f172a;
+  color: #ffffff;
   text-align: center;
   font-weight: 800;
 }
@@ -54,10 +56,12 @@
 }
 
 .form-section {
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 25px;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* SPACING GROUP */
@@ -78,7 +82,7 @@
 label {
   display: block;
   margin-bottom: 8px;
-  color: #64748b;
+  color: #94a3b8;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -87,29 +91,29 @@ label {
 
 .glass-input {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 12px 16px;
   border-radius: 10px;
-  color: #0f172a;
+  color: #ffffff;
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .glass-input::placeholder {
-  color: #94a3b8 !important;
+  color: #64748b !important;
 }
 
 .glass-input:focus {
   outline: none;
-  background: #ffffff;
-  border-color: #10b981;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-teal);
 }
 
 .glass-input option {
-  background-color: #ffffff;
-  color: #0f172a;            
+  background-color: #0f0f11;
+  color: #ffffff;            
 }
 
 /* --- CUSTOM DROPDOWNS --- */
@@ -117,7 +121,7 @@ select.glass-input {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 16px;
@@ -132,14 +136,14 @@ select.time-select {
 }
 
 .glass-input option {
-  background-color: #ffffff; 
-  color: #0f172a;
+  background-color: #0f0f11; 
+  color: #ffffff;
   font-weight: 500;
   padding: 10px; 
 }
 
 select.glass-input:focus {
-  border-color: #10b981;
+  border-color: var(--accent-teal);
   box-shadow: none;
   outline: none;
 }
@@ -152,10 +156,10 @@ select.glass-input:focus {
 
 .glass-file-input {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  color: #64748b;
+  color: #94a3b8;
   cursor: pointer;
   padding: 8px;
   box-sizing: border-box;
@@ -164,13 +168,13 @@ select.glass-input:focus {
 }
 
 .glass-file-input:hover {
-  border-color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .glass-file-input::file-selector-button {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   padding: 8px 16px;
   margin-right: 15px;
   border-radius: 8px;
@@ -179,14 +183,18 @@ select.glass-input:focus {
   transition: all 0.3s ease;
 }
 
+.glass-file-input::file-selector-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 .loading-status {
-  color: #64748b;
+  color: #94a3b8;
   margin-top: 10px;
   font-size: 0.9rem;
 }
 
 .success-status {
-  color: #10b981;
+  color: var(--accent-teal);
   margin-top: 10px;
   font-size: 0.9rem;
   text-shadow: none;
@@ -196,7 +204,7 @@ select.glass-input:focus {
 .scheduler-title {
   text-align: center;
   font-size: 1.5rem;
-  color: #0f172a;
+  color: #ffffff;
   margin-top: 0;
   margin-bottom: 20px;
   font-weight: bold;
@@ -210,9 +218,9 @@ select.glass-input:focus {
 }
 
 .division-tab {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -224,24 +232,25 @@ select.glass-input:focus {
 }
 
 .division-tab:hover {
-  border-color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
 }
 
 .division-tab.active {
-  background: rgba(16, 185, 129, 0.15);
-  color: #047857;
+  background: rgba(0, 128, 128, 0.15);
+  color: var(--accent-teal);
   font-weight: 800;
   outline: none;
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(0, 128, 128, 0.3);
 }
 
 .division-tab:focus, .division-tab:active {
   outline: none;
-  border-color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .division-tab.active:focus {
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(0, 128, 128, 0.3);
 }
 
 .day-tabs {
@@ -253,9 +262,9 @@ select.glass-input:focus {
 }
 
 .day-tab {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -266,17 +275,22 @@ select.glass-input:focus {
   -webkit-tap-highlight-color: transparent; 
 }
 
+.day-tab:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
 .day-tab.active {
-  background: rgba(16, 185, 129, 0.15);
-  color: #047857;
+  background: rgba(0, 128, 128, 0.15);
+  color: var(--accent-teal);
   font-weight: 800;
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(0, 128, 128, 0.3);
   outline: none;
 }
 
 .day-tab:focus, .day-tab:active {
   outline: none;
-  border-color: #e2e8f0; 
+  border-color: rgba(255, 255, 255, 0.2); 
 }
 
 .day-tab .dot {
@@ -285,19 +299,19 @@ select.glass-input:focus {
   right: 6px;
   width: 6px;
   height: 6px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
 }
 
 .day-tab.active .dot {
-  background: #10b981;
+  background: var(--accent-teal);
 }
 
 .time-adder {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
   padding: 10px;
   border-radius: 12px;
   margin-bottom: 15px;
@@ -305,7 +319,7 @@ select.glass-input:focus {
 
 .current-day-label {
   font-weight: bold;
-  color: #0f172a;
+  color: #ffffff;
   min-width: 40px;
 }
 
@@ -315,9 +329,9 @@ select.glass-input:focus {
 }
 
 .add-time-btn {
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 6.5px 16px;
   border-radius: 8px;
   font-weight: bold;
@@ -326,9 +340,9 @@ select.glass-input:focus {
 }
 
 .add-time-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-  border-color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
   box-shadow: none;
 }
 
@@ -340,7 +354,7 @@ select.glass-input:focus {
 }
 
 .empty-msg {
-  color: #94a3b8;
+  color: #64748b;
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -349,12 +363,12 @@ select.glass-input:focus {
   display: flex;
   align-items: center;
   gap: 15px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
 }
 
 .day-slot-group strong {
-  color: #0f172a;
+  color: #ffffff;
   width: 40px;
 }
 
@@ -365,9 +379,9 @@ select.glass-input:focus {
 }
 
 .time-pill {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   padding: 4px 10px;
   border-radius: 15px;
   font-size: 0.85rem;
@@ -378,8 +392,8 @@ select.glass-input:focus {
 }
 
 .time-pill:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .time-pill button {
@@ -412,35 +426,35 @@ select.glass-input:focus {
 }
 
 .glass-btn.primary {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--btn-primary-bg);
   border: none;
-  color: white;
+  color: var(--btn-primary-text);
 }
 
 .glass-btn.primary:hover {
-  background: #059669;
-  color: white;
+  background: var(--btn-primary-hover);
+  color: var(--btn-primary-text);
   transform: translateY(-2px);
 }
 
 .glass-btn.primary:disabled {
-  background: #f1f5f9;
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.1);
+  color: #64748b;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
 .glass-btn.secondary {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .glass-btn.secondary:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* PREVIEW SECTION */
@@ -459,17 +473,17 @@ select.glass-input:focus {
 }
 
 .lecture-count {
-  background: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
 }
 
 .glass-list-item {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 15px;
@@ -478,8 +492,8 @@ select.glass-input:focus {
 
 .glass-list-item:hover {
   transform: translateX(5px);
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .item-meta {
@@ -489,9 +503,9 @@ select.glass-input:focus {
 }
 
 .lecture-badge {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #047857;
+  background: rgba(0, 128, 128, 0.15);
+  border: 1px solid rgba(0, 128, 128, 0.3);
+  color: var(--accent-teal);
   font-size: 0.8rem;
   padding: 4px 8px;
   border-radius: 4px;
@@ -499,25 +513,25 @@ select.glass-input:focus {
 }
 
 .date-tag, .time-tag, .module-tag {
-  background: #f1f5f9;
+  background: rgba(255, 255, 255, 0.1);
   font-size: 0.8rem;
   padding: 4px 10px;
   border-radius: 4px;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   white-space: nowrap;
 }
 
 .item-content h3 {
   margin: 0 0 10px 0;
-  color: #0f172a;
+  color: #ffffff;
   font-size: 1.1rem;
 }
 
 .item-content ul {
   padding-left: 20px;
   margin: 0;
-  color: #334155;
+  color: #cbd5e1;
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -532,14 +546,14 @@ select.glass-input:focus {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f8fafc; 
+  background: transparent; 
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1; 
+  background: rgba(255, 255, 255, 0.2); 
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; 
+  background: rgba(255, 255, 255, 0.3); 
 }
 
 /* =========================================

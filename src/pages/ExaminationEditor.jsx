@@ -285,12 +285,12 @@ const ExaminationEditor = () => {
       </div>
 
       {/* Editable Header Configuration Summary */}
-      <div className="question-block" style={{padding: '15px 24px', display: 'flex', flexWrap: 'wrap', gap: '20px', background: '#f8fafc', border: '1px solid #e2e8f0'}}>
-         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: 'auto', fontSize: '0.95rem', height: '32px'}} value={headerConfig.date} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '60px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.maxMarks} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '100px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.duration} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '60px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.scheme} onChange={e => setHeaderConfig({...headerConfig, scheme: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}><strong style={{color:'#0f172a', fontSize: '0.95rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 8px', width: '150px', fontSize: '0.95rem', height: '32px'}} value={headerConfig.regularExam} onChange={e => setHeaderConfig({...headerConfig, regularExam: e.target.value})} /></div>
+      <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'nowrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)'}}>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: 'auto', fontSize: '0.85rem', height: '30px'}} value={headerConfig.date} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '80px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.scheme} onChange={e => setHeaderConfig({...headerConfig, scheme: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '130px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.regularExam} onChange={e => setHeaderConfig({...headerConfig, regularExam: e.target.value})} /></div>
       </div>
 
       <div className="pattern-builder">
@@ -300,16 +300,16 @@ const ExaminationEditor = () => {
             <div className="question-header">
               {isEditMode ? (
                 <div style={{display:'flex', gap:'10px', width: '100%', alignItems: 'center'}}>
-                  <span style={{color: '#0f172a', fontWeight: 'bold'}}>Q.{q.id}</span>
+                  <span style={{color: '#ffffff', fontWeight: 'bold'}}>Q.{q.id}</span>
                   <input type="text" className="edit-input-title" value={q.title} onChange={e => handleStructuralChange(qIndex, 'title', e.target.value)} />
-                  <span style={{color: 'gray'}}>Max:</span>
+                  <span style={{color: '#94a3b8'}}>Max:</span>
                   <input type="number" className="edit-input-small" value={q.marks} onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value)||0)} />
                   <button className="btn-danger" onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
                 </div>
               ) : (
                 <>
-                  <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#64748b', fontWeight:'normal'}}>{q.title}</span></h3>
-                  <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#0f172a'}}>{q.marks} Marks</div>
+                  <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#94a3b8', fontWeight:'normal'}}>{q.title}</span></h3>
+                  <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#10b981'}}>{q.marks} Marks</div>
                 </>
               )}
             </div>
@@ -348,9 +348,9 @@ const ExaminationEditor = () => {
                       <div 
                         className={`bt-pill ${sub.isNumerical ? 'active' : ''}`} 
                         style={{ 
-                          background: sub.isNumerical ? '#10b981' : '#ffffff',
-                          color: sub.isNumerical ? '#ffffff' : '#10b981',
-                          border: '1px solid #10b981',
+                          background: sub.isNumerical ? 'rgba(var(--theme-color-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                          color: sub.isNumerical ? 'var(--theme-color)' : '#94a3b8',
+                          border: sub.isNumerical ? '1px solid rgba(var(--theme-color-rgb), 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
                           boxShadow: 'none'
                         }}
                         onClick={() => toggleNumerical(qIndex, subIndex)}
@@ -382,13 +382,13 @@ const ExaminationEditor = () => {
       {!isEditMode && (
         <div className="q-card generation-configurator" style={{ marginTop: '50px' }}>
           
-          <div style={{display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '25px', borderBottom: '1px solid #e2e8f0', marginBottom: '10px'}}>
-             <h3 style={{color: '#0f172a', margin: '0 0 5px 0'}}>Generative Pre-Flight Parameters</h3>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '25px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: '10px'}}>
+             <h3 style={{color: '#ffffff', margin: '0 0 5px 0'}}>Generative Pre-Flight Parameters</h3>
              
              
 
              <div style={{marginTop: '10px'}}>
-               <label style={{display: 'block', color: '#0f172a', fontWeight: 600, marginBottom: '8px'}}>Numerical Guidance</label>
+               <label style={{display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px'}}>Numerical Guidance</label>
                <textarea 
                  placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""} 
                  className="edit-input-title" 
@@ -404,7 +404,7 @@ const ExaminationEditor = () => {
           
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
             <div>
-              <h3 style={{color: '#0f172a', margin: '0 0 5px 0'}}>Final Export Calibration</h3>
+              <h3 style={{color: '#ffffff', margin: '0 0 5px 0'}}>Final Export Calibration</h3>
               <p style={{color: '#94a3b8', margin: 0}}>Select how many entirely distinct question papers you need to generate.</p>
             </div>
             
@@ -448,7 +448,7 @@ const ExaminationEditor = () => {
             </p>
             <button 
               onClick={() => setValidationError(null)}
-              style={{ width: '100%', padding: '14px', fontSize: '1rem', background: 'linear-gradient(135deg, #a78bfa, #8b5cf6)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}
+              style={{ width: '100%', padding: '14px', fontSize: '1rem', background: 'var(--theme-color)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}
             >
               I'll fix it
             </button>

@@ -2,20 +2,22 @@
    EXAM CONTROL CARD - PREMIUM DARK UI
    ========================================= */
 .action-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
   padding: 24px;
   border-radius: 20px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
-  color: #0f172a;
+  box-shadow: var(--liquid-glass-shadow);
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
 }
 
 .card-header h3 {
   margin: 0 0 8px 0;
-  color: #0f172a;
+  color: #ffffff;
   font-size: 1.4rem;
   letter-spacing: 0.5px;
 }
@@ -23,7 +25,7 @@
 .card-header p {
   margin: 0;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #94a3b8;
   line-height: 1.4;
 }
 
@@ -38,15 +40,15 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #047857; /* Deep green */
+  color: #94a3b8;
   font-weight: 600;
 }
 
 /* Number Input */
 .custom-number-input {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 1rem;
@@ -57,8 +59,8 @@
 }
 
 .custom-number-input:focus {
-  border-color: #10b981;
-  background: #ffffff;
+  border-color: var(--theme-color);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Custom Chips (Used for both BT Levels and Divisions) */
@@ -80,24 +82,24 @@
 
 .chip-text {
   padding: 8px 14px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   font-size: 0.85rem;
-  color: #64748b;
+  color: #94a3b8;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   user-select: none;
 }
 
 .bt-chip:hover .chip-text {
-  background: #f8fafc;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .bt-chip input:checked + .chip-text {
-  background: rgba(16, 185, 129, 0.15); /* Light green translucent */
-  border-color: rgba(16, 185, 129, 0.3);
-  color: #047857; /* Deep green */
+  background: rgba(var(--theme-color-rgb), 0.15);
+  border-color: rgba(var(--theme-color-rgb), 0.3);
+  color: var(--theme-color);
   box-shadow: none;
 }
 
@@ -105,9 +107,9 @@
 .generate-btn {
   width: 100%;
   padding: 14px;
-  background: rgba(16, 185, 129, 0.25);
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(var(--theme-color-rgb), 0.25);
+  color: var(--theme-color);
+  border: 1px solid rgba(var(--theme-color-rgb), 0.3);
   border-radius: 12px;
   font-size: 1.05rem;
   font-weight: 800;
@@ -120,17 +122,17 @@
 }
 
 .generate-btn:hover:not(:disabled) {
-  background: #10b981;
+  background: var(--theme-color);
   color: #ffffff;
-  border-color: #10b981;
+  border-color: var(--theme-color);
 }
 
 .generate-btn:disabled {
-  background: #f1f5f9;
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  color: #64748b;
   cursor: not-allowed;
   box-shadow: none;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* --- Hide Number Input Spinners --- */

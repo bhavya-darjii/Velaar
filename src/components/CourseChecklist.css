@@ -2,11 +2,11 @@
    ACTIVE LECTURE CARD (Left Column)
    ========================================= */
 .active-card {
-  background: #ffffff;
-  /* Crisp pristine white */
-  border: 1px solid #e2e8f0;
-  /* Crisp soft border */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
   padding: 30px;
   border-radius: 24px;
   display: flex;
@@ -18,10 +18,8 @@
 }
 
 .tag-live {
-  background: rgba(16, 185, 129, 0.15);
-  /* Light green translucent */
-  color: #047857;
-  /* Deep green */
+  background: rgba(0, 128, 128, 0.15);
+  color: var(--accent-teal);
   font-size: 0.75rem;
   padding: 5px 10px;
   border-radius: 6px;
@@ -30,19 +28,19 @@
   text-transform: uppercase;
   display: inline-block;
   margin-bottom: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(0, 128, 128, 0.3);
 }
 
 .active-card h2 {
   font-size: 1.8rem;
   margin: 0;
   line-height: 1.3;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .active-card h2,
 .roadmap-mini li {
-  -webkit-text-fill-color: #0f172a;
+  -webkit-text-fill-color: #ffffff;
 }
 
 @media screen and (max-width: 768px) {
@@ -60,55 +58,54 @@
 
 .checklist-area h3 {
   font-size: 1.1rem;
-  color: #10b981;
+  color: var(--accent-teal);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 5px;
 }
 
 .instruction {
-  color: #64748b;
+  color: #94a3b8;
   font-size: 0.9rem;
   margin-bottom: 20px;
 }
 
-/* Soft green translucent wells */
 .check-item {
   display: flex;
   align-items: center;
   gap: 15px;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   padding: 16px;
   margin-bottom: 12px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid rgba(16, 185, 129, 0.15);
-  color: #334155;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .check-item:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   transform: translateX(4px);
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* CHECKED STATE */
 .check-item.checked {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(0, 128, 128, 0.1);
+  border-color: rgba(0, 128, 128, 0.2);
 }
 
 .check-item.checked span {
   text-decoration: line-through;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 /* CUSTOM CHECKBOX CIRCLE */
 .checkbox-circle {
   width: 24px;
   height: 24px;
-  border: 2px solid rgba(16, 185, 129, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -116,14 +113,14 @@
   font-size: 14px;
   transition: all 0.2s;
   flex-shrink: 0;
-  background: #ffffff;
+  background: transparent;
 }
 
 .check-item.checked .checkbox-circle {
-  background: #10b981;
-  border-color: #10b981;
+  background: var(--accent-teal);
+  border-color: var(--accent-teal);
   color: white;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 10px rgba(0, 128, 128, 0.4);
 }
 
 /* =========================================
@@ -132,9 +129,9 @@
 .finish-btn {
   width: 100%;
   padding: 16px;
-  background: rgba(16, 185, 129, 0.25);
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: 1px solid transparent;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 800;
@@ -147,26 +144,27 @@
 }
 
 .finish-btn:hover {
-  background: #10b981;
-  color: #ffffff;
-  border-color: #10b981;
+  background: var(--btn-primary-hover);
+  transform: translateY(-2px);
 }
 
 /* =========================================
    SIDEBAR ROADMAP
    ========================================= */
 .roadmap-mini {
-  background: #ffffff;
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
   padding: 20px;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 .roadmap-mini h3 {
   margin-top: 0;
   font-size: 1rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .roadmap-mini ul {
@@ -177,8 +175,8 @@
 
 .roadmap-mini li {
   padding: 12px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  color: #334155;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -189,14 +187,12 @@
 }
 
 .mini-num {
-  background: rgba(16, 185, 129, 0.15);
-  /* Light green translucent */
+  background: rgba(0, 128, 128, 0.15);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.75rem;
   margin-right: 10px;
-  color: #047857;
-  /* Deep green */
+  color: var(--accent-teal);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -209,27 +205,18 @@
     padding: 12px;
     font-size: 0.95rem;
   }
-
   .active-card {
     padding: 15px;
     border-radius: 12px;
   }
-
   .roadmap-mini {
     padding: 15px;
   }
 }
 
 @keyframes slideInRight {
-  from {
-    transform: translateX(30px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .slide-in-right {
@@ -237,27 +224,12 @@
 }
 
 @keyframes scaleUp {
-  0% {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-
-  50% {
-    transform: scale(1.2);
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes fadeInOverlay {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
