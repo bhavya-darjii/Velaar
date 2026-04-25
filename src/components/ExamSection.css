@@ -97,9 +97,9 @@
 }
 
 .bt-chip input:checked + .chip-text {
-  background: rgba(var(--theme-color-rgb), 0.15);
-  border-color: rgba(var(--theme-color-rgb), 0.3);
-  color: var(--theme-color);
+  background: rgba(var(--plasma-color-rgb), 0.15);
+  border-color: rgba(var(--plasma-color-rgb), 0.3);
+  color: var(--plasma-color);
   box-shadow: none;
 }
 

@@ -29,9 +29,14 @@
   --btn-secondary-border: rgba(255, 255, 255, 0.1);
   --btn-secondary-hover: rgba(255, 255, 255, 0.1);
 
-  /* Central Theme Color */
-  --theme-color: #008080;
-  --theme-color-rgb: 0, 128, 128;
+  /* Central Theme Color (now translucent white) */
+  --theme-color: #ffffff;
+  --theme-color-rgb: 255, 255, 255;
+  --accent-teal: #ffffff; /* Overriding all legacy teal references to white */
+  
+  /* Plasma Background Color */
+  --plasma-color: #ea580c;
+  --plasma-color-rgb: 234, 88, 12;
 }
 
 a {
@@ -65,16 +70,16 @@ button {
   font-size: 1em;
   font-weight: 700;
   font-family: inherit;
-  background-color: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
+  background-color: #ffffff !important;
+  color: #000000 !important;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: none !important;
 }
 
 button:hover {
-  background-color: var(--btn-primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  background-color: #ffffff !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 button:focus,
 button:focus-visible {

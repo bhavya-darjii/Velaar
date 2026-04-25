@@ -237,11 +237,11 @@ select.glass-input:focus {
 }
 
 .division-tab.active {
-  background: rgba(0, 128, 128, 0.15);
+  background: rgba(255, 255, 255, 0.15);
   color: var(--accent-teal);
   font-weight: 800;
   outline: none;
-  border-color: rgba(0, 128, 128, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .division-tab:focus, .division-tab:active {
@@ -250,7 +250,7 @@ select.glass-input:focus {
 }
 
 .division-tab.active:focus {
-  border-color: rgba(0, 128, 128, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .day-tabs {
@@ -281,10 +281,10 @@ select.glass-input:focus {
 }
 
 .day-tab.active {
-  background: rgba(0, 128, 128, 0.15);
+  background: rgba(255, 255, 255, 0.15);
   color: var(--accent-teal);
   font-weight: 800;
-  border-color: rgba(0, 128, 128, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   outline: none;
 }
 
@@ -503,8 +503,8 @@ select.glass-input:focus {
 }
 
 .lecture-badge {
-  background: rgba(0, 128, 128, 0.15);
-  border: 1px solid rgba(0, 128, 128, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: var(--accent-teal);
   font-size: 0.8rem;
   padding: 4px 8px;

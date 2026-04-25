@@ -69,7 +69,7 @@
 .login-input:focus {
   border-color: var(--accent-teal);
   background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
 }
 
 /* 5. Primary Button */

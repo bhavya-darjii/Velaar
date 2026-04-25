@@ -279,7 +279,7 @@ const ExaminationEditor = () => {
             {isEditMode 
               ? "Structurally modify the paper layout. Changes autosave instantly." 
               : "Select precise Bloom's Taxonomy brackets to map questions accurately."}
-            <span style={{marginLeft: '15px', color: '#10b981'}}>{autoSaveStatus}</span>
+            <span style={{marginLeft: '15px', color: '#ffffff'}}>{autoSaveStatus}</span>
           </p>
         </div>
       </div>
@@ -309,7 +309,7 @@ const ExaminationEditor = () => {
               ) : (
                 <>
                   <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#94a3b8', fontWeight:'normal'}}>{q.title}</span></h3>
-                  <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#10b981'}}>{q.marks} Marks</div>
+                  <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#ffffff'}}>{q.marks} Marks</div>
                 </>
               )}
             </div>
@@ -348,9 +348,9 @@ const ExaminationEditor = () => {
                       <div 
                         className={`bt-pill ${sub.isNumerical ? 'active' : ''}`} 
                         style={{ 
-                          background: sub.isNumerical ? 'rgba(var(--theme-color-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                          color: sub.isNumerical ? 'var(--theme-color)' : '#94a3b8',
-                          border: sub.isNumerical ? '1px solid rgba(var(--theme-color-rgb), 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+                          background: sub.isNumerical ? 'rgba(var(--plasma-color-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                          color: sub.isNumerical ? 'var(--plasma-color)' : '#94a3b8',
+                          border: sub.isNumerical ? '1px solid rgba(var(--plasma-color-rgb), 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
                           boxShadow: 'none'
                         }}
                         onClick={() => toggleNumerical(qIndex, subIndex)}

@@ -44,10 +44,10 @@
 }
 
 .close-btn {
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
   font-size: 24px;
-  color: #ffffff;
+  color: #ffffff !important;
   cursor: pointer;
 }
 
@@ -117,15 +117,15 @@
 }
 
 .hamburger-btn {
-  background: var(--liquid-glass-bg);
+  background: var(--liquid-glass-bg) !important;
   backdrop-filter: var(--liquid-glass-blur);
   -webkit-backdrop-filter: var(--liquid-glass-blur);
-  border: 1px solid var(--liquid-glass-border);
+  border: 1px solid var(--liquid-glass-border) !important;
   border-radius: 12px;
   width: 44px;
   height: 44px;
   font-size: 20px;
-  color: #ffffff;
+  color: #ffffff !important;
   cursor: pointer;
   margin-right: 35px;
   padding: 0;
@@ -133,14 +133,14 @@
   justify-content: center;
   align-items: center;
   margin-top: 5px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   flex-shrink: 0;
-  box-shadow: var(--liquid-glass-shadow);
+  box-shadow: var(--liquid-glass-shadow) !important;
 }
 
 .hamburger-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(1.08) !important;
 }
 
 .hamburger-btn:focus,

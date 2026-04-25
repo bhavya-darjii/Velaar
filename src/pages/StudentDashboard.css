@@ -53,9 +53,9 @@
 }
 
 .student-exit-btn:hover {
-  background: #10b981;
+  background: #ffffff;
   color: #ffffff;
-  border-color: #10b981;
+  border-color: #ffffff;
 }
 
 /* Main Action Button - Neutral, No Hover Effect */
@@ -76,9 +76,9 @@
 }
 
 .student-btn:hover:not(:disabled) {
-  background: #10b981;
+  background: #ffffff;
   color: #ffffff;
-  border-color: #10b981;
+  border-color: #ffffff;
 }
 
 .student-btn:disabled {
@@ -274,7 +274,7 @@
   font-weight: 900;
 }
 
-.score-tag.pass { background: #10b981; color: #064e3b; }
+.score-tag.pass { background: rgba(255,255,255,0.2); color: #ffffff; }
 .score-tag.fail { background: #ef4444; color: #ffffff; }
 
 .feedback-text {

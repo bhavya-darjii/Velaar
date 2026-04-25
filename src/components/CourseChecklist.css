@@ -18,7 +18,7 @@
 }
 
 .tag-live {
-  background: rgba(0, 128, 128, 0.15);
+  background: rgba(255, 255, 255, 0.15);
   color: var(--accent-teal);
   font-size: 0.75rem;
   padding: 5px 10px;
@@ -28,7 +28,7 @@
   text-transform: uppercase;
   display: inline-block;
   margin-bottom: 10px;
-  border: 1px solid rgba(0, 128, 128, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .active-card h2 {
@@ -92,8 +92,8 @@
 
 /* CHECKED STATE */
 .check-item.checked {
-  background: rgba(0, 128, 128, 0.1);
-  border-color: rgba(0, 128, 128, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .check-item.checked span {
@@ -120,7 +120,7 @@
   background: var(--accent-teal);
   border-color: var(--accent-teal);
   color: white;
-  box-shadow: 0 0 10px rgba(0, 128, 128, 0.4);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 
 /* =========================================
@@ -187,7 +187,7 @@
 }
 
 .mini-num {
-  background: rgba(0, 128, 128, 0.15);
+  background: rgba(255, 255, 255, 0.15);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.75rem;

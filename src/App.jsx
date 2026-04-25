@@ -15,12 +15,12 @@ import SyllabusUpload from './components/CourseGenerator';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const [themeColor, setThemeColor] = useState('#008080');
+  const [plasmaColor, setPlasmaColor] = useState('#ea580c');
 
   useEffect(() => {
-    const color = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--plasma-color').trim();
     if (color) {
-      setThemeColor(color);
+      setPlasmaColor(color);
     }
   }, []);
 
@@ -31,7 +31,7 @@ function App() {
         {/* GLOBAL PLASMA BACKGROUND */}
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
           <Plasma 
-            color={themeColor} 
+            color={plasmaColor} 
             speed={2.1}
             direction="pingpong"
             scale={3}
