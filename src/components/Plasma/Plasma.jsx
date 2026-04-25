@@ -47,7 +47,11 @@ void mainImage(out vec4 o, vec2 C) {
     p = z*normalize(vec3(C-.5*r,r.y)); 
     p.z -= 4.; 
     S = p;
-    d = p.y-T;
+    // Multiple overlapping wave fronts so orange plasma covers the screen at all times
+    float wave = p.y - T;
+    d = sin(wave * 0.7) * 2.2            // primary front
+      + sin(wave * 0.31 + 1.3) * 1.6   // slower secondary front
+      + sin(wave * 1.4 - 0.7) * 0.8;   // faster tertiary detail front
     
     p.x += .4*(1.+p.y)*sin(d + p.x*0.1)*cos(.34*d + p.x*0.05); 
     Q = p.xz *= mat2(cos(p.y+vec4(0,11,33,0)-T)); 
@@ -55,7 +59,7 @@ void mainImage(out vec4 o, vec2 C) {
     o = 1.+sin(S.y+p.z*.5+S.z-length(S-p)+vec4(2,1,0,8));
   }
   
-  o.xyz = tanh(O/1e4);
+  o.xyz = tanh(O/6e3); // slightly brighter accumulation to match denser pattern
 }
 
 bool finite1(float x){ return !(isnan(x) || isinf(x)); }

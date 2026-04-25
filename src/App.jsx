@@ -33,7 +33,7 @@ function App() {
           <Plasma 
             color={plasmaColor} 
             speed={2.1}
-            direction="pingpong"
+            direction="forward"
             scale={3}
             opacity={1}
             mouseInteractive={true}
