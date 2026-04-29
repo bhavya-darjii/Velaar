@@ -134,7 +134,13 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
                 className={`check-item ${isChecked ? 'checked' : ''}`}
                 onClick={() => toggleChecklist(idx)}
               >
-                <div className="checkbox-circle">{isChecked ? "✔" : ""}</div>
+                <div className="checkbox-circle">
+                  {isChecked && (
+                    <svg style={{ display: 'block' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 7 9 18 4 13"></polyline>
+                    </svg>
+                  )}
+                </div>
                 <span>{item}</span>
               </div>
             );

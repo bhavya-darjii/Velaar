@@ -4,7 +4,15 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping } from '../services/aiService';
 import { exportLessonPlanToWord } from '../utils/wordExport';
+import LessonPlanSkeleton from '../components/LessonPlanSkeleton';
 import './LessonPlanPage.css';
+
+const RefreshIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+  </svg>
+);
 
 const defaultProgramOutcomes = [
   { code: "PO1", title: "Engineering Knowledge" },
@@ -88,7 +96,7 @@ const getDefaultAssessment = (modules) => (modules || []).map((m, i) => ({
 }));
 
 const LessonPlanPage = () => {
-  const { course, setCourse } = useOutletContext();
+  const { course, setCourse, loading: layoutLoading } = useOutletContext();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -137,6 +145,7 @@ const LessonPlanPage = () => {
   }, [lessonPlan, course?.id, setCourse]);
 
 
+  if (layoutLoading) return <LessonPlanSkeleton />;
   if (!course) return null;
 
   const handleGenerate = async () => {
@@ -285,12 +294,12 @@ const LessonPlanPage = () => {
           <div className="lp-description">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <strong>Course Description: </strong>
-              <button className="icon-btn" title="Regenerate Description" onClick={async () => {
+              <button className="icon-btn flex-center" title="Regenerate Description" onClick={async () => {
                 setLoading(true);
                 const desc = await generateSpecificField("description", course.subjectName, []);
                 if (desc) setLessonPlan({ ...lessonPlan, courseDescription: desc });
                 setLoading(false);
-              }}>↻ Regenerate</button>
+              }}><RefreshIcon /> Regenerate</button>
             </div>
             <textarea
               value={lessonPlan.courseDescription}
@@ -317,7 +326,7 @@ const LessonPlanPage = () => {
                   </th>
                   <th colSpan="2" style={{ textAlign: 'center' }}>
                     Evaluation Methods
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '0.85rem', color: '#ffffff', fontWeight: 'bold' }}>
                       <div style={{ flex: 1, paddingRight: '10px', borderRight: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
                         Formative
                         <div style={{ marginTop: '5px' }}>
@@ -347,7 +356,7 @@ const LessonPlanPage = () => {
                       <td style={{ textAlign: 'center' }}>{moduleRef.id || unit.unitNo}</td>
                       <td>{moduleRef.name || "Unknown"}</td>
                       <td style={{ position: 'relative' }}>
-                        <button className="icon-btn sm-regen" title="Regenerate Outcome" onClick={async () => {
+                        <button className="icon-btn sm-regen flex-center" title="Regenerate Outcome" onClick={async () => {
                           setLoading(true);
                           const unitData = await generateSpecificField("unit", course.subjectName, [moduleRef]);
                           if (unitData) {
@@ -357,7 +366,7 @@ const LessonPlanPage = () => {
                             setLessonPlan({ ...lessonPlan, unitOutcomes: updated });
                           }
                           setLoading(false);
-                        }}>↻</button>
+                        }}><RefreshIcon /></button>
                         <textarea value={unit.outcomes} onChange={(e) => handleOutcomeChange(idx, 'outcomes', e.target.value)} />
                       </td>
                       <td>
@@ -452,7 +461,7 @@ const LessonPlanPage = () => {
               {/* 5. COURSE OUTCOMES */}
               <div className="lp-table-wrapper" style={{ marginBottom: '40px' }}>
                 <h4 style={{ marginBottom: '10px' }}>Course Outcomes:</h4>
-                <p style={{ color: '#64748b', marginBottom: '15px', fontSize: '0.9rem', fontWeight: 'bold' }}>After taking this Course a student will be able to:</p>
+                <p style={{ color: '#ffffff', marginBottom: '15px', fontSize: '0.9rem', fontWeight: 'bold' }}>After taking this Course a student will be able to:</p>
                 <table className="lp-table co-table" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
                   <thead>
                     <tr>
@@ -605,12 +614,12 @@ const LessonPlanPage = () => {
               <div className="lp-methodologies" style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <h4 style={{ margin: '0' }}>Text Books:</h4>
-                  <button className="icon-btn" title="Regenerate Text Books" onClick={async () => {
+                  <button className="icon-btn flex-center" title="Regenerate Text Books" onClick={async () => {
                     setLoading(true);
                     const tb = await generateSpecificField("textBooks", course.subjectName, []);
                     if (tb) setLessonPlan({ ...lessonPlan, textBooks: tb });
                     setLoading(false);
-                  }}>↻</button>
+                  }}><RefreshIcon /></button>
                 </div>
                 <ul>
                   {lessonPlan.textBooks.map((book, idx) => (
@@ -630,12 +639,12 @@ const LessonPlanPage = () => {
               <div className="lp-methodologies">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <h4 style={{ margin: '0' }}>Reference Books:</h4>
-                  <button className="icon-btn" title="Regenerate Reference Books" onClick={async () => {
+                  <button className="icon-btn flex-center" title="Regenerate Reference Books" onClick={async () => {
                     setLoading(true);
                     const rb = await generateSpecificField("referenceBooks", course.subjectName, []);
                     if (rb) setLessonPlan({ ...lessonPlan, referenceBooks: rb });
                     setLoading(false);
-                  }}>↻</button>
+                  }}><RefreshIcon /></button>
                 </div>
                 <ul>
                   {lessonPlan.referenceBooks.map((book, idx) => (
@@ -1040,21 +1049,18 @@ const LessonPlanPage = () => {
 
           <div className="lp-actions" style={{ justifyContent: 'center', marginTop: '40px', borderTop: 'none' }}>
             <button style={{
-              background: 'white',
-              color: 'black',
-              fontSize: '1.2rem',
-              padding: '12px 60px',
+              width: '100%',
+              padding: '14px',
+              fontSize: '1.05rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              fontWeight: 'bold',
-              borderRadius: '6px',
-              border: '1px solid #ccc',
-              outline: 'none',
-              boxShadow: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
+              cursor: 'pointer'
             }}
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleExportWord}>

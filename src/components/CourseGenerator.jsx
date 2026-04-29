@@ -741,7 +741,7 @@ const CourseGenerator = () => {
                 className="input-group"
                 style={{ marginTop: "10px", marginBottom: "20px" }}
               >
-                <label style={{ fontSize: "0.9rem", color: "#0f172a" }}>
+                <label style={{ fontSize: "0.9rem", color: "#ffffff" }}>
                   Number of Divisions to teach
                 </label>
                 <input
@@ -782,7 +782,7 @@ const CourseGenerator = () => {
                   return (
                     <button
                       key={day}
-                      className={`day-tab ${activeDay === day ? "active" : ""}`}
+                      className={`day-tab ${activeDay === day ? "active" : ""} ${hasSlots ? "has-slots" : ""}`}
                       onClick={() => setActiveDay(day)}
                     >
                       {day}
@@ -871,7 +871,7 @@ const CourseGenerator = () => {
               disabled={loading}
               style={{ gridColumn: "1 / -1", marginTop: "20px" }}
             >
-              {loading ? "AI Processing..." : "Generate Roadmap →"}
+              {loading ? "AI Processing..." : "Generate Roadmap"}
             </button>
           </div>
         )}

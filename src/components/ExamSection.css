@@ -106,25 +106,23 @@
 /* --- Generate Button --- */
 .generate-btn {
   width: 100%;
-  padding: 14px;
-  background: rgba(var(--theme-color-rgb), 0.25);
-  color: var(--theme-color);
-  border: 1px solid rgba(var(--theme-color-rgb), 0.3);
-  border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: none;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 10px;
+  padding: 14px !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: none !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  margin-top: 10px !important;
 }
-
 .generate-btn:hover:not(:disabled) {
-  background: var(--theme-color);
-  color: #ffffff;
-  border-color: var(--theme-color);
+  background: #e2e8f0 !important;
+  color: #000000 !important;
 }
 
 .generate-btn:disabled {

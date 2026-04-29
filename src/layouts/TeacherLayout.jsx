@@ -86,7 +86,8 @@ const TeacherLayout = () => {
     initDashboard();
   }, [navigate]);
 
-  if (loading) return <div className="loading-screen" style={{color: 'white', display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', fontSize:'1.5rem'}}>Loading...</div>;
+  // NOTE: No early return here — always render the full shell to prevent layout shift.
+  // Each child page receives `loading` via outlet context and shows its own skeleton.
 
   return (
     <div className="teacher-layout">
@@ -107,7 +108,7 @@ const TeacherLayout = () => {
             Question Bank
           </li>
           <li className={location.pathname === '/teacher/examination' ? 'active' : ''} onClick={() => { navigate('/teacher/examination'); setSidebarOpen(false); }}>
-            Examination
+            Question Papers
           </li>
           <li className={location.pathname === '/teacher/lesson-plan' ? 'active' : ''} onClick={() => { navigate('/teacher/lesson-plan'); setSidebarOpen(false); }}>
             Lesson Plan
@@ -121,8 +122,26 @@ const TeacherLayout = () => {
 
       {/* Main Content Area */}
       <div className="main-content">
-        <header className="dash-header" style={course === null ? { justifyContent: 'center' } : {}}>
-          {course !== null ? (
+        <header className="dash-header">
+          {loading ? (
+            /* Skeleton header — exact same DOM structure as real header (fragment with left + right) */
+            <>
+              <div className="header-left">
+                {/* hamburger-btn: 44×44px, border-radius 12px, margin-right 35px */}
+                <div className="skeleton-base" style={{ width: '44px', height: '44px', borderRadius: '12px', marginRight: '35px', flexShrink: 0 }} />
+                <div>
+                  {/* h1: clamp(1.5rem,4vw,2.2rem) font-weight 800 → ~32px */}
+                  <div className="skeleton-base" style={{ height: '32px', width: '280px', borderRadius: '8px', marginBottom: '8px' }} />
+                  {/* .subtitle: 1.2rem → ~19px, margin-top 5px */}
+                  <div className="skeleton-base" style={{ height: '19px', width: '200px', borderRadius: '6px' }} />
+                </div>
+              </div>
+              {/* .header-actions: progress-badge pill — prevents layout shift on home page */}
+              <div className="header-actions">
+                <div className="skeleton-base" style={{ height: '34px', width: '140px', borderRadius: '20px' }} />
+              </div>
+            </>
+          ) : course !== null ? (
             <>
               <div className="header-left">
                 <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>☰</button>
@@ -131,7 +150,6 @@ const TeacherLayout = () => {
                   <p className="subtitle">{greeting}</p>
                 </div>
               </div>
-              
               <div className="header-actions">
                 {location.pathname === '/teacher' && (
                   <div className="progress-badge">
@@ -147,7 +165,7 @@ const TeacherLayout = () => {
 
         {/* Dynamic Nested Route Content */}
         <div className="outlet-container">
-          <Outlet context={{ course, setCourse, currentLecture, setCurrentLecture }} />
+          <Outlet context={{ course, setCourse, currentLecture, setCurrentLecture, loading }} />
         </div>
       </div>
     </div>

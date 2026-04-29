@@ -1,12 +1,13 @@
 import { useOutletContext } from 'react-router-dom';
 import { ActiveLecture, RoadmapSidebar } from '../components/CourseChecklist';
+import HomePageSkeleton from '../components/HomePageSkeleton';
 import './TeacherHome.css';
 
 const TeacherHome = () => {
-  const { course, setCourse, currentLecture, setCurrentLecture } = useOutletContext();
+  const { course, setCourse, currentLecture, setCurrentLecture, loading } = useOutletContext();
 
-  if (!course) {
-    return <div className="loading-screen" style={{ color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', fontSize: '1.5rem' }}>Loading active course...</div>;
+  if (loading || !course) {
+    return <HomePageSkeleton />;
   }
 
   return (

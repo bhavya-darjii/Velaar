@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../services/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import ExaminationSkeleton from '../components/ExaminationSkeleton';
 import './ExaminationPage.css';
 
 const EXAM_TYPES = [
@@ -14,6 +15,9 @@ const ExaminationPage = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  // also get layout-level loading so skeleton shows immediately
+  const outletCtx = useOutletContext ? useOutletContext() : {};
+  const layoutLoading = outletCtx?.loading ?? false;
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -36,12 +40,12 @@ const ExaminationPage = () => {
     navigate(`/teacher/examination/${examId}`);
   };
 
-  if (loading) return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}>Loading Examination Module...</div>;
-  if (!course) return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}>Course not found.</div>;
+  if (loading || layoutLoading) return <ExaminationSkeleton />;
+  if (!course) return <ExaminationSkeleton />;
 
   return (
     <div className="glass-container" style={{ minHeight: 'auto', padding: '40px 0' }}>
-      <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+      <div className="glass-card" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
         <div className="exams-header" style={{marginBottom: "30px", textAlign: "center"}}>
           <h2 style={{color: '#ffffff', margin: 0, fontSize: '2rem', fontWeight: 800}}>Institutional Examinations</h2>
           <p style={{color: '#94a3b8', margin: '10px 0 0 0', fontSize: '1rem'}}>
@@ -57,10 +61,10 @@ const ExaminationPage = () => {
                 <p>{exam.desc}</p>
               </div>
               
-              <div className="exam-actions" style={{ marginTop: '30px' }}>
+              <div className="exam-actions" style={{ marginTop: '0' }}>
                 <button 
                   className="btn-generate" 
-                  style={{ width: '100%', padding: '16px', fontSize: '1.1rem' }}
+                  style={{ width: '100%', padding: '12px', fontSize: '1rem' }}
                   onClick={() => handleNavigateToEditor(exam.id)}
                 >
                   Generate Question Paper

@@ -1,3 +1,5 @@
+@import './components/SkeletonLoader.css';
+
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -77,13 +79,13 @@ button {
 }
 
 button:hover {
-  background-color: #ffffff !important;
+  background-color: #e2e8f0 !important;
   transform: none !important;
   box-shadow: none !important;
 }
 button:focus,
 button:focus-visible {
-  outline: 2px solid var(--theme-color);
+  outline: none !important;
 }
 
 /* ------- GLOBAL RESPONSIVE OVERRIDES ------- */
@@ -195,8 +197,12 @@ input[type="number"] {
   }
 }
 
-*:focus {
+*:focus, *:focus-visible, *:active {
   outline: none !important;
+}
+
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 /* Generation Overlay */

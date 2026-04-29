@@ -3,6 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import FullLayoutSkeleton from './FullLayoutSkeleton';
+
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [loading, setLoading] = useState(true);
@@ -19,10 +21,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
               if (allowedRoles.includes(role)) {
                 setUser(currentUser);
               } else {
-                setUser(false); // Unauthorized role
+                setUser(false);
               }
             } else {
-               setUser(currentUser); // Fallback
+               setUser(currentUser);
             }
           } catch(e) {
             setUser(currentUser);
@@ -39,13 +41,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return () => unsubscribe();
   }, [allowedRoles]);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white', fontSize: '1.5rem' }}>
-        Loading...
-      </div>
-    );
-  }
+  // Show the full layout skeleton while role is being verified — no blank screen.
+  if (loading) return <FullLayoutSkeleton />;
 
   if (!user) {
     return <Navigate to="/" replace />;

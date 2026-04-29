@@ -1,11 +1,12 @@
 import { useOutletContext } from 'react-router-dom';
 import ExamSection from '../components/ExamSection';
+import QuestionBankSkeleton from '../components/QuestionBankSkeleton';
 
 const ExamsPage = () => {
-  const { course } = useOutletContext();
+  const { course, loading } = useOutletContext();
 
-  if (!course) {
-    return <div className="loading-screen" style={{color: 'white', display:'flex', justifyContent:'center', alignItems:'center', height:'50vh', fontSize:'1.5rem'}}>Loading course data...</div>;
+  if (loading || !course) {
+    return <QuestionBankSkeleton />;
   }
 
   return (

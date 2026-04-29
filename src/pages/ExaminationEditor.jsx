@@ -24,7 +24,8 @@ const TT_HEADER = {
   duration: "1 Hour",
   maxMarks: "20",
   scheme: "III",
-  regularExam: "SY Semester: IV"
+  academicYear: "SY",
+  semester: "IV"
 };
 
 const ENDSEM_HEADER = {
@@ -32,7 +33,15 @@ const ENDSEM_HEADER = {
   duration: "02.5 Hours",
   maxMarks: "60",
   scheme: "III",
-  regularExam: "SY Semester: IV"
+  academicYear: "SY",
+  semester: "IV"
+};
+
+const toRoman = (numStr) => {
+  const num = parseInt(numStr, 10);
+  if (isNaN(num)) return numStr;
+  const romanMap = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X' };
+  return romanMap[num] || numStr;
 };
 
 const DEFAULT_PATTERN = ENDSEM_PATTERN;
@@ -88,8 +97,17 @@ const ExaminationEditor = () => {
                subs: q.subs.map(s => ({ isNumerical: false, ...s }))
             }));
             
+            // Migration for existing saved configurations
+            let loadedHeader = savedPatterns[examId].headerConfig || localDefaultHeader;
+            if (loadedHeader.regularExam && !loadedHeader.academicYear) {
+              const parts = loadedHeader.regularExam.split(' Semester: ');
+              loadedHeader.academicYear = parts[0] || 'SY';
+              loadedHeader.semester = parts[1] || 'IV';
+              delete loadedHeader.regularExam;
+            }
+            
             setPattern(loadedPattern);
-            setHeaderConfig(savedPatterns[examId].headerConfig || localDefaultHeader);
+            setHeaderConfig(loadedHeader);
             setNumericalPrompt(savedPatterns[examId].numericalPrompt || "");
           } else {
             setPattern(localDefaultPattern);
@@ -191,8 +209,8 @@ const ExaminationEditor = () => {
     if (!headerConfig.date) {
       return setValidationError("You must specify the Date of Exam in the Configuration panel before generating.");
     }
-    if (!headerConfig.regularExam) {
-      return setValidationError("You must specify the Regular Examination details (e.g. SY Semester: IV).");
+    if (!headerConfig.academicYear || !headerConfig.semester) {
+      return setValidationError("You must specify the Academic Year and Semester details (e.g. SY, IV).");
     }
     
     if (pattern.length === 0) {
@@ -285,12 +303,13 @@ const ExaminationEditor = () => {
       </div>
 
       {/* Editable Header Configuration Summary */}
-      <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'nowrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)'}}>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: 'auto', fontSize: '0.85rem', height: '30px'}} value={headerConfig.date} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '80px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.scheme} onChange={e => setHeaderConfig({...headerConfig, scheme: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '130px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.regularExam} onChange={e => setHeaderConfig({...headerConfig, regularExam: e.target.value})} /></div>
+      <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)'}}>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: 'auto', fontSize: '0.85rem', height: '30px'}} value={headerConfig.date || ''} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '80px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.scheme || ''} onChange={e => setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '50px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.academicYear || ''} onChange={e => setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()})} /></div>
+         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.semester || ''} onChange={e => setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)})} /></div>
       </div>
 
       <div className="pattern-builder">

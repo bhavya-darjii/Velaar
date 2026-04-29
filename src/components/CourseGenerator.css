@@ -213,44 +213,67 @@ select.glass-input:focus {
 /* DIVISION TABS */
 .division-tabs {
   display: flex;
-  gap: 8px; 
-  margin-bottom: 15px; 
+  gap: 15px;
+  flex-wrap: nowrap;
+  margin-top: 15px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.division-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.division-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.division-tabs::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
 }
 
 .division-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
-  flex: 1; 
-  outline: none;
-  -webkit-tap-highlight-color: transparent; 
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  position: relative !important;
+  flex: 1 0 auto !important; 
+  min-width: 60px !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important; 
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  text-align: center !important;
 }
 
 .division-tab:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
 }
 
 .division-tab.active {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--accent-teal);
-  font-weight: 800;
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.15) !important;
+  color: var(--plasma-color, #ea580c) !important;
+  outline: none !important;
+  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.3) !important;
 }
 
 .division-tab:focus, .division-tab:active {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.2);
+  outline: none !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .division-tab.active:focus {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.3) !important;
 }
 
 .day-tabs {
@@ -262,49 +285,53 @@ select.glass-input:focus {
 }
 
 .day-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
-  min-width: 60px;
-  outline: none;
-  -webkit-tap-highlight-color: transparent; 
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  position: relative !important;
+  min-width: 60px !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important; 
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
 }
 
 .day-tab:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
 }
 
 .day-tab.active {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--accent-teal);
-  font-weight: 800;
-  border-color: rgba(255, 255, 255, 0.3);
-  outline: none;
+  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.15) !important;
+  color: var(--plasma-color, #ea580c) !important;
+  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.3) !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .day-tab:focus, .day-tab:active {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.2); 
+  outline: none !important;
 }
 
 .day-tab .dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 6px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  width: 6px !important;
+  height: 6px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 50% !important;
 }
 
-.day-tab.active .dot {
-  background: var(--accent-teal);
+.day-tab.active .dot,
+.day-tab.has-slots .dot {
+  background: var(--plasma-color, #ea580c) !important;
 }
 
 .time-adder {
@@ -329,21 +356,20 @@ select.glass-input:focus {
 }
 
 .add-time-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 6.5px 16px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.05) !important;
+  color: var(--plasma-color, #ea580c) !important;
+  border: 1px solid rgba(var(--plasma-color-rgb, 234, 88, 12), 0.4) !important;
+  padding: 6.5px 16px !important;
+  border-radius: 8px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
 }
 
 .add-time-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: none;
+  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.15) !important;
+  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.8) !important;
+  box-shadow: none !important;
 }
 
 .slots-display {
@@ -397,13 +423,13 @@ select.glass-input:focus {
 }
 
 .time-pill button {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
+  background: transparent !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
   font-weight: bold;
   font-size: 1rem;
-  padding: 0;
+  padding: 0 !important;
   line-height: 1;
   margin-top: -3px;
 }
@@ -426,15 +452,21 @@ select.glass-input:focus {
 }
 
 .glass-btn.primary {
-  background: var(--btn-primary-bg);
-  border: none;
-  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg) !important;
+  border: none !important;
+  color: var(--btn-primary-text) !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+  letter-spacing: 1px !important;
+  padding: 14px !important;
 }
 
 .glass-btn.primary:hover {
-  background: var(--btn-primary-hover);
-  color: var(--btn-primary-text);
-  transform: translateY(-2px);
+  background: #e2e8f0 !important;
+  color: var(--btn-primary-text) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .glass-btn.primary:disabled {

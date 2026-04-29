@@ -114,12 +114,14 @@
   transition: all 0.2s;
   flex-shrink: 0;
   background: transparent;
+  padding: 0;
+  line-height: 1;
 }
 
 .check-item.checked .checkbox-circle {
   background: var(--accent-teal);
   border-color: var(--accent-teal);
-  color: white;
+  color: #000000 !important;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 

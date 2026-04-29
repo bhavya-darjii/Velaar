@@ -1,0 +1,202 @@
+/* =========================================
+   SKELETON SHIMMER SYSTEM
+   ========================================= */
+
+/* Base shimmer element — matches rgba(10,10,15,0.35) card bg */
+.skeleton-base {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-base::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 58%,
+    transparent 75%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---- Card — exact match to .active-card / .roadmap-mini / .glass-card ---- */
+.skeleton-card {
+  background: rgba(10, 10, 15, 0.35);  /* --liquid-glass-bg */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* --liquid-glass-border */
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  border-radius: 24px;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Shared shimmer sweep across card */
+.skeleton-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 58%,
+    transparent 75%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Stagger shimmer across multiple cards so the ray sweeps ACROSS all of them */
+.skeleton-card:nth-child(2)::after { animation-delay: 0.15s; }
+.skeleton-card:nth-child(3)::after { animation-delay: 0.30s; }
+.skeleton-card:nth-child(4)::after { animation-delay: 0.45s; }
+
+/* ---- Individual skeleton elements ---- */
+.skel-line {
+  height: 14px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+.skel-line.sm  { height: 10px; }
+.skel-line.lg  { height: 18px; }
+.skel-line.xl  { height: 24px; }
+.skel-line.xxl { height: 30px; }
+
+.skel-circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.skel-pill {
+  height: 28px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.skel-btn {
+  height: 52px;
+  border-radius: 12px;
+  width: 100%;
+  /* Matches the actual white button bg */
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Shimmer on individual elements */
+.skel-line::after,
+.skel-circle::after,
+.skel-pill::after,
+.skel-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 58%,
+    transparent 75%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ---- Row helper (for checklist-style rows) ---- */
+.skel-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;                          /* matches .check-item gap: 15px */
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;                      /* matches .check-item padding: 16px */
+  margin-bottom: 12px;                /* matches .check-item margin-bottom: 12px */
+}
+
+/* ================================================
+   HOME PAGE skeleton grid — mirrors .teacher-home-grid
+   ================================================ */
+.skeleton-home-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+/* Sidebar card uses .roadmap-mini's 16px border-radius */
+.skeleton-home-grid .skeleton-card:last-child {
+  border-radius: 16px;
+  padding: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  .skeleton-home-grid { grid-template-columns: 1fr; gap: 15px; }
+}
+
+/* ================================================
+   SINGLE-COLUMN GLASS CARD skeleton
+   (Question Bank, Examination, CourseGenerator)
+   ================================================ */
+.skeleton-glass-card {
+  background: rgba(10, 10, 15, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  border-radius: 24px;
+  padding: 40px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 58%,
+    transparent 75%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Exam grid inside the glass card */
+.skeleton-exam-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 30px;
+}
+
+@media screen and (max-width: 900px) {
+  .skeleton-exam-grid { grid-template-columns: 1fr; }
+  .skeleton-glass-card { padding: 20px; }
+}

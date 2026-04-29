@@ -363,9 +363,11 @@ export const exportTemplatedExam = async (req, res) => {
       return res.status(400).json({ error: "No paper pattern found." });
     }
 
-    const { date, duration, maxMarks, scheme, regularExam } = headerConfig || {
-      date: new Date().toLocaleDateString(), duration: "02.5 Hours", maxMarks: "60", scheme: "III", regularExam: "SY Semester: IV"
+    const { date, duration, maxMarks, scheme, academicYear, semester } = headerConfig || {
+      date: new Date().toLocaleDateString(), duration: "02.5 Hours", maxMarks: "60", scheme: "III", academicYear: "SY", semester: "IV"
     };
+
+    const regularExam = headerConfig?.regularExam || `${academicYear || "SY"} Semester: ${semester || "IV"}`;
 
     // 1. Gather Syllabus Topics
     let topics = [];
