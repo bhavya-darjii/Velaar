@@ -357,7 +357,7 @@ if (fs.existsSync(path.resolve(process.cwd(), 'server', '.env'))) {
 
 export const exportTemplatedExam = async (req, res) => {
   try {
-    const { course, examType, pattern, headerConfig, numSets = 1, division = "A", numericalPrompt = "", pastNumericals = [] } = req.body;
+    const { course, examType, pattern, headerConfig, numSets = 1, division = "A", generationMode = "ai", numericalPrompt = "", pastNumericals = [] } = req.body;
 
     if (!pattern || pattern.length === 0) {
       return res.status(400).json({ error: "No paper pattern found." });
@@ -621,24 +621,86 @@ export const exportTemplatedExam = async (req, res) => {
     for (let s = 1; s <= numSets; s++) {
         let aiData = {};
         try {
-            const promises = [];
-            
-            let theoryIndex = -1;
-            let numericalIndex = -1;
+            if (generationMode === 'bank' && course.questionBank && course.questionBank.length > 0) {
+               // --- BANK MODE (WITH AI HYBRID FALLBACK) ---
+               let availableBank = [...course.questionBank];
+               availableBank.sort(() => Math.random() - 0.5);
 
-            if (hasTheory) {
-               theoryIndex = promises.length;
-               promises.push(callAI(buildPrompt('theory', theoryStructureMap, s)));
+               let localTheoryStructureMap = {};
+               let localNumericalStructureMap = {};
+               let hasLocalTheory = false;
+               let hasLocalNumerical = false;
+
+               pattern.forEach((q) => {
+                  q.subs.forEach(sub => {
+                     let internalId = `Q${q.id}_${sub.id}`;
+                     
+                     // 1. Try exact match
+                     let matchIndex = availableBank.findIndex(b => Boolean(b.isNumerical) === Boolean(sub.isNumerical) && (b.btLevel || "").includes(sub.bt || ""));
+                     
+                     // 2. Fallback: match only numerical flag
+                     if (matchIndex === -1) {
+                         matchIndex = availableBank.findIndex(b => Boolean(b.isNumerical) === Boolean(sub.isNumerical));
+                     }
+                     
+                     if (matchIndex !== -1) {
+                         let selectedQ = availableBank[matchIndex];
+                         availableBank.splice(matchIndex, 1);
+                         aiData[internalId] = { q: selectedQ.question, co: selectedQ.courseOutcome || "CO1" };
+                     } else {
+                         // 3. Bank is exhausted for this specific type! Queue it for AI generation.
+                         if (sub.isNumerical) {
+                             hasLocalNumerical = true;
+                             localNumericalStructureMap[internalId] = numericalStructureMap[internalId];
+                         } else {
+                             hasLocalTheory = true;
+                             localTheoryStructureMap[internalId] = theoryStructureMap[internalId];
+                         }
+                     }
+                  });
+               });
+
+               // Call AI for any missing questions
+               const promises = [];
+               let theoryIndex = -1;
+               let numericalIndex = -1;
+
+               if (hasLocalTheory) {
+                  theoryIndex = promises.length;
+                  promises.push(callAI(buildPrompt('theory', localTheoryStructureMap, s)));
+               }
+               if (hasLocalNumerical) {
+                  numericalIndex = promises.length;
+                  promises.push(callAI(buildPrompt('numerical', localNumericalStructureMap, s)));
+               }
+
+               if (promises.length > 0) {
+                  const results = await Promise.all(promises);
+                  if (hasLocalTheory) Object.assign(aiData, results[theoryIndex]);
+                  if (hasLocalNumerical) Object.assign(aiData, results[numericalIndex]);
+               }
+
+            } else {
+               // --- AI MODE ---
+               const promises = [];
+               
+               let theoryIndex = -1;
+               let numericalIndex = -1;
+
+               if (hasTheory) {
+                  theoryIndex = promises.length;
+                  promises.push(callAI(buildPrompt('theory', theoryStructureMap, s)));
+               }
+               if (hasNumerical) {
+                  numericalIndex = promises.length;
+                  promises.push(callAI(buildPrompt('numerical', numericalStructureMap, s)));
+               }
+
+               const results = await Promise.all(promises);
+
+               if (hasTheory) Object.assign(aiData, results[theoryIndex]);
+               if (hasNumerical) Object.assign(aiData, results[numericalIndex]);
             }
-            if (hasNumerical) {
-               numericalIndex = promises.length;
-               promises.push(callAI(buildPrompt('numerical', numericalStructureMap, s)));
-            }
-
-            const results = await Promise.all(promises);
-
-            if (hasTheory) Object.assign(aiData, results[theoryIndex]);
-            if (hasNumerical) Object.assign(aiData, results[numericalIndex]);
 
         } catch (perr) {
           console.error("AI Gen Failed for iteration ", s, perr);

@@ -23,25 +23,26 @@ const TT_HEADER = {
   date: todayIso,
   duration: "1 Hour",
   maxMarks: "20",
-  scheme: "III",
-  academicYear: "SY",
-  semester: "IV"
+  scheme: "",
+  academicYear: "",
+  semester: ""
 };
 
 const ENDSEM_HEADER = {
   date: todayIso,
-  duration: "02.5 Hours",
+  duration: "2.5 Hours",
   maxMarks: "60",
-  scheme: "III",
-  academicYear: "SY",
-  semester: "IV"
+  scheme: "",
+  academicYear: "",
+  semester: ""
 };
 
 const toRoman = (numStr) => {
+  if (!numStr) return '';
   const num = parseInt(numStr, 10);
-  if (isNaN(num)) return numStr;
+  if (isNaN(num)) return numStr.toUpperCase();
   const romanMap = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X' };
-  return romanMap[num] || numStr;
+  return romanMap[num] || numStr.toUpperCase();
 };
 
 const DEFAULT_PATTERN = ENDSEM_PATTERN;
@@ -60,9 +61,11 @@ const ExaminationEditor = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [numSets, setNumSets] = useState(1);
   const [numericalPrompt, setNumericalPrompt] = useState('');
+  const [generationMode, setGenerationMode] = useState('ai');
   const [generating, setGenerating] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [validationError, setValidationError] = useState(null);
+  const [headerErrors, setHeaderErrors] = useState({});
 
   // 1. Fetch Course Data
   useEffect(() => {
@@ -99,6 +102,13 @@ const ExaminationEditor = () => {
             
             // Migration for existing saved configurations
             let loadedHeader = savedPatterns[examId].headerConfig || localDefaultHeader;
+            
+            // Fix for TT caching EndSem header from previous versions
+            if (isTT && loadedHeader.maxMarks === "60") {
+              loadedHeader.maxMarks = "20";
+              loadedHeader.duration = "1 Hour";
+            }
+            
             if (loadedHeader.regularExam && !loadedHeader.academicYear) {
               const parts = loadedHeader.regularExam.split(' Semester: ');
               loadedHeader.academicYear = parts[0] || 'SY';
@@ -126,7 +136,7 @@ const ExaminationEditor = () => {
   // 2. Debounced Auto-Save
   const savePatternToDb = useCallback(async (currentPattern, currentHeader, currentPrompt) => {
     if (!course) return;
-    setAutoSaveStatus('Saving...');
+    setIsSaving(true);
     try {
       const updatedPatterns = { 
         ...(course.examPatterns || {}), 
@@ -137,11 +147,10 @@ const ExaminationEditor = () => {
         } 
       };
       await updateDoc(doc(db, "courses", course.id), { examPatterns: updatedPatterns });
-      setAutoSaveStatus('All changes saved.');
-      setTimeout(() => setAutoSaveStatus(''), 3000);
+      setTimeout(() => setIsSaving(false), 800);
     } catch (err) {
       console.error(err);
-      setAutoSaveStatus('Save Failed!');
+      setTimeout(() => setIsSaving(false), 800);
     }
   }, [course, examId]);
 
@@ -206,13 +215,22 @@ const ExaminationEditor = () => {
   // 4. Generation Validation
   const handleGenerate = async () => {
     // Validation pre-flight checks
-    if (!headerConfig.date) {
-      return setValidationError("You must specify the Date of Exam in the Configuration panel before generating.");
-    }
-    if (!headerConfig.academicYear || !headerConfig.semester) {
-      return setValidationError("You must specify the Academic Year and Semester details (e.g. SY, IV).");
+    const errors = {};
+    if (!headerConfig.date) errors.date = true;
+    if (!headerConfig.scheme) errors.scheme = true;
+    if (!headerConfig.academicYear) errors.academicYear = true;
+    if (!headerConfig.semester) errors.semester = true;
+
+    if (Object.keys(errors).length > 0) {
+      setHeaderErrors(errors);
+      const headerEl = document.getElementById("exam-header-config");
+      if (headerEl) {
+        headerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
     }
     
+    setHeaderErrors({});
     if (pattern.length === 0) {
       return setValidationError("Your paper pattern structure is completely empty.");
     }
@@ -243,6 +261,7 @@ const ExaminationEditor = () => {
           pattern: pattern,
           headerConfig: headerConfig,
           numSets: numSets,
+          generationMode: generationMode,
           numericalPrompt: numericalPrompt,
           pastNumericals: course?.pastNumericals || []
         })
@@ -276,7 +295,7 @@ const ExaminationEditor = () => {
   return (
     <div className="editor-container fade-in">
       <div className="editor-header-nav">
-        <div className="header-title-group" style={{width: '100%'}}>
+        <div className="header-title-group" style={{width: '100%', position: 'relative'}}>
           <div className="back-arrow" onClick={() => navigate('/teacher/examination')}>
             <span>←</span> Back
           </div>
@@ -293,25 +312,99 @@ const ExaminationEditor = () => {
             </button>
           </div>
           
-          <p style={{marginTop: '5px'}}>
-            {isEditMode 
-              ? "Structurally modify the paper layout. Changes autosave instantly." 
-              : "Select precise Bloom's Taxonomy brackets to map questions accurately."}
-            <span style={{marginLeft: '15px', color: '#ffffff'}}>{autoSaveStatus}</span>
+          <p style={{marginTop: '5px', display: 'flex', alignItems: 'center', minHeight: '32px'}}>
+            <span>
+              {isEditMode 
+                ? "Structurally modify the paper layout. Changes autosave instantly." 
+                : "Generate from your Question Bank or draft fresh conceptual exams with AI."}
+            </span>
+            <div className="saving-status-pill" style={{ 
+               marginLeft: '15px', 
+               display: 'inline-flex',
+               opacity: isSaving ? 1 : 0,
+               visibility: isSaving ? 'visible' : 'hidden',
+               transition: 'opacity 0.3s ease, visibility 0.3s ease'
+            }}>
+              <span className="dot"></span> Syncing to Cloud...
+            </div>
           </p>
         </div>
       </div>
 
       {/* Editable Header Configuration Summary */}
-      <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)'}}>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: 'auto', fontSize: '0.85rem', height: '30px'}} value={headerConfig.date || ''} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '80px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.scheme || ''} onChange={e => setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '50px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.academicYear || ''} onChange={e => setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()})} /></div>
-         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.semester || ''} onChange={e => setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)})} /></div>
+      <div id="exam-header-config" style={{ marginBottom: Object.keys(headerErrors).some(k => headerErrors[k]) ? '15px' : '0' }}>
+        <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: Object.keys(headerErrors).some(k => headerErrors[k]) ? '1px solid rgba(234, 88, 12, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'}}>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: 'auto', fontSize: '0.85rem', height: '30px', border: headerErrors.date ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.date ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.date || ''} onChange={e => {setHeaderConfig({...headerConfig, date: e.target.value}); setHeaderErrors(prev => ({...prev, date: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '80px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" placeholder="III" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px', border: headerErrors.scheme ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.scheme ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.scheme || ''} onChange={e => {setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, scheme: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" placeholder="SY" style={{margin: 0, padding: '4px 6px', width: '50px', fontSize: '0.85rem', height: '30px', border: headerErrors.academicYear ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.academicYear ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.academicYear || ''} onChange={e => {setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()}); setHeaderErrors(prev => ({...prev, academicYear: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" className="edit-input-title" placeholder="IV" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px', border: headerErrors.semester ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.semester ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.semester || ''} onChange={e => {setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, semester: false}));}} /></div>
+        </div>
+        {Object.keys(headerErrors).some(k => headerErrors[k]) && (
+           <div style={{ color: '#ea580c', fontSize: '0.85rem', marginTop: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              Please fill out the missing header fields highlighted above before generating the question paper.
+           </div>
+        )}
       </div>
 
+      {/* Generation Mode Toggle Box */}
+      <div className="question-block" style={{ marginTop: '30px', padding: '25px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+         <div style={{ paddingRight: '20px' }}>
+            <h3 style={{color: '#ffffff', margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '600'}}>Use Existing Question Bank</h3>
+            <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0, lineHeight: '1.5'}}>
+               {generationMode === 'ai' 
+                  ? "Currently drafting fresh conceptual exams from scratch using Velaar AI." 
+                  : "Currently generating randomized exams exclusively from your previously generated Question Bank."}
+            </p>
+         </div>
+         
+         <div 
+            onClick={() => {
+               const newMode = generationMode === 'ai' ? 'bank' : 'ai';
+               setGenerationMode(newMode);
+               if (newMode === 'bank') setIsEditMode(false);
+            }}
+            style={{
+               width: '64px',
+               height: '34px',
+               borderRadius: '34px',
+               background: generationMode === 'bank' ? '#ea580c' : 'rgba(255, 255, 255, 0.08)',
+               position: 'relative',
+               cursor: 'pointer',
+               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+               boxShadow: generationMode === 'bank' ? '0 0 15px rgba(234, 88, 12, 0.4), inset 0 2px 4px rgba(0,0,0,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.3)',
+               border: '1px solid rgba(255, 255, 255, 0.1)',
+               flexShrink: 0
+            }}
+         >
+            <div style={{
+               width: '28px',
+               height: '28px',
+               borderRadius: '50%',
+               background: '#ffffff',
+               position: 'absolute',
+               top: '2px',
+               left: generationMode === 'bank' ? '32px' : '2px',
+               transition: 'left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease',
+               boxShadow: '0 4px 12px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.05)',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'center'
+            }}>
+               <div style={{
+                   width: '4px',
+                   height: '12px',
+                   borderRadius: '4px',
+                   background: generationMode === 'bank' ? '#ea580c' : '#cbd5e1',
+                   transition: 'background 0.4s ease'
+               }} />
+            </div>
+         </div>
+      </div>
+
+      {(generationMode === 'ai' || isEditMode) && (
       <div className="pattern-builder">
         {pattern.map((q, qIndex) => (
           <div key={`q_${qIndex}`} className="question-block">
@@ -397,17 +490,15 @@ const ExaminationEditor = () => {
           </button>
         )}
       </div>
+      )}
 
       {!isEditMode && (
-        <div className="q-card generation-configurator" style={{ marginTop: '50px' }}>
+        <div className="q-card generation-configurator" style={{ marginTop: '30px' }}>
           
+          {generationMode === 'ai' && (
           <div style={{display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '25px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: '10px'}}>
-             <h3 style={{color: '#ffffff', margin: '0 0 5px 0'}}>Generative Pre-Flight Parameters</h3>
-             
-             
-
              <div style={{marginTop: '10px'}}>
-               <label style={{display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px'}}>Numerical Guidance</label>
+               <label style={{display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px'}}>Custom Instructions for Numericals</label>
                <textarea 
                  placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""} 
                  className="edit-input-title" 
@@ -420,10 +511,11 @@ const ExaminationEditor = () => {
                </p>
              </div>
           </div>
+          )}
           
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
             <div>
-              <h3 style={{color: '#ffffff', margin: '0 0 5px 0'}}>Final Export Calibration</h3>
+              <h3 style={{color: '#ffffff', margin: '0 0 5px 0'}}>Batch Generation</h3>
               <p style={{color: '#94a3b8', margin: 0}}>Select how many entirely distinct question papers you need to generate.</p>
             </div>
             
