@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../services/firebase";
-import { generateQuestionsFromTopics } from "../services/aiService";
+import { db } from "../../services/firebase";
+import { generateQuestionsFromTopics } from "../../services/aiService";
 import {
   Document,
   Packer,
@@ -13,7 +13,7 @@ import {
   TextRun,
 } from "docx";
 import { saveAs } from "file-saver";
-import "./ExamSection.css";
+import "./QuestionBankSection.css";
 
 const BT_OPTIONS = [
   { label: "Remember (R)", value: "R" },
@@ -184,7 +184,7 @@ const ExamSection = ({ course }) => {
       );
 
       // Extract new numericals to feed back into context memory limit to 5
-      const newnoNumericals = questions.filter(q => q.isNumerical).map(q => q.question);
+      const newNumericals = questions.filter(q => q.isNumerical).map(q => q.question);
       let updatedNumericals = [...(course.pastNumericals || [])];
       if (newNumericals.length > 0) {
         updatedNumericals = [...newNumericals, ...updatedNumericals].slice(0, 5);

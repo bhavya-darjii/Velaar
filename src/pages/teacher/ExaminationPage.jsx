@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../services/firebase';
+import { db, auth } from '../../services/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import ExaminationSkeleton from '../components/ExaminationSkeleton';
+import ExaminationSkeleton from '../../components/skeletons/ExaminationSkeleton';
 import './ExaminationPage.css';
 
 const EXAM_TYPES = [

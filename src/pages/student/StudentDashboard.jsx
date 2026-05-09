@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 import { signOut } from "firebase/auth";
 import { doc, getDocs, collection, getDoc } from "firebase/firestore";
-import { gradeFullExam } from "../services/aiService";
+import { gradeFullExam } from "../../services/aiService";
 import "./StudentDashboard.css";
 
 const StudentDashboard = () => {

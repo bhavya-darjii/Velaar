@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../services/firebase';
+import { auth, db } from '../../services/firebase';
 // Added 'doc' and 'getDoc' to imports
 import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
-import { ActiveLecture, RoadmapSidebar } from '../components/CourseChecklist';
-import ExamSection from '../components/ExamSection';
+import { ActiveLecture, RoadmapSidebar } from '../../components/teacher/CourseChecklist';
+import ExamSection from '../../components/teacher/QuestionBankSection';
 import './TeacherDashboard.css';
 
 const TEACHER_GREETINGS = [

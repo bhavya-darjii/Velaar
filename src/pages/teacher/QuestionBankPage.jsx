@@ -1,6 +1,6 @@
 import { useOutletContext } from 'react-router-dom';
-import ExamSection from '../components/ExamSection';
-import QuestionBankSkeleton from '../components/QuestionBankSkeleton';
+import ExamSection from '../../components/teacher/QuestionBankSection';
+import QuestionBankSkeleton from '../../components/skeletons/QuestionBankSkeleton';
 
 const ExamsPage = () => {
   const { course, loading } = useOutletContext();

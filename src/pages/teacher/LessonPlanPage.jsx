@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
-import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping } from '../services/aiService';
-import { exportLessonPlanToWord } from '../utils/wordExport';
-import LessonPlanSkeleton from '../components/LessonPlanSkeleton';
+import { db } from '../../services/firebase';
+import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping } from '../../services/aiService';
+import { exportLessonPlanToWord } from '../../utils/wordExport';
+import LessonPlanSkeleton from '../../components/skeletons/LessonPlanSkeleton';
 import './LessonPlanPage.css';
 
 const RefreshIcon = () => (

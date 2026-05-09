@@ -1,6 +1,6 @@
 import { useOutletContext } from 'react-router-dom';
-import { ActiveLecture, RoadmapSidebar } from '../components/CourseChecklist';
-import HomePageSkeleton from '../components/HomePageSkeleton';
+import { ActiveLecture, RoadmapSidebar } from '../../components/teacher/CourseChecklist';
+import HomePageSkeleton from '../../components/skeletons/HomePageSkeleton';
 import './TeacherHome.css';
 
 const TeacherHome = () => {

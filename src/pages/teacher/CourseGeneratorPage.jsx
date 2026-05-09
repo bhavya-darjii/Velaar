@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 import { collection, addDoc } from "firebase/firestore";
-import { extractTextFromPDF } from "../services/pdfService";
-import { generateLectureRoadmap } from "../services/aiService";
-import "./CourseGenerator.css";
+import { extractTextFromPDF } from "../../services/pdfService";
+import { generateLectureRoadmap } from "../../services/aiService";
+import "./CourseGeneratorPage.css";
 
 // Global queue to ensure sequential PDF OCR extraction across all modules smoothly
 let pdfExtractionQueue = Promise.resolve();

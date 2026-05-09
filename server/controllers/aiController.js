@@ -1,16 +1,38 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { logAiUsage } from '../utils/logAiUsage.js';
+
 const API_KEY = process.env.GOOGLE_API_KEY;
 
+// ─── Helper: call Gemini and return { data, usage } ──────────────────────────
+const callGemini = async (bodyPayload) => {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyPayload),
+  });
+  return response.json();
+};
+
+// ─── Extract teacher context from request body ────────────────────────────────
+const getCtx = (req) => ({
+  teacherId:    req.body.teacherId    || 'unknown',
+  teacherEmail: req.body.teacherEmail || '',
+  teacherName:  req.body.teacherName  || '',
+  courseId:     req.body.courseId     || '',
+  subjectName:  req.body.subjectName  || '',
+});
+
+// ─── 1. Generate Lecture Roadmap ──────────────────────────────────────────────
 export const generateLectureRoadmap = async (req, res) => {
   const { syllabusText, totalLectures, acceptedModules } = req.body;
-  
-  if (!syllabusText || syllabusText.length < 50) {
-    return res.status(400).json({ error: "Syllabus text is empty or too short" });
-  }
+  const ctx = getCtx(req);
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  if (!syllabusText || syllabusText.length < 50) {
+    return res.status(400).json({ error: 'Syllabus text is empty or too short' });
+  }
 
   const prompt = `
     Role: Academic Curriculum Planner.
@@ -39,21 +61,25 @@ export const generateLectureRoadmap = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(url, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-      }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
 
-    const data = await response.json();
     if (data.error) return res.status(500).json({ error: data.error.message });
-    if (!data.candidates || !data.candidates[0]) return res.status(500).json({ error: "Empty candidate" });
+    if (!data.candidates || !data.candidates[0]) return res.status(500).json({ error: 'Empty candidate' });
 
     const textResult = data.candidates[0].content.parts[0].text;
     const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
-    const usage = data.usageMetadata;
+    const usage = data.usageMetadata || {};
+
+    // Log to Firestore
+    await logAiUsage({
+      action: 'generate-roadmap',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
 
     return res.status(200).json({
       roadmap: JSON.parse(cleanJsonStr),
@@ -61,48 +87,55 @@ export const generateLectureRoadmap = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Generation failed" });
+    return res.status(500).json({ error: 'Generation failed' });
   }
 };
 
+// ─── 2. Generate Questions from Topics ───────────────────────────────────────
 export const generateQuestionsFromTopics = async (req, res) => {
-  const { completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = "", pastNumericals = [] } = req.body;
+  const {
+    completedTopics, examLength,
+    btPreferences = [], numericalCount = 0,
+    numericalPrompt = '', pastNumericals = [],
+  } = req.body;
+  const ctx = getCtx(req);
+
   if (!completedTopics || completedTopics.length === 0) return res.status(200).json([]);
-  
-  const syllabusTopicsStr = completedTopics.join(", ");
 
-  const prefText = btPreferences.length > 0 
-    ? `PRIORITY: Give strong preference to generating questions with these BT Levels: [${btPreferences.join(", ")}]. However, include a few from other levels to maintain a realistic exam balance.`
-    : `Provide a balanced mix of all BT levels.`;
+  const syllabusTopicsStr = completedTopics.join(', ');
+  const prefText = btPreferences.length > 0
+    ? `PRIORITY: Give strong preference to generating questions with these BT Levels: [${btPreferences.join(', ')}]. However, include a few from other levels to maintain a realistic exam balance.`
+    : 'Provide a balanced mix of all BT levels.';
 
-  const numTheory = Math.max(0, examLength - numericalCount);
+  const numTheory    = Math.max(0, examLength - numericalCount);
   const numNumerical = Math.min(examLength, numericalCount);
 
-  // Helper to call AI
   const callAI = async (promptText, systemInstructionText) => {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          systemInstruction: { parts: [{ text: systemInstructionText }] },
-          contents: [{ parts: [{ text: promptText }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        }),
-      });
-      const data = await response.json();
-      if (data.error || !data.candidates) return [];
-      const textResult = data.candidates[0].content.parts[0].text;
-      const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
-      try {
-        return JSON.parse(cleanJsonStr);
-      } catch (e) {
-        return [];
-      }
+    const data = await callGemini({
+      systemInstruction: { parts: [{ text: systemInstructionText }] },
+      contents: [{ parts: [{ text: promptText }] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    });
+
+    const usage = data.usageMetadata || {};
+
+    // Log each sub-call individually
+    await logAiUsage({
+      action: 'generate-questions-topics',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
+
+    if (data.error || !data.candidates) return [];
+    const textResult = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    try { return JSON.parse(cleanJsonStr); } catch (e) { return []; }
   };
 
   let theoryQuestions = [];
   let numericalQuestions = [];
 
-  // --- 1. GENERATE THEORY QUESTIONS ---
   if (numTheory > 0) {
     const theorySystem = `You are a strict Academic Exam Specialist. Generate high-quality THEORETICAL/CONCEPTUAL questions based ONLY on the provided syllabus topics. Do NOT generate any mathematical or numerical calculation problems.`;
     const theoryPrompt = `
@@ -126,18 +159,15 @@ export const generateQuestionsFromTopics = async (req, res) => {
     theoryQuestions = await callAI(theoryPrompt, theorySystem);
   }
 
-  // --- 2. GENERATE NUMERICAL QUESTIONS ---
   if (numNumerical > 0) {
     const isFullExample = numericalPrompt && (numericalPrompt.includes('?') || numericalPrompt.length > 50 || numericalPrompt.includes('=') || numericalPrompt.includes('[') || /\d/.test(numericalPrompt));
-    
+
     const numSystem = `You are a Universal Academic Problem Rewriter. Your ONLY task is to generate numerical/mathematical problems based exactly on the user's guidance. DO NOT invent topics. If the user provides an example (e.g., an array, a graph, an equation), generate a mathematically similar problem with DIFFERENT values.`;
-    
-    // We intentionally OMIT the syllabus string here so it doesn't get confused!
     const numPrompt = `
       Task: Create exactly ${numNumerical} NUMERICAL/MATHEMATICAL exam questions.
       
       ==== NUMERICAL GUIDANCE (ABSOLUTE SOURCE OF TRUTH) ====
-      ${numericalPrompt ? `"${numericalPrompt}"` : "Generate numerical problems based on general engineering/science applications."}
+      ${numericalPrompt ? `"${numericalPrompt}"` : 'Generate numerical problems based on general engineering/science applications.'}
 
       ${isFullExample ? `
       ⚠️ TEMPLATE REWRITING MODE:
@@ -153,7 +183,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
       ==== PAST GENERATED EXAMPLES TO EMULATE (STYLE/DIFFICULTY REFERENCE) ====
       ${pastNumericals.map((q, i) => `${i+1}. ${q}`).join('\n')}
       (Use these past examples strictly as a stylistic reference to maintain consistency.)
-      ` : ""}
+      ` : ''}
 
       ==== CORE INSTRUCTIONS ====
       1. Classify each question using Bloom's Taxonomy (BT) Levels (Ap, An, E, C).
@@ -172,19 +202,22 @@ export const generateQuestionsFromTopics = async (req, res) => {
     }
   }
 
-  // Safely combine ensuring we return exactly an array
-  let combined = [...(Array.isArray(theoryQuestions) ? theoryQuestions : []), ...(Array.isArray(numericalQuestions) ? numericalQuestions : [])];
-  
-  // Mix them up slightly if there are both so they aren't completely segregated
+  let combined = [
+    ...(Array.isArray(theoryQuestions) ? theoryQuestions : []),
+    ...(Array.isArray(numericalQuestions) ? numericalQuestions : []),
+  ];
+
   if (combined.length > 1 && numTheory > 0 && numNumerical > 0) {
-     combined = combined.sort(() => Math.random() - 0.5);
+    combined = combined.sort(() => Math.random() - 0.5);
   }
 
   return res.status(200).json(combined);
 };
 
+// ─── 3. Generate Questions from Syllabus ─────────────────────────────────────
 export const generateQuestionsFromSyllabus = async (req, res) => {
   const { syllabus, examLength } = req.body;
+  const ctx = getCtx(req);
   const poolSize = Math.max(examLength * 5, 20);
 
   const prompt = `
@@ -195,15 +228,19 @@ export const generateQuestionsFromSyllabus = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-      }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
 
-    const data = await response.json();
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'generate-questions-syllabus',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
+
     if (data.error || !data.candidates) return res.status(200).json([]);
     const textResult = data.candidates[0].content.parts[0].text;
     const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -214,8 +251,11 @@ export const generateQuestionsFromSyllabus = async (req, res) => {
   }
 };
 
+// ─── 4. Grade Full Exam ───────────────────────────────────────────────────────
 export const gradeFullExam = async (req, res) => {
   const { syllabus, examData } = req.body;
+  const ctx = getCtx(req);
+
   const prompt = `
     Role: You are a lenient and fair teacher grading an exam.
     Context: The student has taken an exam based on this syllabus: "${syllabus}"
@@ -236,35 +276,40 @@ export const gradeFullExam = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-      }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
 
-    const data = await response.json();
-    if (data.error || !data.candidates) return res.status(200).json({ score: 0, feedback: "AI Grading failed." });
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'grade-exam',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
 
+    if (data.error || !data.candidates) return res.status(200).json({ score: 0, feedback: 'AI Grading failed.' });
     const textResult = data.candidates[0].content.parts[0].text;
     const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
     const result = JSON.parse(cleanJsonStr);
-    
     if (result.score > 10) result.score = 10;
     return res.status(200).json(result);
   } catch (error) {
     console.error(error);
-    return res.status(200).json({ score: 0, feedback: "Error reading AI response." });
+    return res.status(200).json({ score: 0, feedback: 'Error reading AI response.' });
   }
 };
 
+// ─── 5. Generate Lesson Plan ──────────────────────────────────────────────────
 export const generateLessonPlan = async (req, res) => {
   const { subjectName, modules } = req.body;
-  if (!modules || modules.length === 0) return res.status(400).json({ error: "No modules provided" });
+  const ctx = getCtx(req);
 
-  const moduleNames = modules.map(m => m.name || `Unit ${m.id}`).join(", ");
-  const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\n${m.extractedText || ""}`).join("\n\n");
+  if (!modules || modules.length === 0) return res.status(400).json({ error: 'No modules provided' });
+
+  const moduleNames = modules.map(m => m.name || `Unit ${m.id}`).join(', ');
+  const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\n${m.extractedText || ''}`).join('\n\n');
 
   const prompt = `
     Role: Senior Academic Curriculum Planner.
@@ -296,59 +341,79 @@ export const generateLessonPlan = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-      }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
 
-    const data = await response.json();
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'generate-lesson-plan',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+      subjectName: subjectName || ctx.subjectName,
+    });
+
     if (data.error) return res.status(500).json({ error: data.error.message });
     const textResult = data.candidates[0].content.parts[0].text;
     const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
     return res.status(200).json(JSON.parse(cleanJsonStr));
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Lesson Plan Generation Error" });
+    return res.status(500).json({ error: 'Lesson Plan Generation Error' });
   }
 };
 
+// ─── 6. Generate Specific Field ───────────────────────────────────────────────
 export const generateSpecificField = async (req, res) => {
   const { type, subjectName, modules } = req.body;
-  let prompt = "";
-  if (type === "description") {
+  const ctx = getCtx(req);
+  let prompt = '';
+
+  if (type === 'description') {
     prompt = `Role: Academic Curriculum Planner. Task: Generate a strictly 1-paragraph globally-applicable "Course Description" for "${subjectName}". Return ONLY raw JSON like {"result": "The course..."}`;
-  } else if (type === "unit") {
+  } else if (type === 'unit') {
     const m = modules[0];
-    prompt = `Role: Academic Planner. Task: For Unit "${m?.name || "Unknown"}" in "${subjectName}" with context "${m?.extractedText || ""}", generate EXACTLY 2 measurable Outcomes and 1 Bloom's Taxonomy Level (e.g., "Understand"). Return ONLY raw JSON like {"outcomes": "1. ...\\n2. ...", "btLevel": "Understand"}`;
-  } else if (type === "textBooks") {
+    prompt = `Role: Academic Planner. Task: For Unit "${m?.name || 'Unknown'}" in "${subjectName}" with context "${m?.extractedText || ''}", generate EXACTLY 2 measurable Outcomes and 1 Bloom's Taxonomy Level (e.g., "Understand"). Return ONLY raw JSON like {"outcomes": "1. ...\\n2. ...", "btLevel": "Understand"}`;
+  } else if (type === 'textBooks') {
     prompt = `Role: Academic Planner. Task: Recommend 3 standard Text Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
-  } else if (type === "referenceBooks") {
+  } else if (type === 'referenceBooks') {
     prompt = `Role: Academic Planner. Task: Recommend 5 standard Reference Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
   }
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
-    const data = await response.json();
+
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'generate-specific-field',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+      subjectName: subjectName || ctx.subjectName,
+    });
+
     const result = JSON.parse(data.candidates[0].content.parts[0].text);
-    return res.status(200).json(type === "unit" ? result : result.result);
+    return res.status(200).json(type === 'unit' ? result : result.result);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Single Gen Error" });
+    return res.status(500).json({ error: 'Single Gen Error' });
   }
 };
 
+// ─── 7. Generate Supplementary Lesson Plan ────────────────────────────────────
 export const generateSupplementaryLessonPlan = async (req, res) => {
   const { subjectName, modules } = req.body;
-  if (!modules || modules.length === 0) return res.status(400).json({ error: "No modules" });
+  const ctx = getCtx(req);
 
-  const moduleNames = modules.map((m, i) => `Module ${i+1}: ${m.name}`).join("\\n");
-  const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\\n${m.extractedText || ""}`).join("\\n\\n");
+  if (!modules || modules.length === 0) return res.status(400).json({ error: 'No modules' });
+
+  const moduleNames = modules.map((m, i) => `Module ${i+1}: ${m.name}`).join('\\n');
+  const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\\n${m.extractedText || ''}`).join('\\n\\n');
 
   const prompt = `
     Role: Senior Academic Curriculum Planner and Accreditation (NBA/ABET) Expert.
@@ -383,26 +448,38 @@ export const generateSupplementaryLessonPlan = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
-    const data = await response.json();
+
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'generate-supplementary-plan',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+      subjectName: subjectName || ctx.subjectName,
+    });
+
     const textResult = data.candidates[0].content.parts[0].text;
     const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
     return res.status(200).json(JSON.parse(cleanJsonStr));
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Suppl Gen Error" });
+    return res.status(500).json({ error: 'Suppl Gen Error' });
   }
 };
 
+// ─── 8. Generate Day-Wise Enrichment ─────────────────────────────────────────
 export const generateDayWiseEnrichment = async (req, res) => {
   const { subjectName, roadmapTitles, textBooks = [], refBooks = [] } = req.body;
-  if (!roadmapTitles || roadmapTitles.length === 0) return res.status(400).json({ error: "No roadmap titles" });
+  const ctx = getCtx(req);
 
-  const topicsList = roadmapTitles.map((t, i) => `${i+1}. ${t}`).join("\\n");
-  const allBooks = [...textBooks, ...refBooks].map((b, i) => `B${i+1}: ${b}`).join("\\n");
+  if (!roadmapTitles || roadmapTitles.length === 0) return res.status(400).json({ error: 'No roadmap titles' });
+
+  const topicsList = roadmapTitles.map((t, i) => `${i+1}. ${t}`).join('\\n');
+  const allBooks = [...textBooks, ...refBooks].map((b, i) => `B${i+1}: ${b}`).join('\\n');
 
   const prompt = `
     Role: Senior Academic Curriculum Planner.
@@ -428,27 +505,39 @@ export const generateDayWiseEnrichment = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
-    const data = await response.json();
+
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'generate-day-wise-enrichment',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+      subjectName: subjectName || ctx.subjectName,
+    });
+
     const result = JSON.parse(data.candidates[0].content.parts[0].text);
     return res.status(200).json(result.enrichment);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Enrichment Error" });
+    return res.status(500).json({ error: 'Enrichment Error' });
   }
 };
 
+// ─── 9. Generate CO-PO Mapping ────────────────────────────────────────────────
 export const generateCoPoMapping = async (req, res) => {
   const { courseOutcomes, programOutcomes } = req.body;
-  const coText = courseOutcomes.map((co, i) => `CO${i+1}: ${co.description}`).join("\n");
+  const ctx = getCtx(req);
+
+  const coText = courseOutcomes.map((co, i) => `CO${i+1}: ${co.description}`).join('\n');
   const poText = programOutcomes.map((po, i) => {
-    const poLabel = typeof po === "string" ? po : (po.code || `PO${i+1}`);
-    const poDesc = typeof po === "string" ? po : (po.title || "");
+    const poLabel = typeof po === 'string' ? po : (po.code || `PO${i+1}`);
+    const poDesc  = typeof po === 'string' ? po : (po.title || '');
     return `${poLabel}: ${poDesc}`;
-  }).join("\n");
+  }).join('\n');
 
   const prompt = `
     Role: Academic Curriculum Expert.
@@ -480,17 +569,25 @@ export const generateCoPoMapping = async (req, res) => {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } }),
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
     });
-    const data = await response.json();
+
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'generate-copo-mapping',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
+
     const textResult = data.candidates[0].content.parts[0].text;
     const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
     const result = JSON.parse(cleanJsonStr);
     return res.status(200).json(result.mapping);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "CoPoMapping Error" });
+    return res.status(500).json({ error: 'CoPoMapping Error' });
   }
 };

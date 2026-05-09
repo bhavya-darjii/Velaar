@@ -1,15 +1,73 @@
-// Wrapper service to connect to our secure Node.js backend
+// Wrapper service to connect to our secure Node.js backend.
+// Every request now includes teacher context so the server can log AI usage accurately.
+
+import { auth, db } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
 const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
 const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/ai` : `${BASE_URL}/api/ai`;
 
+// ─── Teacher context cache (fetched once per session) ─────────────────────────
+let _cachedCtx = null;
+
+const getTeacherContext = async () => {
+  if (_cachedCtx) return _cachedCtx;
+
+  const user = auth.currentUser;
+  if (!user) return {};
+
+  let teacherName  = user.displayName || '';
+  let courseId     = '';
+  let subjectName  = '';
+
+  try {
+    if (!teacherName) {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      if (userSnap.exists()) {
+        const d = userSnap.data();
+        teacherName = d.fullName || d.name || '';
+      }
+    }
+  } catch (_) { /* silent */ }
+
+  _cachedCtx = {
+    teacherId:    user.uid,
+    teacherEmail: user.email || '',
+    teacherName,
+    courseId,
+    subjectName,
+  };
+  return _cachedCtx;
+};
+
+// Allow other components to inject the active course/subject into context
+export const setAiContextCourse = (courseId, subjectName) => {
+  if (_cachedCtx) {
+    _cachedCtx.courseId    = courseId    || '';
+    _cachedCtx.subjectName = subjectName || '';
+  }
+};
+
+// Invalidate cache on sign-out
+export const clearAiContext = () => { _cachedCtx = null; };
+
+// ─── Shared fetch helper ──────────────────────────────────────────────────────
+const aiPost = async (endpoint, body) => {
+  const ctx = await getTeacherContext();
+  const res = await fetch(`${API_URL}/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...body, ...ctx }),
+  });
+  return res.json();
+};
+
+// ─── Public API functions ─────────────────────────────────────────────────────
+
 export const generateLectureRoadmap = async (syllabusText, totalLectures, acceptedModules) => {
   try {
-    const res = await fetch(`${API_URL}/generate-roadmap`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ syllabusText, totalLectures, acceptedModules })
-    });
-    return await res.json();
+    return await aiPost('generate-roadmap', { syllabusText, totalLectures, acceptedModules });
   } catch (error) {
     console.error("Roadmap Generation Error:", error);
     return { roadmap: [], usage: null };
@@ -18,11 +76,7 @@ export const generateLectureRoadmap = async (syllabusText, totalLectures, accept
 
 export const generateQuestionsFromTopics = async (completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = "", pastNumericals = []) => {
   try {
-    const res = await fetch(`${API_URL}/generate-questions-topics`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completedTopics, examLength, btPreferences, numericalCount, numericalPrompt, pastNumericals })
-    });
-    return await res.json();
+    return await aiPost('generate-questions-topics', { completedTopics, examLength, btPreferences, numericalCount, numericalPrompt, pastNumericals });
   } catch (error) {
     console.error("Topic Exam Gen Error:", error);
     return [];
@@ -31,11 +85,7 @@ export const generateQuestionsFromTopics = async (completedTopics, examLength, b
 
 export const generateQuestionsFromSyllabus = async (syllabus, examLength) => {
   try {
-    const res = await fetch(`${API_URL}/generate-questions-syllabus`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ syllabus, examLength })
-    });
-    return await res.json();
+    return await aiPost('generate-questions-syllabus', { syllabus, examLength });
   } catch (error) {
     console.error("Generation Error:", error);
     return [];
@@ -44,11 +94,7 @@ export const generateQuestionsFromSyllabus = async (syllabus, examLength) => {
 
 export const gradeFullExam = async (syllabus, examData) => {
   try {
-    const res = await fetch(`${API_URL}/grade-exam`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ syllabus, examData })
-    });
-    return await res.json();
+    return await aiPost('grade-exam', { syllabus, examData });
   } catch (error) {
     console.error("Grading error:", error);
     return { score: 0, feedback: "Error reading API response." };
@@ -57,11 +103,7 @@ export const gradeFullExam = async (syllabus, examData) => {
 
 export const generateLessonPlan = async (subjectName, modules) => {
   try {
-    const res = await fetch(`${API_URL}/generate-lesson-plan`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subjectName, modules })
-    });
-    return await res.json();
+    return await aiPost('generate-lesson-plan', { subjectName, modules });
   } catch (error) {
     console.error("Lesson Plan Generation Error:", error);
     return null;
@@ -70,11 +112,7 @@ export const generateLessonPlan = async (subjectName, modules) => {
 
 export const generateSpecificField = async (type, subjectName, modules) => {
   try {
-    const res = await fetch(`${API_URL}/generate-specific-field`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, subjectName, modules })
-    });
-    return await res.json();
+    return await aiPost('generate-specific-field', { type, subjectName, modules });
   } catch (error) {
     console.error("Single Gen Error", error);
     return null;
@@ -83,11 +121,7 @@ export const generateSpecificField = async (type, subjectName, modules) => {
 
 export const generateSupplementaryLessonPlan = async (subjectName, modules) => {
   try {
-    const res = await fetch(`${API_URL}/generate-supplementary-plan`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subjectName, modules })
-    });
-    return await res.json();
+    return await aiPost('generate-supplementary-plan', { subjectName, modules });
   } catch (error) {
     console.error("Suppl Gen Error", error);
     return null;
@@ -96,11 +130,7 @@ export const generateSupplementaryLessonPlan = async (subjectName, modules) => {
 
 export const generateDayWiseEnrichment = async (subjectName, roadmapTitles, textBooks = [], refBooks = []) => {
   try {
-    const res = await fetch(`${API_URL}/generate-day-wise-enrichment`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subjectName, roadmapTitles, textBooks, refBooks })
-    });
-    return await res.json();
+    return await aiPost('generate-day-wise-enrichment', { subjectName, roadmapTitles, textBooks, refBooks });
   } catch (error) {
     console.error("DayWise Enrichment Error", error);
     return null;
@@ -109,11 +139,7 @@ export const generateDayWiseEnrichment = async (subjectName, roadmapTitles, text
 
 export const generateCoPoMapping = async (courseOutcomes, programOutcomes) => {
   try {
-    const res = await fetch(`${API_URL}/generate-copo-mapping`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ courseOutcomes, programOutcomes })
-    });
-    return await res.json();
+    return await aiPost('generate-copo-mapping', { courseOutcomes, programOutcomes });
   } catch (error) {
     console.error("CoPoMapping Error", error);
     return null;

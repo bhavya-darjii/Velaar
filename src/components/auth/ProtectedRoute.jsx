@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { auth, db } from '../services/firebase';
+import { auth, db } from '../../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import FullLayoutSkeleton from './FullLayoutSkeleton';
+import FullLayoutSkeleton from '../skeletons/FullLayoutSkeleton';
 
 
 const ProtectedRoute = ({ children, allowedRoles }) => {

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import aiRoutes from './routes/aiRoutes.js';
 import exportRoutes from './routes/exportRoutes.js';
 import pdfRoutes from './routes/pdfRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/ai', aiRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/pdf', pdfRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start server (Only runs properly via traditional Node, allowing standard deployment on Render/Railway/DigitalOcean)
 const PORT = process.env.PORT || 5000;

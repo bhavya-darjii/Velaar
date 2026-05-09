@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db, auth } from '../services/firebase';
+import { db, auth } from '../../services/firebase';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import './ExaminationEditor.css';
 
