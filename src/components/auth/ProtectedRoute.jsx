@@ -6,7 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import FullLayoutSkeleton from '../skeletons/FullLayoutSkeleton';
 
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
+const ProtectedRoute = ({ children, allowedRoles, fallback }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
@@ -41,8 +41,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return () => unsubscribe();
   }, [allowedRoles]);
 
-  // Show the full layout skeleton while role is being verified — no blank screen.
-  if (loading) return <FullLayoutSkeleton />;
+  // Show the appropriate skeleton while role is being verified — no blank screen.
+  if (loading) return fallback ?? <FullLayoutSkeleton />;
 
   if (!user) {
     return <Navigate to="/" replace />;

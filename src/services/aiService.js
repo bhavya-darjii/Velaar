@@ -10,23 +10,28 @@ const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/ai` : `${BASE_URL}/api/
 
 // ─── Teacher context cache (fetched once per session) ─────────────────────────
 let _cachedCtx = null;
+let _pendingCourseId = '';
+let _pendingSubjectName = '';
 
 const getTeacherContext = async () => {
-  if (_cachedCtx) return _cachedCtx;
+  if (_cachedCtx) {
+    // Ensure pending updates apply if they happened while cached
+    _cachedCtx.courseId = _pendingCourseId || _cachedCtx.courseId;
+    _cachedCtx.subjectName = _pendingSubjectName || _cachedCtx.subjectName;
+    return _cachedCtx;
+  }
 
   const user = auth.currentUser;
   if (!user) return {};
 
   let teacherName  = user.displayName || '';
-  let courseId     = '';
-  let subjectName  = '';
 
   try {
     if (!teacherName) {
       const userSnap = await getDoc(doc(db, 'users', user.uid));
       if (userSnap.exists()) {
         const d = userSnap.data();
-        teacherName = d.fullName || d.name || '';
+        teacherName = d.fullName || d.name || d.taughtBy || '';
       }
     }
   } catch (_) { /* silent */ }
@@ -35,17 +40,20 @@ const getTeacherContext = async () => {
     teacherId:    user.uid,
     teacherEmail: user.email || '',
     teacherName,
-    courseId,
-    subjectName,
+    courseId:     _pendingCourseId,
+    subjectName:  _pendingSubjectName,
   };
   return _cachedCtx;
 };
 
 // Allow other components to inject the active course/subject into context
 export const setAiContextCourse = (courseId, subjectName) => {
+  _pendingCourseId = courseId || '';
+  _pendingSubjectName = subjectName || '';
+  
   if (_cachedCtx) {
-    _cachedCtx.courseId    = courseId    || '';
-    _cachedCtx.subjectName = subjectName || '';
+    _cachedCtx.courseId    = _pendingCourseId;
+    _cachedCtx.subjectName = _pendingSubjectName;
   }
 };
 

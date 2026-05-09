@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../services/firebase';
-// Added 'doc' and 'getDoc' to imports
 import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
+import { setAiContextCourse } from '../../services/aiService';
 import { ActiveLecture, RoadmapSidebar } from '../../components/teacher/CourseChecklist';
 import ExamSection from '../../components/teacher/QuestionBankSection';
 import './TeacherDashboard.css';
@@ -75,7 +75,10 @@ const TeacherDashboard = () => {
           
           const courseData = { id: docId, ...docData };
           setCourse(courseData);
-          
+
+          // ── Inject subject into AI context so every AI call from
+          //    this session is tagged with the correct subject name ──
+          setAiContextCourse(docId, docData.subjectName || '');
           // Flatten multi-division roadmap to find next active lecture
           let allLectures = [];
           if (courseData.roadmap && !Array.isArray(courseData.roadmap)) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping } from '../../services/aiService';
+import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping, setAiContextCourse } from '../../services/aiService';
 import { exportLessonPlanToWord } from '../../utils/wordExport';
 import LessonPlanSkeleton from '../../components/skeletons/LessonPlanSkeleton';
 import './LessonPlanPage.css';
@@ -157,6 +157,7 @@ const LessonPlanPage = () => {
     const topics = roadmapLine.map(l => l.title);
 
     try {
+      setAiContextCourse(course.id, course.subjectName);
       const [lpData, suppData] = await Promise.all([
         generateLessonPlan(course.subjectName, course.modules || []),
         generateSupplementaryLessonPlan(course.subjectName, course.modules || [])

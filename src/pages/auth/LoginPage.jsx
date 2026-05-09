@@ -68,11 +68,11 @@ const LoginPage = () => {
         
         if (userSnap.exists()) {
           const role = userSnap.data().userType;
-          if (role === 'teacher') navigate('/teacher');
-          else if (role === 'admin') navigate('/admin');
+          if (role === 'admin') navigate('/admin');
+          else if (role === 'teacher') navigate('/teacher');
           else navigate('/student');
         } else {
-          navigate('/student');
+          navigate('/teacher'); // default for missing docs
         }
       }
     } catch (error) {

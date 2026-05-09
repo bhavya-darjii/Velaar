@@ -1,4 +1,5 @@
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign } from "docx";
+import { logAiUsage } from '../utils/logAiUsage.js';
 
 const hText = (text, bold = false) => new Paragraph({ 
   children: [new TextRun({ text: String(text || ""), bold, size: 24, font: "Arial" })],
@@ -611,12 +612,22 @@ export const exportTemplatedExam = async (req, res) => {
         });
         const data = await fetchResp.json();
         if (data.error) throw new Error(data.error.message);
+        
+        let inputT = data.usageMetadata?.promptTokenCount || 0;
+        let outputT = data.usageMetadata?.candidatesTokenCount || 0;
+        
         let textResult = data.candidates[0].content.parts[0].text;
         const jsonStart = textResult.indexOf('{');
         const jsonEnd = textResult.lastIndexOf('}');
         if (jsonStart === -1) throw new Error("JSON not found in response");
-        return JSON.parse(textResult.substring(jsonStart, jsonEnd + 1));
+        return { 
+           json: JSON.parse(textResult.substring(jsonStart, jsonEnd + 1)),
+           usage: { input: inputT, output: outputT }
+        };
     };
+
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
 
     for (let s = 1; s <= numSets; s++) {
         let aiData = {};
@@ -676,8 +687,16 @@ export const exportTemplatedExam = async (req, res) => {
 
                if (promises.length > 0) {
                   const results = await Promise.all(promises);
-                  if (hasLocalTheory) Object.assign(aiData, results[theoryIndex]);
-                  if (hasLocalNumerical) Object.assign(aiData, results[numericalIndex]);
+                  if (hasLocalTheory) {
+                    Object.assign(aiData, results[theoryIndex].json);
+                    totalInputTokens += results[theoryIndex].usage.input;
+                    totalOutputTokens += results[theoryIndex].usage.output;
+                  }
+                  if (hasLocalNumerical) {
+                    Object.assign(aiData, results[numericalIndex].json);
+                    totalInputTokens += results[numericalIndex].usage.input;
+                    totalOutputTokens += results[numericalIndex].usage.output;
+                  }
                }
 
             } else {
@@ -698,8 +717,16 @@ export const exportTemplatedExam = async (req, res) => {
 
                const results = await Promise.all(promises);
 
-               if (hasTheory) Object.assign(aiData, results[theoryIndex]);
-               if (hasNumerical) Object.assign(aiData, results[numericalIndex]);
+               if (hasTheory) {
+                 Object.assign(aiData, results[theoryIndex].json);
+                 totalInputTokens += results[theoryIndex].usage.input;
+                 totalOutputTokens += results[theoryIndex].usage.output;
+               }
+               if (hasNumerical) {
+                 Object.assign(aiData, results[numericalIndex].json);
+                 totalInputTokens += results[numericalIndex].usage.input;
+                 totalOutputTokens += results[numericalIndex].usage.output;
+               }
             }
 
         } catch (perr) {
@@ -709,6 +736,20 @@ export const exportTemplatedExam = async (req, res) => {
 
         const docxBuffer = await generateDocxBuffer(aiData);
         generatedBuffers.push({ name: `${course.subjectName || "Exam"}_${examType}_Set_${s}.docx`, buffer: docxBuffer });
+    }
+
+    if (totalInputTokens > 0 || totalOutputTokens > 0) {
+        // Fire and forget logging
+        logAiUsage({
+            action: 'generate-exam-paper',
+            teacherId: course?.teacherId || "unknown",
+            teacherEmail: course?.teacherEmail || "",
+            teacherName: course?.teacherName || course?.taughtBy || "Unknown",
+            courseId: course?.id || "",
+            subjectName: course?.subjectName || "Subject",
+            inputTokens: totalInputTokens,
+            outputTokens: totalOutputTokens
+        }).catch(err => console.error("Exam log error:", err));
     }
 
     if (numSets === 1) {

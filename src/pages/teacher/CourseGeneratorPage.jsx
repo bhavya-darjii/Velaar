@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../services/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { extractTextFromPDF } from "../../services/pdfService";
-import { generateLectureRoadmap } from "../../services/aiService";
+import { generateLectureRoadmap, setAiContextCourse } from "../../services/aiService";
 import "./CourseGeneratorPage.css";
 
 // Global queue to ensure sequential PDF OCR extraction across all modules smoothly
@@ -358,6 +358,7 @@ const CourseGenerator = () => {
 
     try {
       // 1. Ask AI to break syllabus into lectures (One time cost)
+      setAiContextCourse("", subjectName);
       const acceptedModulesList = modules.map((m) => m.name).join(", ");
       const { roadmap, usage } = await generateLectureRoadmap(
         aggregatedSyllabusText,
@@ -418,6 +419,8 @@ const CourseGenerator = () => {
 
       const docRef = await addDoc(collection(db, "courses"), {
         teacherId: auth.currentUser.uid,
+        taughtBy: auth.currentUser.displayName || auth.currentUser.email || "Unknown Teacher",
+        teacherEmail: auth.currentUser.email || "",
         subjectName,
         totalLectures: Number(totalLectures),
         divisions: divisionsList,

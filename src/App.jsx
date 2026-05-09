@@ -19,6 +19,7 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import CourseGeneratorPage from './pages/teacher/CourseGeneratorPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminDashboardSkeleton from './components/skeletons/AdminDashboardSkeleton';
 
 function App() {
   const [plasmaColor, setPlasmaColor] = useState('#ea580c');
@@ -84,14 +85,14 @@ function App() {
 
               {/* Admin Dashboard */}
               <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin']} fallback={<AdminDashboardSkeleton />}>
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
 
               {/* Teacher Dashboard nested routes */}
               <Route path="/teacher" element={
-                <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <ProtectedRoute allowedRoles={['teacher']}>
                   <TeacherLayout />
                 </ProtectedRoute>
               }>
@@ -111,7 +112,11 @@ function App() {
               } />
             </Routes>
           </div>
-        ) : <FullLayoutSkeleton />}
+        ) : (
+          window.location.pathname.startsWith('/admin')
+            ? <div className="content-layer"><AdminDashboardSkeleton /></div>
+            : <FullLayoutSkeleton />
+        )}
 
       </div>
     </Router>

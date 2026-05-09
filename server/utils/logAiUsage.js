@@ -1,16 +1,6 @@
-// File-based AI usage logger — writes to server/data/aiLogs.jsonl
-// Uses Node.js fs (no Firestore, no auth, works immediately on any environment)
-
-import { appendFileSync, existsSync, mkdirSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR  = join(__dirname, '..', 'data');
-const LOG_FILE  = join(DATA_DIR, 'aiLogs.jsonl');
-
-// Ensure the data directory exists on first run
-if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+// Uses Firebase Admin SDK so writes bypass Firestore security rules.
+import { adminDb } from '../firebaseAdmin.js';
+import { FieldValue } from 'firebase-admin/firestore';
 
 // ── Gemini 2.0 Flash pricing (USD per 1M tokens, May 2026) ───────────────────
 const INPUT_COST_PER_MILLION  = 0.10;
@@ -19,7 +9,7 @@ const OUTPUT_COST_PER_MILLION = 0.40;
 // Fixed USD → INR conversion (₹84 per $1)
 const USD_TO_INR = 84;
 
-const ACTION_LABELS = {
+export const ACTION_LABELS = {
   'generate-roadmap':             'Course Roadmap Generation',
   'generate-questions-topics':    'Question Bank (from Topics)',
   'generate-questions-syllabus':  'Question Bank (from Syllabus)',
@@ -50,18 +40,14 @@ export const logAiUsage = async (opts) => {
       courseId = '', subjectName = '',
     } = opts;
 
-    // Exact cost in USD
     const costUSD = (inputTokens / 1_000_000) * INPUT_COST_PER_MILLION
                   + (outputTokens / 1_000_000) * OUTPUT_COST_PER_MILLION;
-
-    // Rounded to nearest rupee — no paise
     const costINR = Math.round(costUSD * USD_TO_INR);
 
     const now   = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     const entry = {
-      id:          `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       action,
       actionLabel: ACTION_LABELS[action] || action,
       teacherId,
@@ -74,13 +60,61 @@ export const logAiUsage = async (opts) => {
       costUSD,
       costINR,
       month,
-      timestamp:   now.toISOString(),
+      timestamp: now.toISOString(),
     };
 
-    // Append as a single JSON line (JSON Lines format — safe for concurrent writes)
-    appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n', 'utf8');
+    const batch = adminDb.batch();
+
+    // 1. Raw log entry
+    const logRef = adminDb.collection('aiLogs').doc();
+    batch.set(logRef, entry);
+
+    // 2a. Global totals
+    const globalRef = adminDb.collection('aiStats').doc('global');
+    batch.set(globalRef, {
+      totalCalls:     FieldValue.increment(1),
+      totalCostINR:   FieldValue.increment(costINR),
+      totalTokensIn:  FieldValue.increment(inputTokens),
+      totalTokensOut: FieldValue.increment(outputTokens),
+    }, { merge: true });
+
+    // 2b. Monthly stats
+    const monthRef = adminDb.collection('aiStats').doc(`month_${month}`);
+    batch.set(monthRef, {
+      month,
+      calls:        FieldValue.increment(1),
+      costINR:      FieldValue.increment(costINR),
+      inputTokens:  FieldValue.increment(inputTokens),
+      outputTokens: FieldValue.increment(outputTokens),
+    }, { merge: true });
+
+    // 2c. Teacher stats
+    const teacherRef = adminDb.collection('aiStats').doc(`teacher_${teacherId}`);
+    batch.set(teacherRef, {
+      teacherId,
+      teacherName,
+      teacherEmail,
+      calls:        FieldValue.increment(1),
+      costINR:      FieldValue.increment(costINR),
+      inputTokens:  FieldValue.increment(inputTokens),
+      outputTokens: FieldValue.increment(outputTokens),
+    }, { merge: true });
+
+    // 2d. Action stats
+    const actionRef = adminDb.collection('aiStats').doc(`action_${action}`);
+    batch.set(actionRef, {
+      action,
+      actionLabel:  ACTION_LABELS[action] || action,
+      calls:        FieldValue.increment(1),
+      costINR:      FieldValue.increment(costINR),
+      inputTokens:  FieldValue.increment(inputTokens),
+      outputTokens: FieldValue.increment(outputTokens),
+    }, { merge: true });
+
+    await batch.commit();
+
   } catch (err) {
     // Never crash the main AI request just because logging failed
-    console.warn('[logAiUsage] Failed to write log:', err.message);
+    console.error('[logAiUsage] Failed to write log to Firestore:', err.message);
   }
 };

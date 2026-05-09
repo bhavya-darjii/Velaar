@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../services/firebase";
-import { generateQuestionsFromTopics } from "../../services/aiService";
+import { generateQuestionsFromTopics, setAiContextCourse } from "../../services/aiService";
 import {
   Document,
   Packer,
@@ -173,6 +173,9 @@ const ExamSection = ({ course }) => {
     const topics = completedLectures.map((l) => l.title);
 
     try {
+      // Pass the active subject name and course ID to the AI context logger
+      setAiContextCourse(course.id, course.subjectName);
+
       // Pass the selected inputs to AI
       const questions = await generateQuestionsFromTopics(
         topics,
