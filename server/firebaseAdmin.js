@@ -43,7 +43,13 @@ if (!credential) {
   }
 }
 
-const adminApp = getApps().find(a => a.name === 'admin-app')
-  || initializeApp({ credential, projectId: 'velaar' }, 'admin-app');
+let adminApp;
+export let adminDb = null;
 
-export const adminDb = getFirestore(adminApp);
+if (credential) {
+  adminApp = getApps().find(a => a.name === 'admin-app')
+    || initializeApp({ credential, projectId: 'velaar' }, 'admin-app');
+  adminDb = getFirestore(adminApp);
+} else {
+  console.warn('[firebaseAdmin] ⚠️ Admin SDK bypassed. AI logging and Admin stats will fail until GOOGLE_SERVICE_ACCOUNT_KEY is configured on Render.');
+}

@@ -2,6 +2,10 @@ import { adminDb } from '../firebaseAdmin.js';
 
 // ─── GET /api/admin/summary ───────────────────────────────────────────────────
 export const getAdminSummary = async (req, res) => {
+  if (!adminDb) {
+    return res.status(500).json({ error: "Server Configuration Error: GOOGLE_SERVICE_ACCOUNT_KEY is missing on Render. Admin Database unavailable." });
+  }
+
   try {
     const statsSnapshot = await adminDb.collection('aiStats').get();
     const stats = statsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -48,6 +52,10 @@ export const getAdminSummary = async (req, res) => {
 
 // ─── GET /api/admin/logs ──────────────────────────────────────────────────────
 export const getAdminLogs = async (req, res) => {
+  if (!adminDb) {
+    return res.status(500).json({ error: "Server Configuration Error: GOOGLE_SERVICE_ACCOUNT_KEY is missing on Render. Admin Database unavailable." });
+  }
+  
   try {
     const { month, teacherId, pageSize = 500 } = req.query;
 
