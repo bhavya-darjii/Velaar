@@ -1,0 +1,141 @@
+.teacher-profile-container {
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-center-card {
+  width: 100%;
+  padding: 40px;
+  border-radius: 20px;
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+  width: 100%;
+}
+
+.profile-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(var(--theme-color-rgb), 0.15);
+  border: 3px solid rgba(var(--theme-color-rgb), 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 0 30px rgba(var(--theme-color-rgb), 0.2);
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--theme-color);
+  font-family: inherit;
+}
+
+.profile-details h3 {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.profile-name {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+}
+
+.profile-info {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 15px 0;
+}
+
+.profile-badge-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.profile-badge {
+  display: inline-block;
+  background: rgba(var(--theme-color-rgb), 0.1);
+  color: var(--theme-color);
+  border: 1px solid rgba(var(--theme-color-rgb), 0.2);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Use the exact same styles as btn-generate from the last git commit */
+.profile-action-btn {
+  width: 100%;
+  padding: 12px;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-action-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #000000;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 700px) {
+  .action-buttons-grid {
+    grid-template-columns: 1fr;
+  }
+}

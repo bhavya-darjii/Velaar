@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../services/firebase';
-import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
+import { getDocs, getDoc, doc, collection, query, where, updateDoc } from 'firebase/firestore';
 import { setAiContextCourse } from '../../services/aiService';
 import { ActiveLecture, RoadmapSidebar } from '../../components/teacher/CourseChecklist';
 import ExamSection from '../../components/teacher/QuestionBankSection';
+import HomePageSkeleton from '../../components/skeletons/HomePageSkeleton';
 import './TeacherDashboard.css';
 
 const TEACHER_GREETINGS = [
@@ -105,7 +106,38 @@ const TeacherDashboard = () => {
     initDashboard();
   }, [navigate]);
 
-  if (loading) return <div className="loading-screen">Loading your classroom...</div>;
+  if (loading) return <HomePageSkeleton />;
+
+  const handleMigrateLegacyData = async () => {
+    try {
+      setLoading(true);
+      const q = query(collection(db, "courses"), where("teacherId", "==", auth.currentUser.uid));
+      const coursesSnapshot = await getDocs(q);
+      const updatePromises = [];
+      coursesSnapshot.forEach((courseDoc) => {
+        updatePromises.push(
+          updateDoc(doc(db, "courses", courseDoc.id), {
+            department: "Artificial Intelligence and Data Science"
+          })
+        );
+      });
+      
+      // Update teacher's profile
+      updatePromises.push(
+        updateDoc(doc(db, "users", auth.currentUser.uid), {
+           department: "Artificial Intelligence and Data Science"
+        })
+      );
+      
+      await Promise.all(updatePromises);
+      alert("Legacy courses migrated to AI & DS department.");
+      window.location.reload();
+    } catch (error) {
+      console.error("Migration error:", error);
+      alert("Failed to migrate data");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="dashboard-container">
@@ -122,6 +154,14 @@ const TeacherDashboard = () => {
             className="new-course-btn"
           >
             + New Course
+          </button>
+          
+          <button 
+            onClick={handleMigrateLegacyData}
+            className="new-course-btn"
+            style={{ background: 'transparent', border: '1px solid #ffcc00', color: '#ffcc00', marginLeft: '10px' }}
+          >
+            TEMP: Migrate Data
           </button>
 
           <div className="progress-badge">

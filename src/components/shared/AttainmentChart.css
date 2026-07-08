@@ -1,0 +1,10 @@
+.attainment-chart {
+  padding: 24px;
+}
+
+.attainment-chart__title {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}

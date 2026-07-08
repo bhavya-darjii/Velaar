@@ -1,0 +1,138 @@
+.course-mapping-container {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100%;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  padding: 40px;
+  border-radius: 32px;
+  color: #ffffff;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.header-row h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  color: #ffffff;
+  font-size: 1rem;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.input-group {
+  margin-bottom: 30px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.liquid-input {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.liquid-input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.mapping-table-container {
+  overflow-x: auto;
+}
+
+.mapping-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mapping-table th, .mapping-table td {
+  padding: 15px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.mapping-table th {
+  background: rgba(255,255,255,0.05);
+  font-weight: 700;
+}
+
+.mapping-table .co-header {
+  text-align: left;
+  background: rgba(255,255,255,0.02);
+}
+
+.mapping-table .co-header strong {
+  display: block;
+  font-size: 1.1rem;
+  color: #ea580c;
+  margin-bottom: 4px;
+}
+
+.mapping-table .co-header span {
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.mapping-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  cursor: pointer;
+  outline: none;
+}
+
+.mapping-select:focus {
+  border-color: #ea580c;
+}
+
+.primary-btn {
+  background: rgba(234, 88, 12, 0.2);
+  border: 1px solid rgba(234, 88, 12, 0.4);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.primary-btn:hover {
+  background: rgba(234, 88, 12, 0.4);
+}

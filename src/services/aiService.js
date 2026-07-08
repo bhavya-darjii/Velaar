@@ -63,12 +63,30 @@ export const clearAiContext = () => { _cachedCtx = null; };
 // ─── Shared fetch helper ──────────────────────────────────────────────────────
 const aiPost = async (endpoint, body) => {
   const ctx = await getTeacherContext();
-  const res = await fetch(`${API_URL}/${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...body, ...ctx }),
-  });
-  return res.json();
+  let res;
+  try {
+    res = await fetch(`${API_URL}/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, ...ctx }),
+    });
+  } catch (err) {
+    console.error(`Network error calling ${endpoint}:`, err);
+    return { error: 'Unable to reach Velaar server. Is the backend running on port 5000?' };
+  }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    return { error: res.ok ? 'Invalid server response' : `Server error (${res.status})` };
+  }
+
+  if (!res.ok) {
+    return { error: data?.error || `Server error (${res.status})` };
+  }
+
+  return data;
 };
 
 // ─── Public API functions ─────────────────────────────────────────────────────
@@ -151,5 +169,121 @@ export const generateCoPoMapping = async (courseOutcomes, programOutcomes) => {
   } catch (error) {
     console.error("CoPoMapping Error", error);
     return null;
+  }
+};
+
+export const sendCopilotMessage = async (messages, context = {}) => {
+  try {
+    return await aiPost('copilot-chat', { messages, ...context });
+  } catch (error) {
+    console.error("Copilot Message Error", error);
+    return { reply: "I'm having trouble connecting right now. Please try again later." };
+  }
+};
+
+export const evaluateAnswerScript = async (payload) => {
+  try {
+    return await aiPost('evaluate-answer-script', payload);
+  } catch (error) {
+    console.error("Answer Evaluator Error", error);
+    return { error: 'Failed to evaluate answer script.' };
+  }
+};
+
+export const generateRubric = async (payload) => {
+  try {
+    return await aiPost('generate-rubric', payload);
+  } catch (error) {
+    console.error("Rubric Generation Error", error);
+    return { error: 'Failed to generate rubric.' };
+  }
+};
+
+export const calculateCoAttainment = async (payload) => {
+  try {
+    const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/analytics/co-attainment` : `${BASE_URL}/api/analytics/co-attainment`;
+    const ctx = await getTeacherContext();
+    const res = await fetch(URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, ...ctx }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error("CO Attainment Error", error);
+    return { error: 'Failed to calculate CO attainment.' };
+  }
+};
+
+export const predictStudentRisk = async (payload) => {
+  try {
+    const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/analytics/student-risk` : `${BASE_URL}/api/analytics/student-risk`;
+    const ctx = await getTeacherContext();
+    const res = await fetch(URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, ...ctx }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error("Student Risk Error", error);
+    return { error: 'Failed to predict student risk.' };
+  }
+};
+
+export const generateStudyMaterial = async (payload) => {
+  try {
+    return await aiPost('generate-study-material', payload);
+  } catch (error) {
+    console.error("Study Material Error", error);
+    return { error: 'Failed to generate study material.' };
+  }
+};
+
+export const generateLabManual = async (payload) => {
+  try {
+    return await aiPost('generate-lab-manual', payload);
+  } catch (error) {
+    console.error("Lab Manual Error", error);
+    return { error: 'Failed to generate lab manual.' };
+  }
+};
+
+export const generateNotice = async (payload) => {
+  try {
+    const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/notice/generate` : `${BASE_URL}/api/notice/generate`;
+    const ctx = await getTeacherContext();
+    const res = await fetch(URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, ...ctx }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error("Notice Generation Error", error);
+    return { error: 'Failed to generate notice.' };
+  }
+};
+
+export const generateTimetable = async (payload) => {
+  try {
+    const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/timetable/generate` : `${BASE_URL}/api/timetable/generate`;
+    const res = await fetch(URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return res.json();
+  } catch (error) {
+    console.error("Timetable Generation Error", error);
+    return { error: 'Failed to generate timetable.' };
   }
 };

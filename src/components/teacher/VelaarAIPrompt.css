@@ -1,0 +1,345 @@
+/* ══════════════════════════════════════════════════════════════
+   VELAAR AI — Payrix-inspired Liquid Glass Prompt
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --vai-indigo:  #0a8fa8;
+  --vai-violet:  #0d9fb8;
+  --vai-cyan:    #22d3ee;
+  --vai-pink:    #14b8a6;
+}
+
+/* ── Outer wrapper ─────────────────────────────────────────── */
+.velaar-ai-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  flex-shrink: 0;
+  z-index: 200;
+  transition: max-width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.velaar-ai-wrapper.focused {
+  max-width: 680px;
+}
+
+/* ── Suggestion Chips ──────────────────────────────────────── */
+.velaar-ai-chips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  opacity: 0.85;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.velaar-ai-wrapper.focused .velaar-ai-chips {
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
+.vai-chip {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  color: var(--text-primary) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 10px rgba(14, 100, 140, 0.05) !important;
+  transition: all 0.2s ease !important;
+}
+
+.vai-chip:hover {
+  background: rgba(255, 255, 255, 0.90) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 100, 140, 0.1) !important;
+}
+
+.vai-chip-icon {
+  font-size: 0.6rem;
+  color: var(--accent-teal);
+  opacity: 0.7;
+}
+
+/* ── Floating bubble orbs ──────────────────────────────────── */
+.velaar-ai-orbs {
+  position: absolute;
+  inset: -40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: -1;
+}
+.velaar-ai-wrapper.focused .velaar-ai-orbs { opacity: 1; }
+
+.vai-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(22px);
+  will-change: transform;
+}
+.vai-orb-1 { width:90px; height:90px; background:var(--vai-indigo); opacity:0.35; top:0; left:10%; animation:orbFloat1 7s ease-in-out infinite; }
+.vai-orb-2 { width:70px; height:70px; background:var(--vai-cyan);   opacity:0.30; bottom:-5px; right:15%; animation:orbFloat2 9s ease-in-out infinite; }
+.vai-orb-3 { width:55px; height:55px; background:var(--vai-violet); opacity:0.28; top:5px; right:8%; animation:orbFloat3 6s ease-in-out infinite; }
+.vai-orb-4 { width:44px; height:44px; background:var(--vai-pink);   opacity:0.20; bottom:0; left:5%; animation:orbFloat4 8s ease-in-out infinite; }
+
+@keyframes orbFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 30%{transform:translate(18px,-14px) scale(1.12)} 65%{transform:translate(-12px,10px) scale(0.92)} }
+@keyframes orbFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(-20px,-10px) scale(1.1)} 70%{transform:translate(14px,14px) scale(0.9)} }
+@keyframes orbFloat3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-16px,12px) scale(1.15)} }
+@keyframes orbFloat4 { 0%,100%{transform:translate(0,0) scale(1)} 45%{transform:translate(20px,-8px) scale(1.08)} }
+
+/* ── The glassmorphic pill bar ─────────────────────────────── */
+.velaar-ai-input-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  height: 52px;
+  border-radius: 26px;
+  padding: 0 16px 0 22px;
+  gap: 10px;
+
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 8px 32px rgba(14, 100, 140, 0.10);
+
+  transition:
+    background 0.5s cubic-bezier(0.16,1,0.3,1),
+    border-color 0.4s cubic-bezier(0.16,1,0.3,1),
+    box-shadow 0.5s cubic-bezier(0.16,1,0.3,1);
+  cursor: text;
+  overflow: visible;
+}
+
+.velaar-ai-wrapper.focused .velaar-ai-input-container {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(10, 143, 168, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 3px rgba(10, 143, 168, 0.18),
+    0 8px 32px rgba(14, 100, 140, 0.15),
+    0 2px 8px rgba(14, 100, 140, 0.10);
+}
+
+/* shimmer sweep on focus */
+.velaar-ai-input-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.80) 50%, transparent 65%);
+  background-size: 200% 100%;
+  background-position: 200% 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.velaar-ai-wrapper.focused .velaar-ai-input-container::after {
+  animation: shimmerOnce 0.75s cubic-bezier(0.4,0,0.2,1) 0.05s forwards;
+}
+@keyframes shimmerOnce {
+  0%   { background-position:200% 0; opacity:1; }
+  100% { background-position:-50% 0; opacity:0; }
+}
+
+/* ── Spark icon (simple, no stacked layers) ──────────────── */
+.velaar-ai-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.velaar-ai-wrapper.focused .velaar-ai-icon {
+  color: var(--vai-indigo);
+  filter: drop-shadow(0 0 4px rgba(10, 143, 168, 0.4));
+  transform: scale(1.1) rotate(-10deg);
+}
+
+/* ── Input field ─────────────────────────────────────────── */
+.velaar-ai-input {
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  caret-color: var(--vai-indigo);
+  min-width: 0;
+}
+.velaar-ai-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.velaar-ai-wrapper.focused .velaar-ai-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ── Send button — always visible on right ─── */
+.velaar-ai-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(10, 143, 168, 0.15) !important;
+  color: var(--accent-teal);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+  padding: 0 !important;
+  margin-left: 5px;
+}
+.velaar-ai-send:not(:disabled):hover {
+  color: #fff;
+  background: var(--vai-indigo) !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(10, 143, 168, 0.3);
+}
+.velaar-ai-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSE PANEL
+   ════════════════════════════════════════════════════════════ */
+.velaar-ai-response-panel {
+  position: absolute;
+  bottom: calc(100% + 20px);
+  left: 0;
+  right: 0;
+  border-radius: 24px;
+  z-index: 9999;
+
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(50px) saturate(220%);
+  -webkit-backdrop-filter: blur(50px) saturate(220%);
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 24px 60px rgba(14, 100, 140, 0.15),
+    0 4px 16px rgba(14, 100, 140, 0.08);
+
+  padding: 20px 24px;
+  opacity: 0;
+  transform: translateY(10px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+
+.velaar-ai-response-panel.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.velaar-ai-response-panel.closing {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  pointer-events: none;
+}
+
+.ai-response-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(14, 100, 140, 0.1);
+}
+.ai-response-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.ai-response-title-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--vai-indigo);
+  box-shadow: 0 0 8px var(--vai-indigo);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { opacity:1; box-shadow:0 0 4px var(--vai-indigo); }
+  50%      { opacity:0.6; box-shadow:0 0 10px var(--vai-violet); }
+}
+
+.ai-close-btn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(14, 100, 140, 0.05) !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0 !important;
+}
+.ai-close-btn:hover {
+  background: rgba(14, 100, 140, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.velaar-ai-response-content {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.velaar-ai-response-content::-webkit-scrollbar { width: 4px; }
+.velaar-ai-response-content::-webkit-scrollbar-thumb {
+  background: rgba(14, 100, 140, 0.2);
+  border-radius: 4px;
+}
+.velaar-ai-response-content p { margin: 0; }
+
+/* ── Typing dots ─────────────────────────────────────────── */
+.liquid-typing {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 4px 0;
+  height: 22px;
+}
+.liquid-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--vai-cyan);
+  animation: liquidBounce 1.2s ease-in-out infinite both;
+}
+.liquid-dot:nth-child(1) { animation-delay:0s; }
+.liquid-dot:nth-child(2) { animation-delay:0.15s; background:var(--vai-indigo); }
+.liquid-dot:nth-child(3) { animation-delay:0.30s; background:var(--vai-violet); }
+
+@keyframes liquidBounce {
+  0%,60%,100% { transform:translateY(0) scale(0.7); opacity:0.4; }
+  30%         { transform:translateY(-6px) scale(1.1); opacity:1; box-shadow:0 0 6px currentColor; }
+}

@@ -1,0 +1,70 @@
+.attendance-scanner-container {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100%;
+}
+
+.scanner-wrapper {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  padding: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+#reader {
+  width: 100%;
+  border: none !important;
+}
+
+#reader button {
+  background: #ea580c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.scan-success, .scan-error {
+  margin-top: 20px;
+  padding: 30px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.scan-success .icon {
+  font-size: 4rem;
+}
+
+.scan-error .icon {
+  font-size: 4rem;
+}
+
+.scan-success p {
+  color: #10b981;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.scan-error p {
+  color: #ef4444;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.loading-state {
+  margin-top: 30px;
+  font-size: 1.2rem;
+  color: #fbbf24;
+  animation: pulse 1s infinite alternate;
+}

@@ -44,35 +44,35 @@ const ExaminationPage = () => {
   if (!course) return <ExaminationSkeleton />;
 
   return (
-    <div className="glass-container" style={{ minHeight: 'auto', padding: '40px 0' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+    <div className="lesson-plan-container" style={{ padding: '20px' }}>
+      <div className="lesson-plan-grid glass" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '40px' }}>
         <div className="exams-header" style={{marginBottom: "30px", textAlign: "center"}}>
-          <h2 style={{color: '#ffffff', margin: 0, fontSize: '2rem', fontWeight: 800}}>Institutional Examinations</h2>
-          <p style={{color: '#94a3b8', margin: '10px 0 0 0', fontSize: '1rem'}}>
+          <h2 style={{color: '#ffffff', margin: 0, fontSize: '2rem', fontWeight: 900}}>Institutional Examinations</h2>
+          <p style={{color: '#ffffff', margin: '10px 0 0 0', fontSize: '1rem', opacity: 0.9}}>
             Dynamically compile correctly formatted College-issued Word Documents based on your syllabus.
           </p>
         </div>
 
-        <div className="examination-grid">
-          {EXAM_TYPES.map(exam => (
-            <div className="exam-card fade-in" key={exam.id}>
-              <div>
-                <h3>{exam.title}</h3>
-                <p>{exam.desc}</p>
-              </div>
-              
-              <div className="exam-actions" style={{ marginTop: '0' }}>
-                <button 
-                  className="btn-generate" 
-                  style={{ width: '100%', padding: '12px', fontSize: '1rem' }}
-                  onClick={() => handleNavigateToEditor(exam.id)}
-                >
-                  Generate Question Paper
-                </button>
-              </div>
+      <div className="examination-grid">
+        {EXAM_TYPES.map(exam => (
+          <div className="exam-card" key={exam.id}>
+            <div>
+              <h3>{exam.title}</h3>
+              <p>{exam.desc}</p>
             </div>
-          ))}
-        </div>
+            
+            <div className="exam-actions" style={{ marginTop: '0' }}>
+              <button 
+                className="btn-generate" 
+                style={{ width: '100%', padding: '12px', fontSize: '1rem' }}
+                onClick={() => handleNavigateToEditor(exam.id)}
+              >
+                Generate Question Paper
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
       </div>
     </div>
   );

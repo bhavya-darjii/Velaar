@@ -6,6 +6,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
+import { collection, getDocs, updateDoc, doc, query, where, getDoc, addDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../services/firebase';
 import './AdminDashboard.css';
 import AdminDashboardSkeleton from '../../components/skeletons/AdminDashboardSkeleton';
 
@@ -131,6 +133,29 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery]     = useState('');
   const [actionFilter, setActionFilter]   = useState('all');
 
+  // Directory States
+  const [users, setUsers] = useState([]);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  const [updatingUser, setUpdatingUser] = useState(null);
+  
+  // Invite state
+  const [inviteEmails, setInviteEmails] = useState('');
+  const [inviteRole, setInviteRole] = useState('teacher');
+  const [inviteSemester, setInviteSemester] = useState('');
+  const [bulkFile, setBulkFile] = useState(null);
+  const [inviting, setInviting] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState('');
+  
+  const ROLE_LABELS = {
+    teacher:        'Teacher',
+    hod:            'Head of Dept',
+    registrar:      'Registrar',
+    admin:          'Admin',
+    student:        'Student',
+    examController: 'Exam Controller',
+    parent:         'Parent',
+  };
+
   const fetchData = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true);
     else setLoading(true);
@@ -145,6 +170,21 @@ export default function AdminDashboard() {
       const logData = await logRes.json();
       setSummary(sumData);
       setLogs(logData.logs || []);
+
+      // Fetch current admin's institution data
+      if (auth.currentUser) {
+        const adminDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        if (adminDoc.exists()) {
+          const adminData = adminDoc.data();
+          setCurrentUserData(adminData);
+          if (adminData.institutionId) {
+            const q = query(collection(db, 'users'), where('institutionId', '==', adminData.institutionId));
+            const usersSnap = await getDocs(q);
+            setUsers(usersSnap.docs.map(d => ({ uid: d.id, ...d.data() })));
+          }
+        }
+      }
+
     } catch (e) {
       setError(`Failed to load analytics: ${e.message}`);
     } finally {
@@ -249,6 +289,78 @@ export default function AdminDashboard() {
     },
   ];
 
+  // Directory Handlers
+  const handleSingleInvite = async (e) => {
+    e.preventDefault();
+    if (!inviteEmails || !currentUserData?.institutionId) return;
+    setInviting(true);
+    setInviteMsg('');
+    try {
+      const emailList = inviteEmails.split(/[,\n\r]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@'));
+      let count = 0;
+      for (const email of emailList) {
+        const inviteData = {
+          userType: inviteRole,
+          institutionId: currentUserData.institutionId,
+          collegeName: currentUserData.collegeName || 'Unknown',
+          createdAt: new Date(),
+          invitedBy: auth.currentUser.uid
+        };
+        if (inviteRole === 'student' && inviteSemester) {
+          inviteData.semester = inviteSemester;
+        }
+        await setDoc(doc(db, 'role_invitations', email), inviteData);
+        count++;
+      }
+      setInviteMsg(`Successfully sent ${count} invitation(s).`);
+      setInviteEmails('');
+      setInviteSemester('');
+    } catch (err) {
+      console.error(err);
+      setInviteMsg('Failed to invite users.');
+    }
+    setInviting(false);
+  };
+
+  const handleBulkCSV = async (e) => {
+    e.preventDefault();
+    if (!bulkFile || !currentUserData?.institutionId) return;
+    setInviting(true);
+    setInviteMsg('');
+    try {
+      const text = await bulkFile.text();
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+      let count = 0;
+      for (const line of lines) {
+        const email = line.split(',')[0].trim().toLowerCase();
+        if (email.includes('@')) {
+          const inviteData = {
+            userType: inviteRole,
+            institutionId: currentUserData.institutionId,
+            collegeName: currentUserData.collegeName || 'Unknown',
+            createdAt: new Date(),
+            invitedBy: auth.currentUser.uid
+          };
+          if (inviteRole === 'student' && inviteSemester) {
+            inviteData.semester = inviteSemester;
+          }
+          await setDoc(doc(db, 'role_invitations', email), inviteData);
+          count++;
+        }
+      }
+      setInviteMsg(`Successfully invited ${count} users.`);
+      setBulkFile(null);
+      setInviteSemester('');
+      document.getElementById('bulk-csv-admin-input').value = '';
+    } catch (err) {
+      console.error(err);
+      setInviteMsg('Failed to process CSV.');
+    }
+    setInviting(false);
+  };
+
+  const activeUsers = users;
+
   return (
     <div className="admin-root">
       <div className="admin-inner">
@@ -264,6 +376,7 @@ export default function AdminDashboard() {
               <p className="admin-header-sub">Real-time Velaar usage &amp; cost monitoring</p>
             </div>
           </div>
+
           <div className="admin-header-right">
             <button
               id="admin-refresh-btn"
@@ -308,6 +421,182 @@ export default function AdminDashboard() {
                 <option key={a} value={a}>{label}</option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* ── PRE-REGISTRATION INVITES ── */}
+        <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '20px' }}>
+          <div className="section-header">
+            <span className="section-title">Invite Users to {currentUserData?.collegeName || 'Your Institution'}</span>
+          </div>
+          
+          {inviteMsg && (
+            <div className="generation-modal" onClick={() => setInviteMsg('')}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div style={{ color: '#10b981', marginBottom: '16px' }}>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <h2>Success</h2>
+                <p style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '24px' }}>{inviteMsg}</p>
+                <button onClick={() => setInviteMsg('')}>Close</button>
+              </div>
+            </div>
+          )}
+          
+          <div className="va-invite-container" style={{ marginTop: 0 }}>
+            
+            <div className="va-invite-forms">
+              {/* Single Invite */}
+              <form className="va-invite-card" onSubmit={handleSingleInvite}>
+                <h3 className="va-invite-title">Single Invitation</h3>
+                
+                <div className="va-form-group">
+                  <label>Assign Role</label>
+                  <select className="va-glass-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="hod">Head of Dept</option>
+                    <option value="registrar">Registrar</option>
+                    <option value="parent">Parent</option>
+                  </select>
+                </div>
+
+                {inviteRole === 'student' && (
+                  <div className="va-form-group">
+                    <label>Semester</label>
+                    <input 
+                      type="text" 
+                      className="va-glass-input" 
+                      placeholder="e.g. 5" 
+                      value={inviteSemester} 
+                      onChange={e => setInviteSemester(e.target.value)} 
+                    />
+                  </div>
+                )}
+
+                <div className="va-form-group" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <label>User Emails (comma separated)</label>
+                  <textarea required placeholder="user1@domain.edu, user2@domain.edu" className="va-glass-input" rows="3" style={{ flexGrow: 1, resize: 'none' }} value={inviteEmails} onChange={e => setInviteEmails(e.target.value)} />
+                </div>
+
+                <button type="submit" className="va-glass-btn va-glass-btn--neutral" disabled={inviting}>
+                  {inviting ? 'Sending...' : 'Send Invitations'}
+                </button>
+              </form>
+
+              {/* Bulk CSV Upload */}
+              <form className="va-invite-card" onSubmit={handleBulkCSV}>
+                <h3 className="va-invite-title">Bulk CSV Upload</h3>
+                <p className="va-invite-subtitle">Upload a CSV file containing a single column of email addresses. All users will receive the selected role.</p>
+                
+                <div className="va-form-group">
+                  <label>Assign Role to All</label>
+                  <select className="va-glass-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="hod">Head of Dept</option>
+                    <option value="registrar">Registrar</option>
+                    <option value="parent">Parent</option>
+                  </select>
+                </div>
+
+                {inviteRole === 'student' && (
+                  <div className="va-form-group">
+                    <label>Semester (Applied to all)</label>
+                    <input 
+                      type="text" 
+                      className="va-glass-input" 
+                      placeholder="e.g. 5" 
+                      value={inviteSemester} 
+                      onChange={e => setInviteSemester(e.target.value)} 
+                    />
+                  </div>
+                )}
+
+                <div className="va-form-group">
+                  <label>CSV File</label>
+                  <input id="bulk-csv-admin-input" type="file" accept=".csv" required className="va-glass-input va-file-input" onChange={e => setBulkFile(e.target.files[0])} />
+                </div>
+
+                <button type="submit" className="va-glass-btn va-glass-btn--neutral" disabled={inviting}>
+                  {inviting ? 'Processing...' : 'Upload & Invite'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* ── USER DIRECTORY ── */}
+        <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '40px' }}>
+          <div className="section-header">
+            <span className="section-title">Institutional User Directory</span>
+            <span className="section-unit">{activeUsers.length} active users</span>
+          </div>
+          <div className="scrollable-table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Semester</th>
+                  <th>Joined Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeUsers.map(u => {
+                  const joinedDate = u.createdAt && u.createdAt.toDate ? u.createdAt.toDate() : (u.createdAt ? new Date(u.createdAt) : null);
+                  return (
+                    <tr key={u.uid}>
+                      <td>
+                        <div className="teacher-name-cell">
+                          <div className="teacher-avatar sm">{initials(u.fullName || u.email)}</div>
+                          <div>
+                            <span className="teacher-name sm">{u.fullName || '—'}</span>
+                            <span className="teacher-email">{u.email || '—'}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="action-tag" style={{ background: 'rgba(255,255,255,0.05)', color: '#ffffff' }}>
+                          {ROLE_LABELS[u.userType] || u.userType}
+                        </span>
+                      </td>
+                      <td>
+                        {u.userType === 'student' ? (
+                          <input 
+                            type="text"
+                            value={u.semester || ''}
+                            onChange={async (e) => {
+                              const newSem = e.target.value;
+                              setUsers(prev => prev.map(user => user.uid === u.uid ? { ...user, semester: newSem } : user));
+                            }}
+                            onBlur={async (e) => {
+                              try {
+                                await updateDoc(doc(db, 'users', u.uid), { semester: e.target.value });
+                              } catch (err) {
+                                console.error('Failed to update semester', err);
+                              }
+                            }}
+                            className="va-glass-input"
+                            style={{ width: '60px', padding: '4px 8px', fontSize: '0.85rem' }}
+                            placeholder="-"
+                          />
+                        ) : (
+                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="teacher-email">
+                          {joinedDate ? joinedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 

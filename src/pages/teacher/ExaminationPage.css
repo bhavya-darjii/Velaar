@@ -12,25 +12,16 @@
 }
 
 .exam-card {
-  background: var(--liquid-glass-bg);
-  border: 1px solid var(--liquid-glass-border);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: var(--liquid-glass-shadow);
+  box-shadow: none;
   color: #ffffff;
-  transition: all 0.3s ease;
-  backdrop-filter: var(--liquid-glass-blur);
-  -webkit-backdrop-filter: var(--liquid-glass-blur);
-}
-
-.exam-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
+  text-align: left;
 }
 
 .exam-card h3 {
@@ -43,9 +34,10 @@
 .exam-card p {
   margin: 0;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #ffffff;
+  opacity: 0.8;
   line-height: 1.4;
-  margin-bottom: 15px;
+  margin-bottom: 35px;
 }
 
 .exam-actions {
@@ -58,9 +50,9 @@
 .btn-generate {
   width: 100%;
   padding: 14px;
-  background: rgba(var(--theme-color-rgb), 0.25);
-  color: var(--theme-color);
-  border: 1px solid rgba(var(--theme-color-rgb), 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 800;
@@ -72,15 +64,16 @@
 }
 
 .btn-generate:hover:not(:disabled) {
-  background: var(--theme-color);
+  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  border-color: var(--theme-color);
+  transform: translateY(-2px);
 }
 
 .btn-generate:disabled {
-  background: rgba(255, 255, 255, 0.05);
-  color: #64748b;
+  background: rgba(0, 0, 0, 0.05);
+  color: #000000;
+  opacity: 0.5;
   cursor: not-allowed;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: none;
 }

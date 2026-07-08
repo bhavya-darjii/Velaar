@@ -258,7 +258,7 @@ const LessonPlanPage = () => {
   };
 
   return (
-    <div className="lesson-plan-container fade-in">
+    <div className="lesson-plan-container">
       {!lessonPlan ? (
         <div className="empty-state-card">
           {loading ? (
@@ -300,7 +300,7 @@ const LessonPlanPage = () => {
                 const desc = await generateSpecificField("description", course.subjectName, []);
                 if (desc) setLessonPlan({ ...lessonPlan, courseDescription: desc });
                 setLoading(false);
-              }}><RefreshIcon /> Regenerate</button>
+              }}><RefreshIcon /></button>
             </div>
             <textarea
               value={lessonPlan.courseDescription}

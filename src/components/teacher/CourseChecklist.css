@@ -65,7 +65,7 @@
 }
 
 .instruction {
-  color: #94a3b8;
+  color: #ffffff;
   font-size: 0.9rem;
   margin-bottom: 20px;
 }
@@ -98,7 +98,7 @@
 
 .check-item.checked span {
   text-decoration: line-through;
-  color: #64748b;
+  color: #ffffff;
 }
 
 /* CUSTOM CHECKBOX CIRCLE */
@@ -166,7 +166,7 @@
 .roadmap-mini h3 {
   margin-top: 0;
   font-size: 1rem;
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 .roadmap-mini ul {

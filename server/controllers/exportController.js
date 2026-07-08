@@ -407,17 +407,30 @@ export const exportTemplatedExam = async (req, res) => {
     pattern.forEach((q) => {
        q.subs.forEach(sub => {
            let internalId = `Q${q.id}_${sub.id}`;
+           let assignedCo = sub.co ? `CO${sub.co}` : "Auto";
+           let coInstruction = assignedCo === "Auto" 
+                ? `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this question]` 
+                : assignedCo;
+
+           let qInstructionTheory = assignedCo === "Auto"
+                ? `[String: Write a ${sub.marks}-mark THEORETICAL/CONCEPTUAL question testing ${sub.bt} concepts about the syllabus topics. Do NOT include calculations.]`
+                : `[String: Write a ${sub.marks}-mark THEORETICAL/CONCEPTUAL question testing ${sub.bt} concepts SPECIFICALLY addressing ${assignedCo}. Do NOT include calculations.]`;
+
+           let qInstructionNumerical = assignedCo === "Auto"
+                ? `[String: MANDATORY mathematical/numerical problem. EVERY numerical must require concrete calculation/algorithmic trace.]`
+                : `[String: MANDATORY mathematical/numerical problem SPECIFICALLY addressing ${assignedCo}. EVERY numerical must require concrete calculation/algorithmic trace.]`;
+
            if (sub.isNumerical) {
                hasNumerical = true;
                numericalStructureMap[internalId] = {
-                 q: `[String: MANDATORY mathematical/numerical problem. EVERY numerical must require concrete calculation/algorithmic trace.]`,
-                 co: `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this question]`
+                 q: qInstructionNumerical,
+                 co: coInstruction
                };
            } else {
                hasTheory = true;
                theoryStructureMap[internalId] = {
-                 q: `[String: Write a ${sub.marks}-mark THEORETICAL/CONCEPTUAL question testing ${sub.bt} concepts about the syllabus topics. Do NOT include calculations.]`,
-                 co: `[String: Determine the most logical Course Outcome (e.g., CO1, CO2, CO3) that aligns with this question]`
+                 q: qInstructionTheory,
+                 co: coInstruction
                };
            }
        });
@@ -646,13 +659,13 @@ export const exportTemplatedExam = async (req, res) => {
                   q.subs.forEach(sub => {
                      let internalId = `Q${q.id}_${sub.id}`;
                      
-                     // 1. Try exact match
-                     let matchIndex = availableBank.findIndex(b => Boolean(b.isNumerical) === Boolean(sub.isNumerical) && (b.btLevel || "").includes(sub.bt || ""));
-                     
-                     // 2. Fallback: match only numerical flag
-                     if (matchIndex === -1) {
-                         matchIndex = availableBank.findIndex(b => Boolean(b.isNumerical) === Boolean(sub.isNumerical));
-                     }
+                     // 1. Try exact match (Numerical type, BT Level, and CO)
+                     let targetCo = sub.co ? `CO${sub.co}` : "";
+                     let matchIndex = availableBank.findIndex(b => 
+                         Boolean(b.isNumerical) === Boolean(sub.isNumerical) && 
+                         (b.btLevel || "").includes(sub.bt || "") &&
+                         (!targetCo || (b.courseOutcome || "").includes(targetCo) || targetCo === "COAuto")
+                     );
                      
                      if (matchIndex !== -1) {
                          let selectedQ = availableBank[matchIndex];

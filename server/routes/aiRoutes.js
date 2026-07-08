@@ -8,8 +8,15 @@ import {
   generateSpecificField,
   generateSupplementaryLessonPlan,
   generateDayWiseEnrichment,
-  generateCoPoMapping
+  generateCoPoMapping,
+  copilotChat
 } from '../controllers/aiController.js';
+import {
+  generateRubric,
+  evaluateAnswerScript,
+  generateStudyMaterial,
+  generateLabManual,
+} from '../controllers/rubricController.js';
 
 const router = express.Router();
 
@@ -22,5 +29,10 @@ router.post('/generate-specific-field', generateSpecificField);
 router.post('/generate-supplementary-plan', generateSupplementaryLessonPlan);
 router.post('/generate-day-wise-enrichment', generateDayWiseEnrichment);
 router.post('/generate-copo-mapping', generateCoPoMapping);
+router.post('/copilot-chat', copilotChat);
+router.post('/generate-rubric', generateRubric);
+router.post('/evaluate-answer-script', evaluateAnswerScript);
+router.post('/generate-study-material', generateStudyMaterial);
+router.post('/generate-lab-manual', generateLabManual);
 
 export default router;

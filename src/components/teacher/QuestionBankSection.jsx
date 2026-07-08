@@ -267,7 +267,7 @@ const ExamSection = ({ course }) => {
           className="custom-number-input"
           placeholder="0 for Theory Only"
         />
-        <p style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '5px'}}>
+        <p style={{fontSize: '0.8rem', color: '#ffffff', opacity: 0.8, marginTop: '5px'}}>
           {numericalCount > 0 ? `Velaar will generate ${numericalCount} numericals & ${numQuestions - numericalCount} theory questions.` : "Theory-only question bank will be generated."}
         </p>
       </div>
@@ -282,7 +282,7 @@ const ExamSection = ({ course }) => {
             value={numericalPrompt}
             onChange={(e) => setNumericalPrompt(e.target.value)}
           />
-          <p style={{fontSize: '0.75rem', color: '#94a3b8', marginTop: '5px'}}>
+          <p style={{fontSize: '0.75rem', color: '#ffffff', opacity: 0.8, marginTop: '5px'}}>
             <em>*Works for any subject. Paste a topic for fresh problems, or paste a full example and the AI will rewrite it with different values.</em>
           </p>
         </div>

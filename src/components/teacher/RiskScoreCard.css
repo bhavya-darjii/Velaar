@@ -1,0 +1,79 @@
+.risk-score-card {
+  padding: 20px;
+  cursor: default;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.risk-score-card[role="button"] {
+  cursor: pointer;
+}
+
+.risk-score-card[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+.risk-score-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.risk-score-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.risk-score-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.risk-score--high .risk-score-card__badge,
+.risk-score-card__badge.risk-score--high {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.risk-score--moderate .risk-score-card__badge,
+.risk-score-card__badge.risk-score--moderate {
+  background: rgba(249, 115, 22, 0.15);
+  color: #ea580c;
+}
+
+.risk-score--low .risk-score-card__badge,
+.risk-score-card__badge.risk-score--low {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.risk-score-card__score {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.risk-score-card__value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.risk-score-card__max {
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.risk-score-card__suggestion {
+  font-size: 0.82rem;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.5;
+}

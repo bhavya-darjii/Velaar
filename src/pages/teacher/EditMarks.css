@@ -1,0 +1,100 @@
+.edit-marks-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.edit-marks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  border-left: 5px solid #ea580c;
+}
+
+.edit-marks-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.save-btn {
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #000000;
+  transform: translateY(-2px);
+}
+
+.save-btn:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  cursor: not-allowed;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.marks-table-wrapper {
+  overflow-x: auto;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.marks-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #fff;
+  min-width: 800px;
+}
+
+.marks-table th,
+.marks-table td {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  text-align: center;
+}
+
+.marks-table th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.test-title {
+  font-size: 1.2rem;
+  padding: 15px !important;
+  background: rgba(234, 88, 12, 0.1) !important;
+}
+
+.mark-input {
+  width: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 6px;
+  border-radius: 6px;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.mark-input:focus {
+  border-color: #ea580c;
+  background: rgba(255, 255, 255, 0.1);
+}

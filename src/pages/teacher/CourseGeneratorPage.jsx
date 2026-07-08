@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../services/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc } from "firebase/firestore";
 import { extractTextFromPDF } from "../../services/pdfService";
 import { generateLectureRoadmap, setAiContextCourse } from "../../services/aiService";
 import "./CourseGeneratorPage.css";
@@ -99,6 +99,9 @@ const CourseGenerator = () => {
 
   // Form Data
   const [subjectName, setSubjectName] = useState("");
+  const [department, setDepartment] = useState(""); // NEW
+  const [program, setProgram] = useState(""); // NEW
+  const [semester, setSemester] = useState(""); // NEW
   const [totalLectures, setTotalLectures] = useState(20);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -412,15 +415,25 @@ const CourseGenerator = () => {
     setLoadingStatus("Saving to Cloud...");
 
     try {
+      // Fetch the teacher's actual institutionId + collegeName from their profile
+      const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+      const userProfile = userSnap.exists() ? userSnap.data() : {};
+      const resolvedCollegeId   = userProfile.institutionId || auth.currentUser.uid; // fallback to uid if not set
+      const resolvedCollegeName = userProfile.collegeName   || null;
+
       const modulesToSave = modules.map((m) => ({
         id: m.id,
         name: m.name,
       }));
 
-      const docRef = await addDoc(collection(db, "courses"), {
+      const courseData = {
         teacherId: auth.currentUser.uid,
         taughtBy: auth.currentUser.displayName || auth.currentUser.email || "Unknown Teacher",
         teacherEmail: auth.currentUser.email || "",
+        collegeId: resolvedCollegeId,   // ✅ Real institution ID from profile
+        department,
+        program,
+        semester,
         subjectName,
         totalLectures: Number(totalLectures),
         divisions: divisionsList,
@@ -430,7 +443,12 @@ const CourseGenerator = () => {
         modules: modulesToSave,
         roadmap: generatedRoadmap,
         createdAt: new Date(),
-      });
+      };
+
+      // Only attach collegeName if available
+      if (resolvedCollegeName) courseData.collegeName = resolvedCollegeName;
+
+      const docRef = await addDoc(collection(db, "courses"), courseData);
 
       console.log("Course saved successfully with ID: ", docRef.id);
       navigate("/teacher");
@@ -547,9 +565,12 @@ const CourseGenerator = () => {
           </div>
         </div>
       )}
-      <div className="glass-container" style={{ minHeight: 'auto', padding: '20px 0' }}>
-        <div className="glass-card" style={{ margin: '0 auto' }}>
-          <h1 className="glass-title">Create New Course</h1>
+      <div className="lesson-plan-container" style={{ padding: '20px' }}>
+        <div className="lesson-plan-grid glass" style={{ maxWidth: '1000px', margin: '0 auto', width: '100%', padding: '40px' }}>
+          <div className="exams-header" style={{marginBottom: "30px", textAlign: "center"}}>
+            <h2 style={{color: '#ffffff', margin: 0, fontSize: '2rem', fontWeight: 900}}>Create New Course</h2>
+            <p style={{color: '#ffffff', margin: '10px 0 0 0', fontSize: '1rem', opacity: 0.9}}>Fill out the details below to generate an AI-powered lecture roadmap.</p>
+          </div>
 
         {step === 1 && (
           <div className="form-content">
@@ -563,6 +584,40 @@ const CourseGenerator = () => {
                   onChange={(e) => setSubjectName(e.target.value)}
                   placeholder="e.g. Advanced Thermodynamics"
                 />
+              </div>
+
+              {/* NEW: Institutional Metadata ROW */}
+              <div
+                className="row-inputs"
+                style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: "15px", marginBottom: "15px" }}
+              >
+                <div>
+                  <label>Department</label>
+                  <input
+                    className="glass-input"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="e.g. Computer Science"
+                  />
+                </div>
+                <div>
+                  <label>Program</label>
+                  <input
+                    className="glass-input"
+                    value={program}
+                    onChange={(e) => setProgram(e.target.value)}
+                    placeholder="e.g. B.Tech"
+                  />
+                </div>
+                <div>
+                  <label>Semester</label>
+                  <input
+                    className="glass-input"
+                    value={semester}
+                    onChange={(e) => setSemester(e.target.value)}
+                    placeholder="e.g. 5"
+                  />
+                </div>
               </div>
 
               {/* THREE COLUMN ROW FOR LECTURES & DATES (Divisions removed from here) */}

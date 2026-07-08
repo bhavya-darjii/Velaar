@@ -1,0 +1,477 @@
+/* ═══════════════════════════════════════════════════════════════
+   VELAAR UNIFIED DESIGN SYSTEM — Single source of truth for ALL pages
+   Applied globally so every page gets the right look automatically
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --glass-radius-sm: 16px;
+  --glass-radius-md: 20px;
+  --glass-radius-lg: 28px;
+  --glass-radius-pill: 999px;
+
+  /* Glass panels — frosted light */
+  --glass-bg: rgba(255, 255, 255, 0.38);
+  --glass-bg-strong: rgba(255, 255, 255, 0.58);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.20);
+  --glass-solid: rgba(255, 255, 255, 0.94);
+  --glass-solid-text: #000000;
+
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-border-strong: rgba(255, 255, 255, 0.85);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-blur-heavy: blur(32px) saturate(200%);
+
+  --glass-shadow: 0 4px 24px rgba(14, 100, 140, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.80);
+  --glass-shadow-solid: 0 4px 20px rgba(14, 100, 140, 0.10), 0 1px 4px rgba(14, 100, 140, 0.05);
+
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #000000;
+
+  --accent-indigo: #0a8fa8;
+  --accent-cyan: #22d3ee;
+  --accent-teal: #0a8fa8;
+  --accent-teal-mid: #0d9fb8;
+  --theme-color: #0a8fa8;
+  --plasma-color: #000000;
+  --plasma-color-rgb: 0, 0, 0;
+
+  --shell-padding-bottom: 120px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL FORM ELEMENT RESET + GLASS STYLING
+   Every input, select, textarea across the ENTIRE app
+   ══════════════════════════════════════════════════════════════ */
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input),
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 14px !important;
+  padding: 12px 16px !important;
+  color: #ffffff !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none !important;
+  transition: border-color 0.2s ease, background 0.2s ease !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input)::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-weight: 400 !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input):focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
+}
+
+textarea {
+  resize: vertical !important;
+  min-height: 100px;
+}
+
+/* Custom styled select dropdown arrow */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 16px !important;
+  padding-right: 42px !important;
+  cursor: pointer !important;
+}
+
+select option {
+  background: #1a1a2e !important;
+  color: #ffffff !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  padding: 8px 12px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL LABEL STYLING
+   ══════════════════════════════════════════════════════════════ */
+label:not([class]) {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE LAYOUT UTILITIES
+   ══════════════════════════════════════════════════════════════ */
+
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #ffffff;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLASS CARD — primary panel / card used on all pages
+   ══════════════════════════════════════════════════════════════ */
+
+.glass-card {
+  background: var(--liquid-glass-bg);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--glass-radius-md);
+  box-shadow: none;
+}
+
+.glass-card h3 {
+  margin: 0 0 20px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FEATURE FIELD — label + input wrapper used in all feature pages
+   ══════════════════════════════════════════════════════════════ */
+
+.feature-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.feature-field label {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  margin-bottom: 0 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FEATURE CONTENT UTILITIES
+   ══════════════════════════════════════════════════════════════ */
+
+.feature-result {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 30px 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.feature-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+}
+
+.feature-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UPLOAD ZONE — drag & drop file areas
+   ══════════════════════════════════════════════════════════════ */
+
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+}
+
+.upload-zone:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.upload-zone input[type="file"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLASS PANELS (used in role dashboards)
+   ══════════════════════════════════════════════════════════════ */
+.glass,
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card--transparent {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.25s, background 0.25s;
+}
+.glass-input::placeholder { color: var(--text-primary); opacity: 0.6; }
+.glass-input:focus {
+  outline: none;
+  border-color: rgba(10, 143, 168, 0.5);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUTTONS — glass-btn primary / ghost
+   ══════════════════════════════════════════════════════════════ */
+.glass-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border-radius: var(--glass-radius-pill);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.glass-btn--primary {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+.glass-btn--primary:hover:not(:disabled) {
+  background: #f0f0f0 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25) !important;
+}
+.glass-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.glass-btn--ghost {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.glass-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.glass-btn--danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+.glass-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SEGMENTED TOGGLE — Semester / Annual / All Time tabs
+   ══════════════════════════════════════════════════════════════ */
+.segment-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--glass-radius-pill);
+  background: rgba(255, 255, 255, 0.30);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+}
+
+.segment-toggle__item {
+  padding: 7px 16px;
+  border-radius: var(--glass-radius-pill);
+  border: none;
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  opacity: 0.7;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.segment-toggle__item:hover:not(.segment-toggle__item--active) {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.40) !important;
+}
+.segment-toggle__item--active {
+  background: #ffffff !important;
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  box-shadow: 0 2px 10px rgba(14, 100, 140, 0.12), 0 1px 3px rgba(14, 100, 140, 0.08);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SECTION DIVIDERS — used inside glass-cards
+   ══════════════════════════════════════════════════════════════ */
+.glass-divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 24px 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID UTILITIES — for result cards
+   ══════════════════════════════════════════════════════════════ */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.result-card {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.result-card h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ROLE DASHBOARD UNIFICATION
+   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ROLE DASHBOARD UNIFICATION
+   ══════════════════════════════════════════════════════════════ */
+.hod-header-section, .hod-stat, .hod-card,
+.registrar-header, .registrar-card, .registrar-stat,
+.parent-header, .parent-card, .parent-stat,
+.ec-header, .ec-stat, .ec-card,
+.va-header, .va-kpi, .va-chart-card, .va-college-card, .va-invite-card, .va-table-wrapper,
+.admin-header, .kpi-card, .chart-container, .filter-strip,
+.student-header, .student-stat-card, .student-feature-card,
+.glass-container {
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  background: var(--liquid-glass-bg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border-radius: var(--glass-radius-md) !important;
+  box-shadow: none !important;
+}
+
+.hod-stat, .registrar-stat, .parent-stat, .ec-stat, .va-kpi, .kpi-card, .student-stat-card {
+  border-radius: var(--glass-radius-sm) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE SHELL
+   ══════════════════════════════════════════════════════════════ */
+.velaar-page-shell {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 5% var(--shell-padding-bottom);
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+@media (max-width: 768px) {
+  .velaar-page-shell { padding: 16px 16px var(--shell-padding-bottom); }
+  .dashboard-container { padding: 15px; }
+  .dashboard-header { flex-direction: column; gap: 12px; }
+}

@@ -1,0 +1,254 @@
+/* =========================================
+   EXAM CONTROLLER DASHBOARD — Glass Design
+   ========================================= */
+
+.ec-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 30px;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #ffffff;
+}
+
+/* ---- HEADER ---- */
+.ec-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 28px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ec-header-left h1 {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.ec-subtext {
+  color: #ffffff;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---- STAT STRIP ---- */
+.ec-stat-strip {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.ec-stat {
+  flex: 1;
+  min-width: 160px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.ec-stat:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.ec-stat__value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.ec-stat__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- CARDS GRID ---- */
+.ec-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.ec-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.6);
+}
+
+.ec-card-icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.ec-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  color: #f8fafc;
+  letter-spacing: -0.3px;
+}
+
+.ec-card p {
+  color: #ffffff;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+  flex-grow: 1;
+  font-size: 0.95rem;
+}
+
+.ec-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  padding: 11px 0 !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  cursor: pointer !important;
+  width: 100%;
+  letter-spacing: 0.2px;
+  transition: background 0.2s;
+}
+
+.ec-btn:hover {
+  background: #e2e8f0 !important;
+}
+
+.ec-exit-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ec-exit-btn:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+/* ---- TABLE ---- */
+.ec-section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.ec-table-wrapper {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ec-table thead th {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ec-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.ec-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.ec-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ec-table tbody td {
+  padding: 14px 18px;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  vertical-align: middle;
+}
+
+/* Role badges */
+.ec-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ec-badge--pending { background: rgba(234,179,8,0.12); color: #fde047; border: 1px solid rgba(234,179,8,0.2); }
+.ec-badge--approved { background: rgba(20,184,166,0.12); color: #5eead4; border: 1px solid rgba(20,184,166,0.2); }
+
+.ec-action-btn {
+  background: transparent;
+  color: #6366f1;
+  border: 1px solid rgba(99,102,241,0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ec-action-btn:hover {
+  background: rgba(99,102,241,0.1);
+  color: #818cf8;
+}
+
+@media (max-width: 768px) {
+  .ec-container { padding: 20px 16px; }
+  .ec-header-section { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+  .ec-stat-strip { gap: 12px; }
+  .ec-table thead th:nth-child(2), .ec-table tbody td:nth-child(2) { display: none; }
+}

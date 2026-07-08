@@ -14,22 +14,22 @@ const TeacherHome = () => {
     <>
       <div className="teacher-home-grid">
         {/* Left Col: Active Lecture & Checklist */}
-      <ActiveLecture
-        course={course}
-        setCourse={setCourse}
-        currentLecture={currentLecture}
-        setCurrentLecture={setCurrentLecture}
-      />
-
-      {/* Right Col: Roadmap History */}
-      <aside className="sidebar">
-        <RoadmapSidebar
+        <ActiveLecture
           course={course}
+          setCourse={setCourse}
           currentLecture={currentLecture}
+          setCurrentLecture={setCurrentLecture}
         />
-      </aside>
-    </div>
-  </>
+
+        {/* Right Col: Roadmap + Velaar AI below it */}
+        <aside className="sidebar">
+          <RoadmapSidebar
+            course={course}
+            currentLecture={currentLecture}
+          />
+        </aside>
+      </div>
+    </>
   );
 };
 

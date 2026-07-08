@@ -1,0 +1,180 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../services/firebase";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import GenericDashboardSkeleton from "../../components/skeletons/GenericDashboardSkeleton";
+import RiskScoreCard from "../../components/teacher/RiskScoreCard";
+import "./HodDashboard.css";
+
+const HodDashboard = () => {
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [departmentName, setDepartmentName] = useState("Your Department");
+  const [loading, setLoading] = useState(true);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [totalTeachers, setTotalTeachers] = useState(0);
+  const [teachers, setTeachers] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setLoading(true);
+        try {
+          // Get HOD profile
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          let dept = "Artificial Intelligence and Data Science";
+          if (userSnap.exists()) {
+            setFullName(userSnap.data().fullName || "HOD");
+            if (userSnap.data().department) {
+              dept = userSnap.data().department;
+              setDepartmentName(dept);
+            }
+          }
+
+          // Fetch all courses in this department
+          const coursesQ = query(collection(db, "courses"), where("department", "==", dept));
+          const coursesSnap = await getDocs(coursesQ);
+          setTotalCourses(coursesSnap.size);
+
+          // Collect unique teacher IDs from courses
+          const teacherIds = new Set();
+          coursesSnap.forEach((d) => {
+            if (d.data().teacherId) teacherIds.add(d.data().teacherId);
+          });
+          setTotalTeachers(teacherIds.size);
+
+          // Fetch teacher profiles for those IDs
+          if (teacherIds.size > 0) {
+            const teacherProfiles = await Promise.all(
+              [...teacherIds].map((uid) => getDoc(doc(db, "users", uid)))
+            );
+            const profiles = teacherProfiles
+              .filter((s) => s.exists())
+              .map((s) => ({ id: s.id, ...s.data() }));
+            setTeachers(profiles);
+          }
+        } catch (error) {
+          console.error("Fetch Error:", error);
+        }
+        setLoading(false);
+      } else {
+        navigate("/");
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  if (loading) return <GenericDashboardSkeleton />;
+
+  return (
+    <div className="hod-container">
+      <div className="feature-hero" style={{ marginBottom: 32 }}>
+        <div>
+          <h2 style={{ margin: '0 0 6px', fontSize: '1.5rem', fontWeight: 800 }}>Welcome back, {fullName || 'HOD'}</h2>
+          <p style={{ margin: 0, color: 'rgba(255,255,255,0.55)' }}>{departmentName} · Department Overview</p>
+        </div>
+      </div>
+
+      {/* ── Stat Strip ── */}
+      <div className="hod-stat-strip">
+        <div className="hod-stat">
+          <span className="hod-stat__value">{totalTeachers}</span>
+          <span className="hod-stat__label">Active Teachers</span>
+        </div>
+        <div className="hod-stat">
+          <span className="hod-stat__value">{totalCourses}</span>
+          <span className="hod-stat__label">Registered Courses</span>
+        </div>
+        <div className="hod-stat">
+          <span className="hod-stat__value">{teachers.length > 0 ? Math.round(totalCourses / teachers.length * 10) / 10 : "—"}</span>
+          <span className="hod-stat__label">Courses / Teacher</span>
+        </div>
+      </div>
+
+      {/* ── Risk Heatmap ── */}
+      <div style={{ marginBottom: 40 }}>
+        <h3 style={{ margin: '0 0 16px', fontSize: '1rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>At-Risk Students</h3>
+        <div className="risk-grid">
+          <RiskScoreCard studentName="Rahul Sharma" score={78} suggestion="Missed 5 consecutive lectures — recommend tutorial sessions" />
+          <RiskScoreCard studentName="Amit Kumar" score={52} suggestion="TT1 to TT2 decline — schedule remedial class" />
+          <RiskScoreCard studentName="Priya Patel" score={18} suggestion="On track — no intervention needed" />
+        </div>
+      </div>
+
+      {/* ── Cards Grid ── */}
+      <div className="hod-dashboard-grid">
+
+        {/* Faculty card */}
+        <div className="hod-card">
+          <div className="hod-card-icon" style={{ color: '#ffffff' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+          </div>
+          <h2 className="hod-card-title">Faculty</h2>
+          {teachers.length === 0 ? (
+            <p>No teachers found for <strong>{departmentName}</strong>. Ensure faculty accounts have the correct department assigned.</p>
+          ) : (
+            <p>
+              <strong>{totalTeachers} teacher{totalTeachers !== 1 ? 's' : ''}</strong> active in {departmentName}.
+            </p>
+          )}
+
+          {/* Teacher list */}
+          {teachers.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {teachers.map((t) => (
+                <li key={t.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 10, padding: '10px 14px',
+                }}>
+                  <span style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.85rem', fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {(t.fullName || t.name || '?')[0].toUpperCase()}
+                  </span>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#f8fafc' }}>
+                      {t.fullName || t.name || 'Unknown'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#ffffff' }}>{t.email || ''}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <button className="hod-btn">Manage Faculty</button>
+        </div>
+
+        {/* Courses card */}
+        <div className="hod-card">
+          <div className="hod-card-icon" style={{ color: '#ffffff' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          </div>
+          <h2 className="hod-card-title">Course Overview</h2>
+          <p>
+            <strong>{totalCourses} course{totalCourses !== 1 ? 's' : ''}</strong> registered under {departmentName}.
+          </p>
+          <button className="hod-btn">View Courses</button>
+        </div>
+
+        {/* OBE card */}
+        <div className="hod-card">
+          <div className="hod-card-icon" style={{ color: '#ffffff' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+          <h2 className="hod-card-title">Outcome Based Education</h2>
+          <p>Review CO-PO attainment levels and bloom's taxonomy coverage for recent examinations.</p>
+          <button className="hod-btn">View Attainment</button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default HodDashboard;

@@ -180,7 +180,7 @@ const AdminDashboardSkeleton = () => (
                 transform: 'translate(-50%,-50%)',
                 width: 104, height: 104,
                 borderRadius: '50%',
-                background: 'var(--liquid-glass-bg, rgba(10,10,15,0.35))',
+                background: 'var(--liquid-glass-bg, rgba(10, 10, 15, 0.35))',
               }} />
             </div>
             {/* legend */}

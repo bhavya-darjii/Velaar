@@ -1,0 +1,344 @@
+/* ═══════════════════════════════════════════════════════════════
+   VELAAR COPILOT V2 — Fixed bottom glass pill with expand animation
+   ═══════════════════════════════════════════════════════════════ */
+
+.copilot-v2 {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9990;
+  width: min(560px, calc(100vw - 32px));
+  transition: width 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  overflow: visible;
+}
+
+.copilot-v2 > * {
+  pointer-events: auto;
+}
+
+.copilot-v2--expanded {
+  width: min(720px, calc(100vw - 24px));
+}
+
+.copilot-v2--focused.copilot-v2--expanded {
+  width: min(820px, calc(100vw - 16px));
+}
+
+/* ── Quick action chips ───────────────────────────────────────── */
+.copilot-v2__chips {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.copilot-v2__chips--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.copilot-v2__chip {
+  padding: 10px 18px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
+  color: #000000 !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease, color 0.25s ease !important;
+  white-space: nowrap;
+}
+
+.copilot-v2__chip:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* ── Response panel ───────────────────────────────────────────── */
+.copilot-v2__panel {
+  margin-bottom: 12px;
+  padding: 18px 20px;
+  border-radius: 24px;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: copilotPanelIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+@keyframes copilotPanelIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.copilot-v2__panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.copilot-v2__panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #000000;
+}
+
+.copilot-v2__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5E5CE6;
+  box-shadow: 0 0 8px #5E5CE6;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.copilot-v2__panel-close {
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #000000 !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.copilot-v2__panel-close:hover {
+  background: rgba(15, 23, 42, 0.12) !important;
+}
+
+.copilot-v2__user-msg {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 8px;
+}
+
+.copilot-v2__reply {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.copilot-v2__typing {
+  display: flex;
+  gap: 5px;
+  padding: 4px 0;
+}
+
+.copilot-v2__typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5E5CE6;
+  animation: copilotBounce 1.2s ease-in-out infinite;
+}
+
+.copilot-v2__typing span:nth-child(2) { animation-delay: 0.15s; background: #32D2F5; }
+.copilot-v2__typing span:nth-child(3) { animation-delay: 0.3s; background: #BF5AF2; }
+
+@keyframes copilotBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Main bar ─────────────────────────────────────────────────── */
+.copilot-v2__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 14px 0 20px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px) saturate(200%);
+  -webkit-backdrop-filter: blur(12px) saturate(200%);
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition:
+    height 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.4s ease,
+    box-shadow 0.4s ease,
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: visible;
+}
+
+.copilot-v2--focused .copilot-v2__bar {
+  height: 62px;
+  border-radius: 31px;
+  background: rgba(255, 255, 255, 0.45);
+  border-color: transparent;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+}
+
+.copilot-v2--expanded .copilot-v2__bar {
+  transform: translateY(-2px);
+}
+
+/* Orbs on focus */
+.copilot-v2__orbs {
+  position: absolute;
+  inset: -30px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.copilot-v2--focused .copilot-v2__orbs { opacity: 1; }
+
+.copilot-v2__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(20px);
+}
+
+.copilot-v2__orb--1 {
+  width: 70px; height: 70px;
+  background: #0a8fa8;
+  opacity: 0.2;
+  top: 0; left: 8%;
+  animation: orbFloat1 7s ease-in-out infinite;
+}
+
+.copilot-v2__orb--2 {
+  width: 55px; height: 55px;
+  background: #22d3ee;
+  opacity: 0.15;
+  bottom: 0; right: 12%;
+  animation: orbFloat2 9s ease-in-out infinite;
+}
+
+.copilot-v2__orb--3 {
+  width: 45px; height: 45px;
+  background: #0d9fb8;
+  opacity: 0.15;
+  top: 5px; right: 5%;
+  animation: orbFloat3 6s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(12px,-8px)} }
+@keyframes orbFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-10px,8px)} }
+@keyframes orbFloat3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-8px,6px)} }
+
+.copilot-v2__icon {
+  display: flex;
+  color: #000000;
+  flex-shrink: 0;
+  transition: all 0.35s ease;
+  z-index: 1;
+}
+
+.copilot-v2--focused .copilot-v2__icon {
+  color: #000000;
+  transform: scale(1.08) rotate(-8deg);
+}
+
+.copilot-v2__input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  outline: none;
+  color: #000000 !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  min-width: 0;
+  z-index: 1;
+  text-align: center;
+  transition: text-align 0.3s ease;
+}
+
+.copilot-v2__input::placeholder {
+  color: #000000 !important;
+  opacity: 0.6;
+}
+
+.copilot-v2--focused .copilot-v2__input {
+  text-align: left;
+}
+
+.copilot-v2--focused .copilot-v2__input::placeholder {
+  color: #000000 !important;
+  opacity: 0.5;
+}
+
+.copilot-v2__send {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease !important;
+  z-index: 1;
+  margin-left: 5px;
+}
+
+.copilot-v2__send:not(:disabled):hover {
+  background: #08758a !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 4px 12px rgba(10, 143, 168, 0.3);
+}
+
+.copilot-v2__send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .copilot-v2 {
+    bottom: 16px;
+    width: calc(100vw - 24px);
+  }
+
+  .copilot-v2--expanded,
+  .copilot-v2--focused.copilot-v2--expanded {
+    width: calc(100vw - 16px);
+  }
+
+  .copilot-v2__chips {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .copilot-v2__chip {
+    flex-shrink: 0;
+  }
+}

@@ -95,9 +95,16 @@ const ExaminationEditor = () => {
                 loadedPattern = localDefaultPattern;
             }
             
-            loadedPattern = loadedPattern.map(q => ({
+            const maxCOs = courseData?.lessonPlan?.courseOutcomes?.length || courseData?.courseOutcomes?.length || 6;
+            loadedPattern = loadedPattern.map((q, qIndex) => ({
                ...q,
-               subs: q.subs.map(s => ({ isNumerical: false, ...s }))
+               subs: q.subs.map(s => {
+                  let defaultCo = "";
+                  if (examId === 'tt1') defaultCo = qIndex === 0 ? "1" : qIndex === 1 ? "2" : qIndex === 2 ? "3" : "1";
+                  else if (examId === 'tt2') defaultCo = qIndex === 0 ? "4" : qIndex === 1 ? "5" : qIndex === 2 ? "6" : "4";
+                  else if (examId === 'endSem') defaultCo = String(Math.floor(Math.random() * maxCOs) + 1);
+                  return { isNumerical: false, ...s, co: examId === 'endSem' ? defaultCo : (s.co ? s.co : defaultCo) };
+               })
             }));
             
             // Migration for existing saved configurations
@@ -120,7 +127,18 @@ const ExaminationEditor = () => {
             setHeaderConfig(loadedHeader);
             setNumericalPrompt(savedPatterns[examId].numericalPrompt || "");
           } else {
-            setPattern(localDefaultPattern);
+            const maxCOs = courseData?.lessonPlan?.courseOutcomes?.length || courseData?.courseOutcomes?.length || 6;
+            const mappedDefaultPattern = localDefaultPattern.map((q, qIndex) => ({
+               ...q,
+               subs: q.subs.map(s => {
+                  let defaultCo = "";
+                  if (examId === 'tt1') defaultCo = qIndex === 0 ? "1" : qIndex === 1 ? "2" : qIndex === 2 ? "3" : "1";
+                  else if (examId === 'tt2') defaultCo = qIndex === 0 ? "4" : qIndex === 1 ? "5" : qIndex === 2 ? "6" : "4";
+                  else if (examId === 'endSem') defaultCo = String(Math.floor(Math.random() * maxCOs) + 1);
+                  return { ...s, co: defaultCo };
+               })
+            }));
+            setPattern(mappedDefaultPattern);
             setHeaderConfig(localDefaultHeader);
             setNumericalPrompt("");
           }
@@ -164,7 +182,8 @@ const ExaminationEditor = () => {
   const handleBtChange = (qIndex, subIndex, level) => {
     if (isEditMode) return; // Prevent selection while structurally editing
     const updated = [...pattern];
-    updated[qIndex].subs[subIndex].bt = level;
+    // If the same level is clicked again, unselect it (set to null or empty string)
+    updated[qIndex].subs[subIndex].bt = updated[qIndex].subs[subIndex].bt === level ? "" : level;
     setPattern(updated);
   };
 
@@ -189,7 +208,12 @@ const ExaminationEditor = () => {
   const addSubQuestion = (qIndex) => {
     const updated = [...pattern];
     const newId = String.fromCharCode(97 + updated[qIndex].subs.length); // a, b, c, d...
-    updated[qIndex].subs.push({ id: newId, marks: 5, bt: '', isNumerical: false });
+    let defaultCo = "";
+    const maxCOs = course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6;
+    if (examId === 'tt1') defaultCo = qIndex === 0 ? "1" : qIndex === 1 ? "2" : qIndex === 2 ? "3" : "1";
+    else if (examId === 'tt2') defaultCo = qIndex === 0 ? "4" : qIndex === 1 ? "5" : qIndex === 2 ? "6" : "4";
+    else if (examId === 'endSem') defaultCo = String(Math.floor(Math.random() * maxCOs) + 1);
+    updated[qIndex].subs.push({ id: newId, marks: 5, bt: '', isNumerical: false, co: defaultCo });
     setPattern(updated);
   };
 
@@ -293,7 +317,9 @@ const ExaminationEditor = () => {
   if (loading) return <div style={{textAlign:'center', marginTop:'50px', color:'white'}}>Loading Editor...</div>;
 
   return (
-    <div className="editor-container fade-in">
+    <div className="lesson-plan-container" style={{ padding: '20px' }}>
+      <div className="lesson-plan-grid glass" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '40px' }}>
+        <div className="editor-container">
       <div className="editor-header-nav">
         <div className="header-title-group" style={{width: '100%', position: 'relative'}}>
           <div className="back-arrow" onClick={() => navigate('/teacher/examination')}>
@@ -353,7 +379,7 @@ const ExaminationEditor = () => {
       <div className="question-block" style={{ marginTop: '30px', padding: '25px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
          <div style={{ paddingRight: '20px' }}>
             <h3 style={{color: '#ffffff', margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '600'}}>Use Existing Question Bank</h3>
-            <p style={{color: '#94a3b8', fontSize: '0.9rem', margin: 0, lineHeight: '1.5'}}>
+            <p style={{color: '#ffffff', fontSize: '0.9rem', margin: 0, lineHeight: '1.5'}}>
                {generationMode === 'ai' 
                   ? "Currently drafting fresh conceptual exams from scratch using Velaar AI." 
                   : "Currently generating randomized exams exclusively from your previously generated Question Bank."}
@@ -404,7 +430,7 @@ const ExaminationEditor = () => {
          </div>
       </div>
 
-      {(generationMode === 'ai' || isEditMode) && (
+      {true && (
       <div className="pattern-builder">
         {pattern.map((q, qIndex) => (
           <div key={`q_${qIndex}`} className="question-block">
@@ -414,13 +440,13 @@ const ExaminationEditor = () => {
                 <div style={{display:'flex', gap:'10px', width: '100%', alignItems: 'center'}}>
                   <span style={{color: '#ffffff', fontWeight: 'bold'}}>Q.{q.id}</span>
                   <input type="text" className="edit-input-title" value={q.title} onChange={e => handleStructuralChange(qIndex, 'title', e.target.value)} />
-                  <span style={{color: '#94a3b8'}}>Max:</span>
+                  <span style={{color: '#ffffff'}}>Max:</span>
                   <input type="number" className="edit-input-small" value={q.marks} onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value)||0)} />
                   <button className="btn-danger" onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
                 </div>
               ) : (
                 <>
-                  <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#94a3b8', fontWeight:'normal'}}>{q.title}</span></h3>
+                  <h3>Q.{q.id} <span style={{fontSize:'1.1rem', color:'#ffffff', fontWeight:'normal'}}>{q.title}</span></h3>
                   <div style={{fontSize:'1.1rem', fontWeight:'bold', color: '#ffffff'}}>{q.marks} Marks</div>
                 </>
               )}
@@ -439,7 +465,33 @@ const ExaminationEditor = () => {
                         <button className="btn-danger" style={{padding: '4px 8px'}} onClick={() => removeSubQuestion(qIndex, subIndex)}>Remove</button>
                       </div>
                     ) : (
-                      <span style={{color: '#64748b'}}>[ {sub.marks} Marks | Auto CO ]</span>
+                      <span style={{color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        [ {sub.marks} Marks | 
+                        <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                          CO
+                          <select 
+                             value={sub.co || "1"} 
+                             onChange={e => handleSubStructuralChange(qIndex, subIndex, 'co', e.target.value)}
+                             style={{
+                               background: 'rgba(255, 255, 255, 0.05)', 
+                               border: '1px solid rgba(255,255,255,0.1)', 
+                               color: '#ffffff', 
+                               borderRadius: '20px', 
+                               padding: '2px 8px',
+                               outline: 'none',
+                               cursor: 'pointer',
+                               fontSize: '0.9rem',
+                               marginLeft: '4px',
+                               textAlign: 'center'
+                             }}
+                          >
+                             {Array.from({ length: course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6 }, (_, i) => (
+                               <option key={i+1} value={String(i+1)} style={{background: '#1a1a1a', color: '#fff'}}>{i+1}</option>
+                             ))}
+                          </select>
+                        </span>
+                        ]
+                      </span>
                     )}
                   </div>
                   
@@ -461,7 +513,7 @@ const ExaminationEditor = () => {
                         className={`bt-pill ${sub.isNumerical ? 'active' : ''}`} 
                         style={{ 
                           background: sub.isNumerical ? 'rgba(var(--plasma-color-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                          color: sub.isNumerical ? 'var(--plasma-color)' : '#94a3b8',
+                          color: sub.isNumerical ? 'var(--plasma-color)' : '#ffffff',
                           border: sub.isNumerical ? '1px solid rgba(var(--plasma-color-rgb), 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
                           boxShadow: 'none'
                         }}
@@ -506,7 +558,7 @@ const ExaminationEditor = () => {
                  value={numericalPrompt} 
                  onChange={e => setNumericalPrompt(e.target.value)} 
                />
-               <p style={{color: '#94a3b8', fontSize: '0.8rem', marginTop: '6px', lineHeight: '1.5'}}>
+               <p style={{color: '#ffffff', fontSize: '0.8rem', marginTop: '6px', lineHeight: '1.5'}}>
                  <em>*Works for any subject. Paste a topic for fresh problems, or paste a full example and the AI will rewrite it with different values.</em>
                </p>
              </div>
@@ -516,7 +568,7 @@ const ExaminationEditor = () => {
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
             <div>
               <h3 style={{color: '#ffffff', margin: '0 0 5px 0'}}>Batch Generation</h3>
-              <p style={{color: '#94a3b8', margin: 0}}>Select how many entirely distinct question papers you need to generate.</p>
+              <p style={{color: '#ffffff', margin: 0}}>Select how many entirely distinct question papers you need to generate.</p>
             </div>
             
             <div className="batch-input-group">
@@ -567,6 +619,8 @@ const ExaminationEditor = () => {
         </div>
       )}
 
+        </div>
+      </div>
     </div>
   );
 };

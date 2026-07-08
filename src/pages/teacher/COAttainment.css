@@ -1,0 +1,43 @@
+.co-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.co-result-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.04);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.co-result-card--attained {
+  border-left: 3px solid #10b981;
+}
+
+.co-result-card--gap {
+  border-left: 3px solid #f97316;
+}
+
+.co-result-card__header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.co-result-card__pct {
+  font-size: 1.1rem;
+}
+
+.co-result-card__gap {
+  color: #ea580c;
+  font-size: 0.82rem;
+}
+
+.co-result-card li {
+  margin-left: 16px;
+  color: #ffffff;
+}

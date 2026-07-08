@@ -1,4 +1,5 @@
 @import './components/skeletons/SkeletonLoader.css';
+@import './styles/glass.css';
 
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -17,7 +18,7 @@
   /* Sleek Dark Liquid Glass Variables */
   --liquid-glass-bg: rgba(10, 10, 15, 0.35); /* Made more translucent per request */
   --liquid-glass-border: rgba(255, 255, 255, 0.1);
-  --liquid-glass-blur: none; /* Disabled for massive performance boost */
+  --liquid-glass-blur: blur(20px) saturate(180%);
   --liquid-glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 
   /* Primary Button (Solid White) */
@@ -58,6 +59,15 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: transparent; /* Plasma handles background */
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, select, [contenteditable="true"] {
+  cursor: text;
+  -webkit-user-select: auto;
+  user-select: auto;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -65,23 +75,21 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.5px;
 }
 
-button {
+button:not(.glass-btn):not(.segment-toggle__item):not(.app-shell__hamburger):not(.app-shell__close):not(.copilot-v2__chip):not(.copilot-v2__help):not(.copilot-v2__send):not(.copilot-v2__panel-close):not(.export-btn):not(.velaar-ai-send):not(.ai-close-btn):not(.remove-file-btn):not(.hamburger-btn):not(.close-btn) {
   border-radius: 12px;
   border: 1px solid transparent;
   padding: 0.8em 1.5em;
   font-size: 1em;
   font-weight: 700;
   font-family: inherit;
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: #ffffff;
+  color: #000000;
   cursor: pointer;
-  transition: none !important;
+  transition: background-color 0.2s ease;
 }
 
-button:hover {
-  background-color: #e2e8f0 !important;
-  transform: none !important;
-  box-shadow: none !important;
+button:not(.glass-btn):not(.segment-toggle__item):not(.app-shell__hamburger):not(.app-shell__close):not(.copilot-v2__chip):not(.copilot-v2__help):not(.copilot-v2__send):not(.copilot-v2__panel-close):not(.export-btn):not(.velaar-ai-send):not(.ai-close-btn):not(.remove-file-btn):not(.hamburger-btn):not(.close-btn):hover {
+  background-color: #e2e8f0;
 }
 button:focus,
 button:focus-visible {
@@ -245,7 +253,7 @@ input[type="number"] {
 }
 
 .generation-modal p {
-  color: #94a3b8;
+  color: #ffffff;
   font-size: 1rem;
   margin: 0;
 }
@@ -292,7 +300,7 @@ input[type="number"] {
   opacity: 0.5;
   font-size: 1.1rem;
   cursor: grab;
-  color: #94a3b8;
+  color: #ffffff;
   transition: opacity 0.2s;
 }
 
@@ -313,7 +321,7 @@ input[type="number"] {
 .remove-file-btn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #ffffff;
   font-size: 1.3rem;
   cursor: pointer;
   padding: 0 5px;

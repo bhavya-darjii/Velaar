@@ -27,7 +27,7 @@
 }
 
 .empty-state-card h2 { margin: 0 0 10px; font-size: 1.8rem; color: #ffffff; }
-.empty-state-card p { color: #94a3b8; margin-bottom: 20px; }
+.empty-state-card p { color: #ffffff; margin-bottom: 20px; }
 
 .generate-btn {
   background: var(--btn-primary-bg);
@@ -71,6 +71,7 @@
   border-radius: 24px;
   padding: 40px;
   position: relative;
+  box-sizing: border-box;
 }
 
 .lp-header {
@@ -109,7 +110,7 @@
 }
 
 .lp-header h2 { font-size: 1.4rem; margin: 0 0 10px 0; font-weight: 900; color: #ffffff; }
-.lp-header h3 { font-size: 1.1rem; color: #94a3b8; margin: 0 0 10px 0; font-weight: 600; }
+.lp-header h3 { font-size: 1.1rem; color: #ffffff; margin: 0 0 10px 0; font-weight: 600; }
 .lp-header p { color: #cbd5e1; margin: 0; font-weight: 600; }
 
 .lp-description { margin-bottom: 30px; }
@@ -283,15 +284,15 @@
 .inline-input:focus { outline: none; border-bottom: 2px solid var(--accent-teal) !important; }
 
 .icon-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--accent-teal);
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  padding: 0 !important;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
   transition: all 0.2s;
-  font-weight: 700;
 }
 
 .flex-center {
@@ -301,9 +302,9 @@
   gap: 8px;
 }
 
-.icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+.icon-btn:hover { background: rgba(255, 255, 255, 0.2) !important; }
 
-.sm-regen { position: absolute; bottom: 12px; right: 12px; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; z-index: 2; }
+.sm-regen { position: absolute; bottom: 12px; right: 12px; width: 28px; height: 28px; border-radius: 6px; z-index: 2; }
 .cap-table th { padding: 8px 5px !important; font-size: 0.8rem; }
 .cap-table td input { font-size: 0.85rem; padding: 5px 2px; }
 

@@ -1,0 +1,345 @@
+# Velaar V2 — Full-Fledged AI-Powered College Infrastructure
+
+Transform Velaar from a teacher-centric tool into an **indispensable, daily-use AI platform** for every stakeholder in an engineering college — teachers, students, admins, HODs, exam controllers, parents, and the registrar.
+
+## What You Already Have (Solid Foundation ✅)
+
+| Role | Features Built |
+|------|---------------|
+| **Teacher** | Course Generator (PDF syllabus → AI roadmap), Lesson Plan (AI-generated CO-PO mapping, day-wise enrichment), Examination Editor (BT-level question papers, batch .docx export), Question Bank, Attendance (QR-based), Marks Dashboard, Copilot Chat |
+| **Student** | Dashboard with exam-taking, AI grading, QR attendance scanner |
+| **Admin** | AI usage analytics (cost tracking, token usage, per-teacher breakdown), user approval |
+| **HOD** | Department overview, teacher listing, course mapping |
+| **Exam Controller** | Basic stats, paper management shell |
+| **Parent** | Mocked portal with attendance/CGPA/rank display |
+| **Registrar** | Basic dashboard shell |
+| **Velaar Admin** | Super-admin institution management |
+
+**Tech Stack**: React 19 + Vite, Firebase (Auth/Firestore), Express.js backend, Google GenAI (`@google/genai`), Recharts, docx export, Tesseract OCR, QR code.
+
+---
+
+## 🚀 Proposed New AI Features (The "Can't Live Without" Upgrades)
+
+### PHASE 1 — The Daily Essentials (High Impact, Moderate Effort)
+
+---
+
+### 1. 🧠 AI Answer Script Evaluator (Teacher)
+**The killer feature.** Teachers upload scanned answer sheets (photos/PDFs), and AI reads handwriting via OCR + vision, grades each answer against the rubric/question paper, assigns CO-wise marks, and pre-fills the marks dashboard.
+
+- Upload scanned answer booklets (bulk PDF or camera capture)
+- Velaar AI uses **Gemini Vision** to read handwritten answers
+- Auto-grades against the question paper + marking scheme already stored in the system
+- Teacher reviews AI suggestions and approves/overrides with one click
+- Marks auto-flow into the Marks Dashboard with CO mapping
+
+> [!IMPORTANT]
+> This alone saves teachers **20-30 hours per exam cycle**. This is the #1 reason a college would adopt Velaar.
+
+#### [NEW] `src/pages/teacher/AnswerEvaluator.jsx`
+#### [NEW] `src/pages/teacher/AnswerEvaluator.css`
+#### [MODIFY] `server/controllers/aiController.js` — Add vision-based grading endpoint
+#### [MODIFY] `src/services/aiService.js` — Add `evaluateAnswerScript()` function
+#### [MODIFY] `src/App.jsx` — Add route `/teacher/answer-evaluator`
+
+---
+
+### 2. 📊 AI Student Performance Predictor & At-Risk Alerts (Teacher + HOD + Parent)
+AI analyzes attendance patterns, marks trends, and engagement to **predict which students are at risk of failing** — before it's too late.
+
+- Dashboard card showing a "Risk Score" (0-100) for each student
+- AI-generated intervention suggestions ("Student X has missed 5 consecutive lectures and scored below 40% in TT1 — recommend tutorial sessions")
+- **Auto-email/notification to parents** when risk score crosses threshold
+- HOD gets department-wide risk heatmap
+- Trends over time with predictive charts
+
+#### [NEW] `src/pages/teacher/StudentRiskAnalytics.jsx`
+#### [NEW] `src/components/teacher/RiskScoreCard.jsx`
+#### [NEW] `server/controllers/analyticsController.js`
+#### [MODIFY] `src/pages/hod/HodDashboard.jsx` — Add risk heatmap section
+#### [MODIFY] `src/pages/parent/ParentPortal.jsx` — Replace mocked data with real risk alerts
+
+---
+
+### 3. 🤖 Velaar Copilot V2 — Context-Aware AI Assistant (All Roles)
+Upgrade the existing chat copilot into a **context-aware powerhouse** that understands the user's current page, role, and data.
+
+- On the Lesson Plan page → "Suggest better COs for Module 3"
+- On the Marks page → "Which students improved from TT1 to TT2?"
+- On the Admin dashboard → "What's our AI cost trend this month?"
+- On HOD dashboard → "Which teacher has the lowest course completion rate?"
+- **Slash commands**: `/generate-rubric`, `/summarize-syllabus`, `/draft-notice`
+- Multi-turn conversation memory within session
+
+#### [MODIFY] `src/components/teacher/VelaarAIPrompt.jsx` — Major upgrade with context injection
+#### [NEW] `src/components/shared/VelaarCopilotV2.jsx` — Shared across all roles
+#### [MODIFY] `server/controllers/aiController.js` — Context-aware copilot endpoint
+
+---
+
+### 4. 📝 AI Rubric Generator (Teacher)
+Given a question paper (already stored in the system), AI generates a detailed **marking rubric** — step-by-step marks allocation for each sub-question, common mistakes to watch for, and partial marking guidelines.
+
+- One-click rubric generation from any saved examination
+- Exportable to Word (for moderators/external examiners)
+- Rubric feeds into the Answer Evaluator (Feature #1)
+
+#### [NEW] `src/pages/teacher/RubricGenerator.jsx`
+#### [NEW] `server/controllers/rubricController.js`
+#### [MODIFY] `src/services/aiService.js` — Add `generateRubric()` function
+
+---
+
+### 5. 📅 AI Timetable Generator (Admin + HOD)
+Auto-generates **conflict-free timetables** for an entire department/college. Considers:
+- Teacher availability & preferences
+- Room capacity constraints
+- Lab/lecture hour requirements
+- Back-to-back class avoidance
+- Break periods
+
+#### [NEW] `src/pages/admin/TimetableGenerator.jsx`
+#### [NEW] `src/pages/admin/TimetableGenerator.css`
+#### [NEW] `server/controllers/timetableController.js`
+#### [MODIFY] `src/pages/teacher/TimetablePage.jsx` — Display assigned timetable (replace placeholder)
+
+---
+
+### PHASE 2 — The Competitive Edge (Differentiators)
+
+---
+
+### 6. 📚 AI Study Material Generator (Student)
+Students select a subject → AI generates **personalized study notes** based on the syllabus, previous exam patterns, and their weak COs (identified from marks data).
+
+- Auto-generated topic summaries with key formulas
+- "Explain Like I'm 5" mode vs "Exam-ready" mode
+- Practice questions targeting weak COs
+- Flashcard generation for quick revision
+
+#### [NEW] `src/pages/student/StudyMaterialGenerator.jsx`
+#### [NEW] `src/pages/student/FlashcardViewer.jsx`
+#### [MODIFY] `src/pages/student/StudentDashboard.jsx` — Add study hub entry point
+
+---
+
+### 7. 🔬 AI Lab Manual Generator (Teacher)
+For engineering lab courses — teacher inputs experiment titles/objectives, AI generates complete lab manual content:
+- Aim, Theory, Procedure, Sample Code, Expected Output
+- Viva questions per experiment
+- Assessment rubric
+
+#### [NEW] `src/pages/teacher/LabManualGenerator.jsx`
+#### [NEW] `server/controllers/labManualController.js`
+
+---
+
+### 8. 📋 AI Minutes of Meeting Generator (HOD + Admin)
+Record or upload audio/notes from department meetings → AI generates structured MoM with:
+- Agenda items discussed
+- Action items with assigned owners
+- Deadlines
+- Follow-up tracking
+
+#### [NEW] `src/pages/hod/MeetingMinutes.jsx`
+#### [NEW] `server/controllers/meetingController.js`
+
+---
+
+### 9. 🏆 AI Course Outcome Attainment Calculator (Teacher + HOD)
+The biggest compliance headache in engineering education. AI automatically:
+- Calculates direct attainment (from marks data mapped to COs)
+- Calculates indirect attainment (from student feedback surveys)
+- Generates NBA/NAAC-ready attainment reports with gap analysis
+- Suggests improvement actions for under-attained COs
+
+#### [NEW] `src/pages/teacher/COAttainment.jsx`
+#### [NEW] `src/pages/teacher/COAttainment.css`
+#### [NEW] `server/controllers/attainmentController.js`
+
+> [!IMPORTANT]
+> This is **mandatory for NBA accreditation**. Every engineering college in India needs this. Making it AI-powered is a massive USP.
+
+---
+
+### 10. 📢 AI Notice & Circular Drafter (Admin)
+Admin types a rough idea → AI drafts a formal college notice/circular with proper formatting, reference numbers, and tone.
+
+- Templates: Academic Calendar, Exam Schedule, Fee Reminder, Event Announcement
+- Multi-language support (English + Hindi + regional)
+- One-click publish to student/teacher/parent feeds
+- PDF export with college letterhead template
+
+#### [MODIFY] `src/pages/teacher/NoticePage.jsx` — Full upgrade from placeholder
+#### [NEW] `src/pages/admin/NoticeGenerator.jsx`
+
+---
+
+### PHASE 3 — The Full Infrastructure (Making it Indispensable)
+
+---
+
+### 11. 📊 AI Accreditation Report Generator (Admin + HOD)
+The holy grail. Aggregates data across the entire platform to auto-generate:
+- **Self-Assessment Report (SAR)** for NBA
+- **AQAR** for NAAC
+- Program-level CO-PO-PSO attainment matrices
+- Strength/Weakness analysis
+- Improvement action plans
+
+#### [NEW] `src/pages/admin/AccreditationHub.jsx`
+#### [NEW] `server/controllers/accreditationController.js`
+
+---
+
+### 12. 💬 AI-Powered Student Feedback Analysis (HOD)
+Collect end-of-semester feedback → AI performs **sentiment analysis**, extracts themes, ranks teachers by feedback quality, and generates actionable insights.
+
+- Anonymous feedback collection forms
+- NLP-based theme extraction ("labs need better equipment", "pace too fast")
+- Department-level and teacher-level sentiment dashboards
+- Trend analysis across semesters
+
+#### [NEW] `src/pages/student/FeedbackForm.jsx`
+#### [NEW] `src/pages/hod/FeedbackAnalytics.jsx`
+#### [NEW] `server/controllers/feedbackController.js`
+
+---
+
+### 13. 📱 AI-Powered Parent Engagement System (Parent)
+Transform the parent portal from a static display to an **active engagement tool**:
+- Weekly AI-generated progress summaries sent via email/WhatsApp
+- "Ask Velaar" — parents can ask natural language questions about their child's performance
+- Comparative analysis (class average vs child's performance)
+- Attendance alerts (real-time notification when child misses class)
+
+#### [MODIFY] `src/pages/parent/ParentPortal.jsx` — Major upgrade with live data
+#### [NEW] `src/pages/parent/ProgressTimeline.jsx`
+
+---
+
+### 14. 🎯 AI Assignment Generator & Plagiarism Checker (Teacher)
+- Generate unique assignments per student (slight variations to prevent copying)
+- Upload submissions → AI checks similarity scores across submissions
+- Cross-reference with known online sources
+- CO-mapped assignment grading
+
+#### [NEW] `src/pages/teacher/AssignmentHub.jsx`
+#### [NEW] `src/pages/student/AssignmentSubmission.jsx`
+#### [NEW] `server/controllers/assignmentController.js`
+
+---
+
+### 15. 📈 Institutional Analytics Dashboard (Velaar Admin + Admin)
+Bird's-eye view of the entire institution:
+- Department-wise AI adoption metrics
+- Cost optimization recommendations
+- Feature usage heatmaps
+- Comparative benchmarking (if multi-institution)
+- ROI calculator (time saved vs AI cost)
+
+#### [MODIFY] `src/pages/admin/VelaarAdminDashboard.jsx` — Add institutional analytics
+#### [NEW] `server/controllers/institutionAnalyticsController.js`
+
+---
+
+## Architecture Changes
+
+### Backend Additions
+
+| File | Purpose |
+|------|---------|
+| `server/routes/analyticsRoutes.js` | Risk prediction, attainment, feedback analysis |
+| `server/routes/timetableRoutes.js` | Timetable generation & conflict resolution |
+| `server/routes/accreditationRoutes.js` | NBA/NAAC report generation |
+| `server/routes/assignmentRoutes.js` | Assignment creation, submission, plagiarism check |
+| `server/routes/noticeRoutes.js` | Notice drafting & distribution |
+
+### Shared Components
+
+| Component | Used By |
+|-----------|---------|
+| `VelaarCopilotV2` | Every role's dashboard |
+| `RiskScoreCard` | Teacher, HOD, Parent |
+| `AttainmentChart` | Teacher, HOD, Admin |
+| `ExportButton` | Universal Word/PDF export |
+
+### Database Schema Additions (Firestore Collections)
+
+```
+answer_evaluations/    → Scanned scripts + AI grading results
+student_risk_scores/   → Predicted risk scores per student per semester
+rubrics/               → Generated marking rubrics per exam
+timetables/            → Generated timetables per department
+study_materials/       → AI-generated notes per student
+lab_manuals/           → Generated lab manuals per course
+meeting_minutes/       → MoM records
+attainment_data/       → CO attainment calculations
+feedback_responses/    → Student feedback submissions
+feedback_analysis/     → AI-analyzed feedback results
+assignments/           → Assignment definitions + submissions
+notices/               → Drafted and published notices
+accreditation_reports/ → Generated SAR/AQAR documents
+```
+
+---
+
+## Recommended Implementation Order
+
+> [!TIP]
+> Prioritized by **impact × feasibility**. Features that use data you already have come first.
+
+| Priority | Feature | Why First |
+|----------|---------|-----------|
+| 🔴 P0 | CO Attainment Calculator (#9) | Uses existing marks + CO data. NBA compliance = instant adoption. |
+| 🔴 P0 | Copilot V2 (#3) | Relatively small upgrade, huge perceived value across all roles. |
+| 🟠 P1 | Answer Script Evaluator (#1) | Highest wow-factor. Uses Gemini Vision. Saves massive time. |
+| 🟠 P1 | Student Risk Predictor (#2) | Uses existing attendance + marks data. Parents love it. |
+| 🟠 P1 | Rubric Generator (#4) | Feeds into Answer Evaluator. Quick win. |
+| 🟡 P2 | AI Timetable Generator (#5) | High demand but complex constraint solver. |
+| 🟡 P2 | Notice Drafter (#10) | Quick win, high daily-use frequency. |
+| 🟡 P2 | Study Material Generator (#6) | Students become daily users = platform stickiness. |
+| 🟢 P3 | Accreditation Report (#11) | Aggregation feature, needs P0-P2 data first. |
+| 🟢 P3 | Feedback Analysis (#12) | Needs feedback collection infrastructure. |
+| 🟢 P3 | Lab Manual Generator (#7) | Niche but high-value for lab courses. |
+| 🟢 P3 | Assignment Hub (#14) | Requires student submission workflow. |
+| 🟢 P3 | Meeting Minutes (#8) | Nice-to-have, lower daily use. |
+| 🟢 P3 | Parent Engagement (#13) | Needs risk predictor data (P1) first. |
+| 🟢 P3 | Institutional Analytics (#15) | Needs all other features generating data first. |
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]  
+> **1. Which phase do you want to start with?** I recommend starting with P0 (CO Attainment + Copilot V2) since they build on your existing data and can ship fast.
+
+> [!IMPORTANT]
+> **2. Gemini Vision for answer evaluation** — are you on a Gemini plan that supports image/vision inputs? The answer evaluator needs multimodal capabilities.
+
+> [!IMPORTANT]
+> **3. Notification infrastructure** — for parent alerts and student risk notifications, do you want to integrate email (e.g., Resend/SendGrid), WhatsApp (Twilio), or keep it in-app only for now?
+
+> [!IMPORTANT]
+> **4. Multi-institution support** — should the architecture support multiple colleges on one Velaar instance (SaaS model), or is this for a single institution?
+
+> [!IMPORTANT]
+> **5. Which features are you most excited about?** Pick your top 3-5 and I'll deep-dive into those first.
+
+---
+
+## Verification Plan
+
+### For Each Feature Built
+- Component renders without errors
+- API endpoints respond correctly
+- Data flows to/from Firestore
+- AI generation produces coherent output
+- Export functions generate valid documents
+- Mobile-responsive layout verified
+
+### Integration Testing
+- Cross-role data flow (teacher marks → student risk → parent alerts)
+- Copilot context injection works on every page
+- Auth guards protect role-specific features

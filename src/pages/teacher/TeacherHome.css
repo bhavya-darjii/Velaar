@@ -6,6 +6,20 @@
   z-index: 10;
 }
 
+.teacher-ai-prompt-slot {
+  margin-top: 16px;
+  /* Override the wrapper's max-width so it fills the sidebar column */
+  width: 100%;
+}
+
+.teacher-ai-prompt-slot .velaar-ai-wrapper {
+  max-width: 100%;
+}
+
+.teacher-ai-prompt-slot .velaar-ai-wrapper.focused {
+  max-width: 100%;
+}
+
 @media screen and (max-width: 768px) {
   .teacher-home-grid {
     grid-template-columns: 1fr;

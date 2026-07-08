@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
+import { TEACHER_NAV } from '../config/navigation';
 import './TeacherLayout.css';
 
 const TEACHER_GREETINGS = [
@@ -101,42 +102,30 @@ const TeacherLayout = () => {
         </div>
         
         <ul className="sidebar-links">
-          <li className={location.pathname === '/teacher' ? 'active' : ''} onClick={() => { navigate('/teacher'); setSidebarOpen(false); }}>
-            Home
-          </li>
-          <li className={location.pathname === '/teacher/questionbank' ? 'active' : ''} onClick={() => { navigate('/teacher/questionbank'); setSidebarOpen(false); }}>
-            Question Bank
-          </li>
-          <li className={location.pathname === '/teacher/examination' ? 'active' : ''} onClick={() => { navigate('/teacher/examination'); setSidebarOpen(false); }}>
-            Question Papers
-          </li>
-          <li className={location.pathname === '/teacher/lesson-plan' ? 'active' : ''} onClick={() => { navigate('/teacher/lesson-plan'); setSidebarOpen(false); }}>
-            Lesson Plan
-          </li>
-          {/* Developer Note: Append all NEW navigation tabs perfectly above this line */}
-          <li className={`new-course-tab ${location.pathname === '/teacher/create-course' ? 'active' : ''}`} onClick={() => { navigate('/teacher/create-course'); setSidebarOpen(false); }}>
-            + New Course
-          </li>
+          {TEACHER_NAV.map((item) => (
+            <li
+              key={item.path}
+              className={`${location.pathname === item.path ? 'active' : ''} ${item.highlight ? 'new-course-tab' : ''}`}
+              onClick={() => { navigate(item.path); setSidebarOpen(false); }}
+            >
+              {item.label}
+            </li>
+          ))}
         </ul>
       </nav>
 
       {/* Main Content Area */}
-      <div className="main-content">
+      <div className="main-content velaar-page-shell">
         <header className="dash-header">
           {loading ? (
-            /* Skeleton header — exact same DOM structure as real header (fragment with left + right) */
             <>
               <div className="header-left">
-                {/* hamburger-btn: 44×44px, border-radius 12px, margin-right 35px */}
                 <div className="skeleton-base" style={{ width: '44px', height: '44px', borderRadius: '12px', marginRight: '35px', flexShrink: 0 }} />
                 <div>
-                  {/* h1: clamp(1.5rem,4vw,2.2rem) font-weight 800 → ~32px */}
                   <div className="skeleton-base" style={{ height: '32px', width: '280px', borderRadius: '8px', marginBottom: '8px' }} />
-                  {/* .subtitle: 1.2rem → ~19px, margin-top 5px */}
                   <div className="skeleton-base" style={{ height: '19px', width: '200px', borderRadius: '6px' }} />
                 </div>
               </div>
-              {/* .header-actions: progress-badge pill — prevents layout shift on home page */}
               <div className="header-actions">
                 <div className="skeleton-base" style={{ height: '34px', width: '140px', borderRadius: '20px' }} />
               </div>
@@ -169,6 +158,7 @@ const TeacherLayout = () => {
         </div>
       </div>
     </div>
+
   );
 };
 

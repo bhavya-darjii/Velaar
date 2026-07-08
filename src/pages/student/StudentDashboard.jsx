@@ -4,6 +4,7 @@ import { auth, db } from "../../services/firebase";
 import { signOut } from "firebase/auth";
 import { doc, getDocs, collection, getDoc } from "firebase/firestore";
 import { gradeFullExam } from "../../services/aiService";
+import StudentDashboardSkeleton from "../../components/skeletons/StudentDashboardSkeleton";
 import "./StudentDashboard.css";
 
 const StudentDashboard = () => {
@@ -124,7 +125,7 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
-  if (loading) return <div className="loading-screen">Loading Portal...</div>;
+  if (loading) return <StudentDashboardSkeleton />;
 
   return (
     <div className="student-container">

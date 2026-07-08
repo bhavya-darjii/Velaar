@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Read from .env file
@@ -18,4 +18,9 @@ const app = initializeApp(firebaseConfig);
 // Export the tools we need
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const microsoftProvider = (() => {
+  const p = new OAuthProvider('microsoft.com');
+  p.setCustomParameters({ prompt: 'select_account' });
+  return p;
+})();
 export const db = getFirestore(app);

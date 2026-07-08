@@ -10,7 +10,7 @@
 }
 
 /* MAIN CARD */
-.glass-card {
+.glass-container .glass-card {
   width: 100%;
   max-width: 900px;
   background: var(--liquid-glass-bg);
@@ -82,7 +82,7 @@
 label {
   display: block;
   margin-bottom: 8px;
-  color: #94a3b8;
+  color: #ffffff;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -102,7 +102,7 @@ label {
 }
 
 .glass-input::placeholder {
-  color: #64748b !important;
+  color: #ffffff !important;
 }
 
 .glass-input:focus {
@@ -159,7 +159,7 @@ select.glass-input:focus {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  color: #94a3b8;
+  color: #ffffff;
   cursor: pointer;
   padding: 8px;
   box-sizing: border-box;
@@ -188,7 +188,7 @@ select.glass-input:focus {
 }
 
 .loading-status {
-  color: #94a3b8;
+  color: #ffffff;
   margin-top: 10px;
   font-size: 0.9rem;
 }
@@ -238,7 +238,7 @@ select.glass-input:focus {
 .division-tab {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   padding: 8px 16px !important;
   border-radius: 20px !important;
   cursor: pointer !important;
@@ -261,10 +261,10 @@ select.glass-input:focus {
 }
 
 .division-tab.active {
-  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.15) !important;
-  color: var(--plasma-color, #ea580c) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
   outline: none !important;
-  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .division-tab:focus, .division-tab:active {
@@ -273,7 +273,7 @@ select.glass-input:focus {
 }
 
 .division-tab.active:focus {
-  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .day-tabs {
@@ -287,7 +287,7 @@ select.glass-input:focus {
 .day-tab {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   padding: 8px 16px !important;
   border-radius: 20px !important;
   cursor: pointer !important;
@@ -308,9 +308,9 @@ select.glass-input:focus {
 }
 
 .day-tab.active {
-  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.15) !important;
-  color: var(--plasma-color, #ea580c) !important;
-  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.3) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
   box-shadow: none !important;
   outline: none !important;
 }
@@ -331,7 +331,7 @@ select.glass-input:focus {
 
 .day-tab.active .dot,
 .day-tab.has-slots .dot {
-  background: var(--plasma-color, #ea580c) !important;
+  background: #ffffff !important;
 }
 
 .time-adder {
@@ -356,9 +356,9 @@ select.glass-input:focus {
 }
 
 .add-time-btn {
-  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.05) !important;
-  color: var(--plasma-color, #ea580c) !important;
-  border: 1px solid rgba(var(--plasma-color-rgb, 234, 88, 12), 0.4) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
   padding: 6.5px 16px !important;
   border-radius: 8px !important;
   font-weight: bold !important;
@@ -367,8 +367,8 @@ select.glass-input:focus {
 }
 
 .add-time-btn:hover {
-  background: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.15) !important;
-  border-color: rgba(var(--plasma-color-rgb, 234, 88, 12), 0.8) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
   box-shadow: none !important;
 }
 
@@ -380,7 +380,7 @@ select.glass-input:focus {
 }
 
 .empty-msg {
-  color: #64748b;
+  color: #ffffff;
   font-style: italic;
   font-size: 0.9rem;
 }
@@ -425,7 +425,7 @@ select.glass-input:focus {
 .time-pill button {
   background: transparent !important;
   border: none !important;
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   cursor: pointer !important;
   font-weight: bold;
   font-size: 1rem;
@@ -452,9 +452,9 @@ select.glass-input:focus {
 }
 
 .glass-btn.primary {
-  background: var(--btn-primary-bg) !important;
+  background: #ffffff !important;
   border: none !important;
-  color: var(--btn-primary-text) !important;
+  color: #000000 !important;
   text-transform: uppercase !important;
   font-weight: 800 !important;
   font-size: 1.05rem !important;
@@ -464,14 +464,14 @@ select.glass-input:focus {
 
 .glass-btn.primary:hover {
   background: #e2e8f0 !important;
-  color: var(--btn-primary-text) !important;
+  color: #000000 !important;
   transform: none !important;
   box-shadow: none !important;
 }
 
 .glass-btn.primary:disabled {
   background: rgba(255, 255, 255, 0.1);
-  color: #64748b;
+  color: #ffffff;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -510,7 +510,7 @@ select.glass-input:focus {
   border-radius: 20px;
   font-size: 0.9rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 .glass-list-item {
@@ -599,7 +599,7 @@ select.glass-input:focus {
   .glass-container {
     padding: 0;
   }
-  .glass-card {
+  .glass-container .glass-card {
     padding: 15px;
     border-radius: 12px;
   }

@@ -149,6 +149,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
       2. Assign a Course Outcome (CO) like "CO1", "CO2", "CO3".
       3. ${prefText}
       4. MUST NOT be numerical questions.
+      5. DO NOT use emojis anywhere in the output.
 
       ==== STRICT OUTPUT FORMAT ====
       Return ONLY a raw JSON array of objects.
@@ -189,6 +190,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
       1. Classify each question using Bloom's Taxonomy (BT) Levels (Ap, An, E, C).
       2. Assign a Course Outcome (CO) like "CO1", "CO2", "CO3".
       3. EVERY question MUST require a concrete calculation, diagram, or algorithmic trace (e.g., BFS on a graph).
+      4. DO NOT use emojis anywhere in the output.
 
       ==== STRICT OUTPUT FORMAT ====
       Return ONLY a raw JSON array of objects.
@@ -321,6 +323,7 @@ export const generateLessonPlan = async (req, res) => {
     3. Generate a comprehensive globally-applicable "Course Description" (about 1 paragraph).
     4. For *each* module provided, generate EXACTLY 2 measurable Outcomes.
     5. For *each* module, assign one appropriate Bloom's Taxonomy cognitive level string (e.g., "Understand", "Apply", "Analyze", "Evaluate", "Create").
+    6. DO NOT use emojis anywhere in the output.
     
     Modules List: ${moduleNames}
     
@@ -426,6 +429,7 @@ export const generateSupplementaryLessonPlan = async (req, res) => {
     4. Recommend exactly 3 standard Text Books as an array of strings (Author, 'Title', Publisher, Year).
     5. Recommend exactly 5 standard Reference Books as an array of strings (Author, 'Title', Publisher, Year).
     6. Generate a strictly mirroring "coPoMapping" matrix. For EVERY PO listed in a Course Outcome's "mappedPOs" string, assign an integer correlation weight of 3 (Strong) or 2 (Moderate). You MUST NOT map or weight any POs that are missing from the mappedPOs string! The mappedPOs string and the matrix structure MUST flawlessly mirror each other.
+    7. DO NOT use emojis anywhere in the output.
     
     Modules List: 
     ${moduleNames}
@@ -589,5 +593,78 @@ export const generateCoPoMapping = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'CoPoMapping Error' });
+  }
+};
+
+// ─── 10. Velaar Copilot Chat ───────────────────────────────────────────────────
+export const copilotChat = async (req, res) => {
+  const { messages, userRole = 'teacher', pagePath = '', pageLabel = '', pageContext = {} } = req.body;
+  const ctx = getCtx(req);
+
+  if (!messages || messages.length === 0) {
+    return res.status(400).json({ error: 'No messages provided' });
+  }
+
+  const slashHints = `
+    Slash commands you understand:
+    /generate-rubric — guide user to Rubric Generator
+    /summarize-syllabus — summarize syllabus topics
+    /draft-notice — draft a formal college notice
+  `;
+
+  const systemPrompt = `
+    Role: You are "Velaar Copilot V2", a context-aware AI assistant for Indian engineering colleges (Velaar ERP).
+
+    User Context:
+    - Role: ${userRole}
+    - Name: ${ctx.teacherName || 'User'}
+    - Email: ${ctx.teacherEmail || ''}
+    - Active Course: ${ctx.subjectName || 'None selected'}
+    - Current Page: ${pagePath || 'unknown'} (${pageLabel || 'general'})
+    - Page Data: ${JSON.stringify(pageContext).substring(0, 2000)}
+
+    ${slashHints}
+
+    Personality: Helpful, concise, respectful. Save users time.
+    You understand the user's current page and role. Give page-specific advice when relevant.
+    For actions requiring database writes, provide drafts or step-by-step guidance.
+
+    CRITICAL: Keep responses concise with markdown (bolding, bullet points). No essays unless asked.
+  `;
+
+  try {
+    // Format messages for Gemini (role: 'user' or 'model')
+    const formattedContents = messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    const data = await callGemini({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: formattedContents,
+      // No JSON enforcement, standard text generation
+    });
+
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: 'copilot-chat',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
+
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message });
+    }
+
+    if (!data.candidates || data.candidates.length === 0) {
+       return res.status(500).json({ error: 'Empty candidate from AI' });
+    }
+
+    const textResult = data.candidates[0].content.parts[0].text;
+    return res.status(200).json({ reply: textResult });
+  } catch (error) {
+    console.error('Copilot Error:', error);
+    return res.status(500).json({ error: 'Copilot Chat Error' });
   }
 };

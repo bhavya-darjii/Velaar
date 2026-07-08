@@ -58,7 +58,7 @@ const HomePageSkeleton = () => (
     {/* ---- RIGHT: matches .roadmap-mini (padding 20px, border-radius 16px) ---- */}
     <div className="skeleton-card" style={{ borderRadius: '16px', padding: '20px' }}>
 
-      {/* h3 "Upcoming Roadmap" — ~1rem, color #94a3b8 */}
+      {/* h3 "Upcoming Roadmap" — ~1rem, color #ffffff */}
       <div className="skel-line" style={{ width: '60%', marginBottom: '20px' }} />
 
       {/* 5 lecture rows — matches .roadmap-mini li (padding 12px 0, border-bottom) */}
