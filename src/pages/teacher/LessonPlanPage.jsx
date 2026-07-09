@@ -14,6 +14,35 @@ const RefreshIcon = () => (
   </svg>
 );
 
+const toRoman = (str) => {
+  const romanMap = [
+    [1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],
+    [100,'C'],[90,'XC'],[50,'L'],[40,'XL'],
+    [10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']
+  ];
+  const num = parseInt(str, 10);
+  if (isNaN(num) || num < 1 || num > 3999) return str;
+  let result = '';
+  let n = num;
+  for (const [val, sym] of romanMap) {
+    while (n >= val) { result += sym; n -= val; }
+  }
+  return result;
+};
+
+// Recursively remove undefined values so Firestore never rejects the payload
+const sanitizeForFirestore = (obj) => {
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+  if (obj !== null && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, sanitizeForFirestore(v)])
+    );
+  }
+  return obj;
+};
+
 const defaultProgramOutcomes = [
   { code: "PO1", title: "Engineering Knowledge" },
   { code: "PO2", title: "Problem Analysis" },
@@ -110,6 +139,7 @@ const LessonPlanPage = () => {
   };
 
   useEffect(() => {
+    if (layoutLoading) return;
     if (!course) {
       navigate('/teacher/create-course');
     } else if (course.lessonPlan) {
@@ -120,7 +150,7 @@ const LessonPlanPage = () => {
         setLessonPlan({ ...plan, programOutcomes: defaultProgramOutcomes });
       }
     }
-  }, [course?.id, navigate]); // Only re-run if course ID changes
+  }, [course?.id, navigate, layoutLoading]); // Re-run if course ID or loading state changes
 
   // DEBOUNCED AUTO-SAVE LOGIC
   useEffect(() => {
@@ -132,8 +162,9 @@ const LessonPlanPage = () => {
     const timer = setTimeout(async () => {
       setIsSaving(true);
       try {
-        await updateDoc(doc(db, "courses", course.id), { lessonPlan });
-        setCourse(prev => ({ ...prev, lessonPlan }));
+        const clean = sanitizeForFirestore(lessonPlan);
+        await updateDoc(doc(db, "courses", course.id), { lessonPlan: clean });
+        setCourse(prev => ({ ...prev, lessonPlan: clean }));
       } catch (error) {
         console.error("Auto-save failed:", error);
       } finally {
@@ -222,11 +253,12 @@ const LessonPlanPage = () => {
   const handleExportWord = async () => {
     setLoading(true);
     try {
-      await updateDoc(doc(db, "courses", course.id), { lessonPlan });
-      setCourse({ ...course, lessonPlan });
+      const clean = sanitizeForFirestore(lessonPlan);
+      await updateDoc(doc(db, "courses", course.id), { lessonPlan: clean });
+      setCourse({ ...course, lessonPlan: clean });
 
       // Inherently synthesize docx binary buffer directly
-      await exportLessonPlanToWord(course, lessonPlan);
+      await exportLessonPlanToWord(course, clean);
     } catch (e) {
       console.error(e);
       alert("Error generating Document. Ensure layout is completed.");
@@ -237,8 +269,9 @@ const LessonPlanPage = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await updateDoc(doc(db, "courses", course.id), { lessonPlan });
-      setCourse({ ...course, lessonPlan });
+      const clean = sanitizeForFirestore(lessonPlan);
+      await updateDoc(doc(db, "courses", course.id), { lessonPlan: clean });
+      setCourse({ ...course, lessonPlan: clean });
     } catch (e) { console.error("Save error", e); }
     setLoading(false);
   };
@@ -282,13 +315,34 @@ const LessonPlanPage = () => {
             </div>
           )}
           <div className="lp-header">
-            <h2>{course.subjectName} ({new Date().getFullYear()}-{new Date().getFullYear().toString().slice(-2)}) - Faculty – Prof. {course.teacherName || "Teacher"}</h2>
+            <div className="lp-title-row">
+              <span>{course.subjectName}&nbsp;(</span>
+              <input
+                className="inline-input year-input"
+                value={lessonPlan.academicYear || `${new Date().getFullYear()}-${String(new Date().getFullYear()+1).slice(-2)}`}
+                onChange={(e) => setLessonPlan({ ...lessonPlan, academicYear: e.target.value })}
+              />
+              <span>)&nbsp;- Faculty – Prof. {course.teacherName || "Teacher"}</span>
+            </div>
             <h3>Course Outcomes, Mapping of COs with POs, Course Assessment and Lesson Plan</h3>
-            <p>
-              Semester-<input className="inline-input" placeholder="IV" value={lessonPlan.semester || ""} onChange={(e) => setLessonPlan({ ...lessonPlan, semester: e.target.value })} />
-              DIV - {course.divisions?.length ? course.divisions.join(' & ') : "A"} Course Code:-
-              <input className="inline-input" placeholder="AIA&E404" value={lessonPlan.courseCode || ""} onChange={(e) => setLessonPlan({ ...lessonPlan, courseCode: e.target.value })} />
-            </p>
+            <div className="lp-header-meta">
+              <span>Semester-</span>
+              <input
+                className="inline-input semester-input"
+                placeholder="IV"
+                value={lessonPlan.semester || ""}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  // If purely numeric input, convert to Roman numeral
+                  const converted = /^\d+$/.test(raw.trim()) ? toRoman(raw.trim()) : raw;
+                  setLessonPlan({ ...lessonPlan, semester: converted });
+                }}
+              />
+              <span style={{margin: '0 12px'}}>DIV -</span>
+              <input className="inline-input divisions-input" placeholder="A &amp; B" value={lessonPlan.divisions || (course.divisions?.length ? course.divisions.join(' & ') : "A")} onChange={(e) => setLessonPlan({ ...lessonPlan, divisions: e.target.value })} />
+              <span style={{margin: '0 12px'}}>Course Code:-</span>
+              <input className="inline-input coursecode-input" placeholder="AIA404" value={lessonPlan.courseCode || ""} onChange={(e) => setLessonPlan({ ...lessonPlan, courseCode: e.target.value })} />
+            </div>
           </div>
 
           {/* 1. COURSE DESCRIPTION */}
@@ -356,19 +410,21 @@ const LessonPlanPage = () => {
                     <tr key={idx}>
                       <td style={{ textAlign: 'center' }}>{moduleRef.id || unit.unitNo}</td>
                       <td>{moduleRef.name || "Unknown"}</td>
-                      <td style={{ position: 'relative' }}>
-                        <button className="icon-btn sm-regen flex-center" title="Regenerate Outcome" onClick={async () => {
-                          setLoading(true);
-                          const unitData = await generateSpecificField("unit", course.subjectName, [moduleRef]);
-                          if (unitData) {
-                            const updated = [...lessonPlan.unitOutcomes];
-                            updated[idx].outcomes = unitData.outcomes;
-                            updated[idx].btLevel = unitData.btLevel;
-                            setLessonPlan({ ...lessonPlan, unitOutcomes: updated });
-                          }
-                          setLoading(false);
-                        }}><RefreshIcon /></button>
-                        <textarea value={unit.outcomes} onChange={(e) => handleOutcomeChange(idx, 'outcomes', e.target.value)} />
+                      <td style={{ position: 'relative', padding: 0 }}>
+                        <div className="td-clip">
+                          <button className="icon-btn sm-regen flex-center" title="Regenerate Outcome" onClick={async () => {
+                            setLoading(true);
+                            const unitData = await generateSpecificField("unit", course.subjectName, [moduleRef]);
+                            if (unitData) {
+                              const updated = [...lessonPlan.unitOutcomes];
+                              updated[idx].outcomes = unitData.outcomes;
+                              updated[idx].btLevel = unitData.btLevel;
+                              setLessonPlan({ ...lessonPlan, unitOutcomes: updated });
+                            }
+                            setLoading(false);
+                          }}><RefreshIcon /></button>
+                          <textarea value={unit.outcomes} onChange={(e) => handleOutcomeChange(idx, 'outcomes', e.target.value)} />
+                        </div>
                       </td>
                       <td>
                         <textarea value={unit.teachingPractice} onChange={(e) => handleOutcomeChange(idx, 'teachingPractice', e.target.value)} />

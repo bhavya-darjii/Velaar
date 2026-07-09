@@ -129,9 +129,9 @@
   color: #ffffff;
 }
 .bt-pill.active {
-  background: rgba(var(--plasma-color-rgb), 0.15);
-  color: var(--plasma-color);
-  border: 1px solid rgba(var(--plasma-color-rgb), 0.3);
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
   box-shadow: none;
 }
 

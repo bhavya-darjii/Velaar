@@ -400,10 +400,12 @@ export const generateSpecificField = async (req, res) => {
       subjectName: subjectName || ctx.subjectName,
     });
 
-    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+    const rawText = data.candidates[0].content.parts[0].text;
+    const cleanJsonStr = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleanJsonStr);
     return res.status(200).json(type === 'unit' ? result : result.result);
   } catch (error) {
-    console.error(error);
+    console.error("Single Gen Error:", error);
     return res.status(500).json({ error: 'Single Gen Error' });
   }
 };

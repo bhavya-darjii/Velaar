@@ -19,13 +19,14 @@
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  padding: 50px 40px;
+  padding: 30px 40px 50px 40px;
   border-radius: 32px;
   text-align: center;
   color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 /* Brand Header */
@@ -48,7 +49,7 @@
 /* SSO Buttons Container */
 .sso-buttons-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 16px;
   width: 100%;
 }
@@ -87,11 +88,14 @@
 }
 
 .primary-btn {
-  background: rgba(255, 255, 255, 0.15);
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2) !important;
 }
 
 .primary-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background-color: #e2e8f0 !important;
 }
 
 .toggle-auth-mode {
@@ -140,7 +144,7 @@
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
@@ -149,45 +153,29 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.liquid-btn::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transform: skewX(-20deg);
-  transition: all 0.5s ease;
-}
-
-.liquid-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.liquid-btn:hover::before {
-  left: 150%;
-}
-
 .liquid-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
-/* Button specific hover glow */
-.sso-btn--google:hover { 
-  box-shadow: 0 12px 30px rgba(66, 133, 244, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
-  border-color: rgba(66, 133, 244, 0.4);
-}
-.sso-btn--microsoft:hover { 
-  box-shadow: 0 12px 30px rgba(0, 164, 239, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
-  border-color: rgba(0, 164, 239, 0.4);
+.sso-btn {
+  flex: 1;
+  padding: 12px;
+  gap: 8px;
+  font-size: 0.75rem !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #ffffff !important;
 }
 
 .loading-indicator {
-  margin-top: 24px;
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
   font-size: 0.9rem;
   color: var(--accent-teal);
   font-weight: 600;

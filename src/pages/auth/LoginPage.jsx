@@ -234,14 +234,8 @@ const LoginPage = () => {
             required
           />
           <button type="submit" className="liquid-btn primary-btn" disabled={loading}>
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {loading ? 'Authenticating...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </button>
-          
-          <div className="toggle-auth-mode">
-            <span onClick={() => setIsSignUp(!isSignUp)}>
-              {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
-            </span>
-          </div>
         </form>
 
         <div className="divider">
@@ -280,7 +274,6 @@ const LoginPage = () => {
           </button>
         </div>
 
-        {loading && <div className="loading-indicator">Authenticating securely...</div>}
       </div>
     </div>
   );

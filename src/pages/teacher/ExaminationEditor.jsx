@@ -360,12 +360,12 @@ const ExaminationEditor = () => {
       {/* Editable Header Configuration Summary */}
       <div id="exam-header-config" style={{ marginBottom: Object.keys(headerErrors).some(k => headerErrors[k]) ? '15px' : '0' }}>
         <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: Object.keys(headerErrors).some(k => headerErrors[k]) ? '1px solid rgba(234, 88, 12, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'}}>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: 'auto', fontSize: '0.85rem', height: '30px', border: headerErrors.date ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.date ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.date || ''} onChange={e => {setHeaderConfig({...headerConfig, date: e.target.value}); setHeaderErrors(prev => ({...prev, date: false}));}} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '80px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" placeholder="III" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px', border: headerErrors.scheme ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.scheme ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.scheme || ''} onChange={e => {setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, scheme: false}));}} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" placeholder="SY" style={{margin: 0, padding: '4px 6px', width: '50px', fontSize: '0.85rem', height: '30px', border: headerErrors.academicYear ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.academicYear ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.academicYear || ''} onChange={e => {setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()}); setHeaderErrors(prev => ({...prev, academicYear: false}));}} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" className="edit-input-title" placeholder="IV" style={{margin: 0, padding: '4px 6px', width: '45px', fontSize: '0.85rem', height: '30px', border: headerErrors.semester ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.semester ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.semester || ''} onChange={e => {setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, semester: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '130px', fontSize: '0.85rem', height: '30px', border: headerErrors.date ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.date ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.date || ''} onChange={e => {setHeaderConfig({...headerConfig, date: e.target.value}); setHeaderErrors(prev => ({...prev, date: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '90px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" placeholder="III" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px', border: headerErrors.scheme ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.scheme ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.scheme || ''} onChange={e => {setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, scheme: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" placeholder="SY" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px', border: headerErrors.academicYear ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.academicYear ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.academicYear || ''} onChange={e => {setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()}); setHeaderErrors(prev => ({...prev, academicYear: false}));}} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" className="edit-input-title" placeholder="IV" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px', border: headerErrors.semester ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.semester ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.semester || ''} onChange={e => {setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, semester: false}));}} /></div>
         </div>
         {Object.keys(headerErrors).some(k => headerErrors[k]) && (
            <div style={{ color: '#ea580c', fontSize: '0.85rem', marginTop: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -441,7 +441,7 @@ const ExaminationEditor = () => {
                   <span style={{color: '#ffffff', fontWeight: 'bold'}}>Q.{q.id}</span>
                   <input type="text" className="edit-input-title" value={q.title} onChange={e => handleStructuralChange(qIndex, 'title', e.target.value)} />
                   <span style={{color: '#ffffff'}}>Max:</span>
-                  <input type="number" className="edit-input-small" value={q.marks} onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value)||0)} />
+                  <input type="number" className="edit-input-small" style={{width: '60px', textAlign: 'center'}} value={q.marks} onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value)||0)} />
                   <button className="btn-danger" onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
                 </div>
               ) : (
@@ -461,7 +461,7 @@ const ExaminationEditor = () => {
                     {isEditMode ? (
                       <div style={{display: 'flex', gap: '15px', alignItems: 'center'}}>
                          <label style={{color: 'gray'}}>Marks:</label>
-                         <input type="number" className="edit-input-small" value={sub.marks} onChange={e => handleSubStructuralChange(qIndex, subIndex, 'marks', parseInt(e.target.value)||0)} />
+                         <input type="number" className="edit-input-small" style={{width: '60px', textAlign: 'center'}} value={sub.marks} onChange={e => handleSubStructuralChange(qIndex, subIndex, 'marks', parseInt(e.target.value)||0)} />
                         <button className="btn-danger" style={{padding: '4px 8px'}} onClick={() => removeSubQuestion(qIndex, subIndex)}>Remove</button>
                       </div>
                     ) : (
@@ -510,13 +510,7 @@ const ExaminationEditor = () => {
                       </div>
 
                       <div 
-                        className={`bt-pill ${sub.isNumerical ? 'active' : ''}`} 
-                        style={{ 
-                          background: sub.isNumerical ? 'rgba(var(--plasma-color-rgb), 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                          color: sub.isNumerical ? 'var(--plasma-color)' : '#ffffff',
-                          border: sub.isNumerical ? '1px solid rgba(var(--plasma-color-rgb), 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
-                          boxShadow: 'none'
-                        }}
+                        className={`bt-pill ${sub.isNumerical ? 'active' : ''}`}
                         onClick={() => toggleNumerical(qIndex, subIndex)}
                       >
                         Numerical Question

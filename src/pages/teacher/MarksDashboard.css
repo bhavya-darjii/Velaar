@@ -127,15 +127,15 @@
 }
 
 .marks-delete-btn {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: #ef4444 !important;
-  border-color: rgba(239, 68, 68, 0.35) !important;
-}
-.marks-delete-btn:hover:not(:disabled) {
   background: #ef4444 !important;
   color: #ffffff !important;
   border-color: #ef4444 !important;
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+}
+.marks-delete-btn:hover:not(:disabled) {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4) !important;
 }
 
 .marks-card-desc {

@@ -73,14 +73,19 @@ export const exportLessonPlanToWord = async (req, res) => {
     const sections = [];
 
   // --- 1. Header ---
+  const currentYear = new Date().getFullYear();
+  const defaultYear = `${currentYear}-${String(currentYear + 1).slice(-2)}`;
+  const acYear = lp.academicYear || defaultYear;
+  const divs = lp.divisions || (course.divisions && course.divisions.length > 0 ? course.divisions.join(" & ") : "A");
+
   sections.push(
     new Paragraph({
-      children: [new TextRun({ text: `${course.subjectName || "Subject"} (2025-26) - Faculty: Prof. ${course.teacherName || lp.facultyName || course.professorName || "Unknown"}`, bold: true, size: 28, font: "Arial" })],
+      children: [new TextRun({ text: `${course.subjectName || "Subject"} (${acYear}) - Faculty: Prof. ${course.teacherName || lp.facultyName || course.professorName || "Unknown"}`, bold: true, size: 28, font: "Arial" })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 200 }
     }),
     new Paragraph({
-      children: [new TextRun({ text: `Semester: ${lp.semester || "-"} | Divisions: ${(course.divisions || ["A"]).join(", ")} | Course Code: ${lp.courseCode || "-"}`, bold: true, size: 24, font: "Arial" })],
+      children: [new TextRun({ text: `Semester: ${lp.semester || "-"} | Divisions: ${divs} | Course Code: ${lp.courseCode || "-"}`, bold: true, size: 24, font: "Arial" })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 400 }
     })
@@ -184,18 +189,23 @@ export const exportLessonPlanToWord = async (req, res) => {
   }
 
   // --- 8. Books ---
-  if(lp.textBooks && lp.referenceBooks) {
-    sections.push(new Paragraph({ children: [new TextRun({ text: "Text Books:", bold: true, size: 24, font: "Arial" })], spacing: { after: 200 } }));
-    lp.textBooks.forEach(b => sections.push(new Paragraph({ children: [new TextRun({ text: b, size: 22, font: "Arial" })], bullet: { level: 0 } })));
-    sections.push(new Paragraph({ spacing: { after: 200 } }));
-    
-    sections.push(new Paragraph({ children: [new TextRun({ text: "Reference Books:", bold: true, size: 24, font: "Arial" })], spacing: { after: 200 } }));
-    lp.referenceBooks.forEach(b => sections.push(new Paragraph({ children: [new TextRun({ text: b, size: 22, font: "Arial" })], bullet: { level: 0 } })));
-    sections.push(new Paragraph({ spacing: { after: 400 } }));
+  const textBooks = Array.isArray(lp.textBooks) ? lp.textBooks : [];
+  const referenceBooks = Array.isArray(lp.referenceBooks) ? lp.referenceBooks : [];
+  if (textBooks.length > 0 || referenceBooks.length > 0) {
+    if (textBooks.length > 0) {
+      sections.push(new Paragraph({ children: [new TextRun({ text: "Text Books:", bold: true, size: 24, font: "Arial" })], spacing: { after: 200 } }));
+      textBooks.forEach(b => sections.push(new Paragraph({ children: [new TextRun({ text: String(b || ""), size: 22, font: "Arial" })], bullet: { level: 0 } })));
+      sections.push(new Paragraph({ spacing: { after: 200 } }));
+    }
+    if (referenceBooks.length > 0) {
+      sections.push(new Paragraph({ children: [new TextRun({ text: "Reference Books:", bold: true, size: 24, font: "Arial" })], spacing: { after: 200 } }));
+      referenceBooks.forEach(b => sections.push(new Paragraph({ children: [new TextRun({ text: String(b || ""), size: 22, font: "Arial" })], bullet: { level: 0 } })));
+      sections.push(new Paragraph({ spacing: { after: 400 } }));
+    }
   }
 
   // --- 9. Day Wise Plans ---
-  if(lp.dayWiseEnrichment) {
+  if(Array.isArray(lp.dayWiseEnrichment) && lp.dayWiseEnrichment.length > 0) {
     const divs = course.divisions && course.divisions.length > 0 ? course.divisions : ["A"];
     
     // Formatting parser mirroring UI
@@ -233,12 +243,12 @@ export const exportLessonPlanToWord = async (req, res) => {
 
          dwRows.push(new TableRow({ children: [
            cell(idx + 1, {bold: true, align: AlignmentType.CENTER}),
-           cell(lec.title, {size: 18}),
+           cell(lec.title || "-", {size: 18}),
            cell(localLecNo, {bold: true, align: AlignmentType.CENTER}),
-           cell(enrichment.books, {align: AlignmentType.CENTER, size: 18}),
+           cell(enrichment.books || "-", {align: AlignmentType.CENTER, size: 18}),
            cell(fd(mapDates.proposed || lec.date), {align: AlignmentType.CENTER, size: 18}),
            cell(fd(mapDates.actual || lec.date), {align: AlignmentType.CENTER, size: 18}),
-           cell(enrichment.method, {align: AlignmentType.CENTER, size: 18}),
+           cell(enrichment.method || "-", {align: AlignmentType.CENTER, size: 18}),
            cell(moduleBT, {align: AlignmentType.CENTER, size: 18})
          ]}));
       });
