@@ -1,0 +1,229 @@
+.timetable-wrapper {
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.timetable-header-info, .timetable-footer {
+  display: none;
+}
+
+.timetable-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.interactive-timetable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  table-layout: fixed;
+}
+
+.interactive-timetable th, .interactive-timetable td {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  padding: 8px;
+  font-size: 0.85rem;
+}
+
+.interactive-timetable th {
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.day-col {
+  width: 100px;
+}
+
+.day-name {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.break-cell {
+  padding: 0 !important;
+  vertical-align: middle;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-weight: bold;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  margin: 0 auto;
+}
+
+.filled-cell {
+  cursor: pointer;
+  transition: all 0.2s;
+  vertical-align: middle;
+  border-radius: 4px;
+}
+
+.filled-cell:hover {
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.empty-cell {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.empty-cell:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.batches-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.batch-row {
+  font-size: 0.8rem;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.single-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.subject-title {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.teacher-name {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+/* ========================================= */
+/* PRINT STYLES                              */
+/* ========================================= */
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  .timetable-wrapper, .timetable-wrapper * {
+    visibility: visible;
+  }
+  .timetable-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    padding: 20px !important;
+  }
+
+  .timetable-header-info {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .timetable-logos h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    color: #9e1b22 !important; 
+  }
+  
+  .timetable-logos h3 {
+    margin: 2px 0;
+    font-size: 1.2rem;
+    letter-spacing: 5px;
+    color: #000 !important;
+  }
+  
+  .timetable-logos p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  
+  .timetable-titles h3 {
+    text-decoration: underline;
+    margin: 15px 0 5px 0;
+    font-size: 1.2rem;
+  }
+  
+  .timetable-titles h4, .timetable-titles h5 {
+    text-decoration: underline;
+    margin: 5px 0;
+    font-size: 1.1rem;
+  }
+  
+  .timetable-meta {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    padding: 0 10px;
+  }
+
+  .interactive-timetable th, .interactive-timetable td {
+    border: 2px solid #000000 !important;
+    color: #000 !important;
+  }
+
+  .interactive-timetable th {
+    background: transparent !important;
+  }
+
+  .break-cell {
+    background: transparent !important;
+  }
+
+  .timetable-footer {
+    display: flex !important;
+    justify-content: space-between;
+    margin-top: 30px;
+    font-size: 0.85rem;
+  }
+
+  .teacher-legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px 20px;
+  }
+
+  .signatures {
+    display: flex;
+    gap: 50px;
+    align-items: flex-end;
+  }
+
+  .sig-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sig-line {
+    width: 120px;
+    border-bottom: 1px solid #000;
+    margin-bottom: 5px;
+  }
+}

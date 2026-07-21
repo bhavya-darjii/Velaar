@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
 import { TEACHER_NAV } from '../config/navigation';
 import './TeacherLayout.css';
@@ -29,9 +30,16 @@ const TeacherLayout = () => {
   const [teacherName, setTeacherName] = useState("");
 
   useEffect(() => {
-    const initDashboard = async () => {
-      // ProtectedRoute strictly guarantees auth.currentUser exists before this mounts!
-      const user = auth.currentUser;
+    // Use onAuthStateChanged to guarantee the user UID is available before querying.
+    // In production after a fresh SSO login, auth.currentUser can be null at mount
+    // time even though authentication completed, causing an empty Firestore query
+    // that incorrectly redirects to /teacher/create-course.
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       let teacherName = "Teacher";
 
       try {
@@ -82,9 +90,9 @@ const TeacherLayout = () => {
         console.error("Error loading course:", err);
       }
       setLoading(false);
-    };
+    });
 
-    initDashboard();
+    return () => unsubscribe();
   }, [navigate]);
 
   // NOTE: No early return here — always render the full shell to prevent layout shift.

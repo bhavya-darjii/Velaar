@@ -30,6 +30,7 @@ export const ADMIN_NAV = [
 
 export const HOD_NAV = [
   { path: '/hod', label: 'Dashboard' },
+  { path: '/hod/timetable-generator', label: 'Timetable Generator' },
   { path: '/hod/mapping', label: 'Course Mapping' },
   { path: '/hod/feedback-analytics', label: 'Feedback Analytics' },
   { path: '/hod/meeting-minutes', label: 'Meeting Minutes' },

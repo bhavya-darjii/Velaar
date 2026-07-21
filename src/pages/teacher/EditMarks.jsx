@@ -19,12 +19,14 @@ const EditMarks = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const q = query(
-          collection(db, 'users'), 
-          where('userType', '==', 'student'),
-          where('institutionId', '==', course.collegeId),
-          where('semester', '==', course.semester)
-        );
+        const queryConstraints = [where('userType', '==', 'student')];
+        if (course?.collegeId) {
+          queryConstraints.push(where('institutionId', '==', course.collegeId));
+        }
+        if (course?.semester) {
+          queryConstraints.push(where('semester', '==', course.semester));
+        }
+        const q = query(collection(db, 'users'), ...queryConstraints);
         const snap = await getDocs(q);
         const loadedStudents = [];
         snap.forEach(d => {
@@ -142,7 +144,7 @@ const EditMarks = () => {
       <div className="back-arrow" style={{marginBottom: '20px', display: 'inline-flex'}} onClick={() => navigate('/teacher/marks')}>
         <span>←</span> Back to Dashboard
       </div>
-      <div className="edit-marks-header glass">
+      <div className="edit-marks-header glass-card">
         <h2>Edit Marks: {examTitle}</h2>
         <button className="save-btn" onClick={saveMarks} disabled={isSaving || questions.length === 0}>
           {isSaving ? "Saving..." : "Save Marks"}
@@ -150,13 +152,13 @@ const EditMarks = () => {
       </div>
 
       {questions.length === 0 ? (
-        <div className="glass" style={{padding: '40px', textAlign: 'center', borderRadius: '16px', color: '#ffffff'}}>
+        <div className="glass-card" style={{padding: '40px', textAlign: 'center', borderRadius: '16px', color: '#ffffff'}}>
           <h3 style={{color: 'white', marginBottom: '10px'}}>No Paper Pattern Found</h3>
           <p>Please go to the <strong>Question Papers</strong> tab and configure the paper pattern for {examTitle} before editing marks.</p>
           <button className="velaar-btn" style={{marginTop: '20px'}} onClick={() => navigate(`/teacher/examination/${examId}`)}>Configure Pattern</button>
         </div>
       ) : (
-        <div className="marks-table-wrapper glass">
+        <div className="marks-table-wrapper glass-card">
           <table className="marks-table">
             <thead>
               <tr>

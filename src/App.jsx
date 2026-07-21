@@ -140,6 +140,7 @@ function App() {
                   <Route path="mapping" element={<CourseMapping />} />
                   <Route path="feedback-analytics" element={<FeedbackAnalytics />} />
                   <Route path="meeting-minutes" element={<MeetingMinutes />} />
+                  <Route path="timetable-generator" element={<TimetableGenerator />} />
                 </Route>
 
                 {/* Student nested routes */}

@@ -68,13 +68,6 @@ const HodDashboard = () => {
 
   return (
     <div className="hod-container">
-      <div className="feature-hero" style={{ marginBottom: 32 }}>
-        <div>
-          <h2 style={{ margin: '0 0 6px', fontSize: '1.5rem', fontWeight: 800 }}>Welcome back, {fullName || 'HOD'}</h2>
-          <p style={{ margin: 0, color: 'rgba(255,255,255,0.55)' }}>{departmentName} · Department Overview</p>
-        </div>
-      </div>
-
       {/* ── Stat Strip ── */}
       <div className="hod-stat-strip">
         <div className="hod-stat">
@@ -170,6 +163,16 @@ const HodDashboard = () => {
           <h2 className="hod-card-title">Outcome Based Education</h2>
           <p>Review CO-PO attainment levels and bloom's taxonomy coverage for recent examinations.</p>
           <button className="hod-btn">View Attainment</button>
+        </div>
+
+        {/* Timetable card */}
+        <div className="hod-card">
+          <div className="hod-card-icon" style={{ color: '#ffffff' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <h2 className="hod-card-title">Timetable Generator</h2>
+          <p>Generate, manage, and export departmental timetables automatically using constraints.</p>
+          <button className="hod-btn" onClick={() => navigate('/hod/timetable-generator')}>Generate Timetable</button>
         </div>
 
       </div>
