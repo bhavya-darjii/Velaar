@@ -1,6 +1,6 @@
-import { adminDb } from '../firebaseAdmin.js';
+﻿import { adminDb } from '../firebaseAdmin.js';
 
-// ─── GET /api/admin/summary ───────────────────────────────────────────────────
+// â”€â”€â”€ GET /api/admin/summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const getAdminSummary = async (req, res) => {
   if (!adminDb) {
     return res.status(500).json({ error: "Server Configuration Error: GOOGLE_SERVICE_ACCOUNT_KEY is missing on Render. Admin Database unavailable." });
@@ -10,27 +10,27 @@ export const getAdminSummary = async (req, res) => {
     const statsSnapshot = await adminDb.collection('aiStats').get();
     const stats = statsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // ── Totals ────────────────────────────────────────────────────────────────
+    // â”€â”€ Totals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const globalStat = stats.find(s => s.id === 'global') || { totalCalls: 0, totalCostINR: 0, totalTokensIn: 0, totalTokensOut: 0 };
     const { totalCalls, totalCostINR, totalTokensIn, totalTokensOut } = globalStat;
 
-    // ── Per-month breakdown ───────────────────────────────────────────────────
+    // â”€â”€ Per-month breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const monthlyData = stats
       .filter(s => s.id.startsWith('month_'))
       .sort((a, b) => a.month.localeCompare(b.month))
       .slice(-6);
 
-    // ── Per-teacher breakdown ─────────────────────────────────────────────────
+    // â”€â”€ Per-teacher breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const teacherData = stats
       .filter(s => s.id.startsWith('teacher_'))
       .sort((a, b) => b.costINR - a.costINR);
 
-    // ── Per-action breakdown ──────────────────────────────────────────────────
+    // â”€â”€ Per-action breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const actionData = stats
       .filter(s => s.id.startsWith('action_'))
       .sort((a, b) => b.calls - a.calls);
 
-    // ── Current month stats ───────────────────────────────────────────────────
+    // â”€â”€ Current month stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const now          = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const thisMonth    = stats.find(s => s.id === `month_${currentMonth}`) || { calls: 0, costINR: 0 };
@@ -50,7 +50,7 @@ export const getAdminSummary = async (req, res) => {
   }
 };
 
-// ─── GET /api/admin/logs ──────────────────────────────────────────────────────
+// â”€â”€â”€ GET /api/admin/logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const getAdminLogs = async (req, res) => {
   if (!adminDb) {
     return res.status(500).json({ error: "Server Configuration Error: GOOGLE_SERVICE_ACCOUNT_KEY is missing on Render. Admin Database unavailable." });

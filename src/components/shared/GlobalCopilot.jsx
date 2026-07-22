@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import VelaarCopilotV2 from './VelaarCopilotV2';
+import VelaarCopilot from './VelaarCopilot';
 
 const HIDE_COPILOT_PATHS = ['/', '/pending', '/setup'];
 
@@ -21,7 +21,7 @@ const GlobalCopilot = ({ userRole }) => {
   if (!userRole || userRole === 'pending' || userRole === 'setup') return null;
 
   const role = userRole || getRoleFromPath(location.pathname);
-  return <VelaarCopilotV2 userRole={role} />;
+  return <VelaarCopilot userRole={role} />;
 };
 
 export default GlobalCopilot;

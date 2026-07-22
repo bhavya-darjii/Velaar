@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 dotenv.config();
 
 import { logAiUsage } from '../utils/logAiUsage.js';
@@ -6,7 +6,7 @@ import { logAiUsage } from '../utils/logAiUsage.js';
 const API_KEY = process.env.GOOGLE_API_KEY;
 
 const callGemini = async (bodyPayload) => {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -136,7 +136,7 @@ export const generateStudyMaterial = async (req, res) => {
 
   const prompt = `
     Role: Engineering Study Material Author.
-    Mode: ${mode === 'eli5' ? 'Explain Like I\'m 5 — simple analogies' : 'Exam-ready — concise, formula-heavy'}
+    Mode: ${mode === 'eli5' ? 'Explain Like I\'m 5 â€” simple analogies' : 'Exam-ready â€” concise, formula-heavy'}
 
     Subject: ${subjectName}
     Topics: ${JSON.stringify(syllabusTopics)}

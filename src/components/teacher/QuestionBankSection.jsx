@@ -186,6 +186,14 @@ const ExamSection = ({ course }) => {
         course.pastNumericals || []
       );
 
+      if (!questions || questions.error || !Array.isArray(questions)) {
+        throw new Error(questions?.error || "AI could not generate questions. Check backend connectivity.");
+      }
+
+      if (questions.length === 0) {
+        throw new Error("AI returned an empty question bank.");
+      }
+
       // Extract new numericals to feed back into context memory limit to 5
       const newNumericals = questions.filter(q => q.isNumerical).map(q => q.question);
       let updatedNumericals = [...(course.pastNumericals || [])];
@@ -257,7 +265,7 @@ const ExamSection = ({ course }) => {
       </div>
 
       <div className="settings-group">
-        <label className="group-title">Incude Numericals (Max: {numQuestions})</label>
+        <label className="group-title">Include Numericals (Max: {numQuestions})</label>
         <input
           type="number"
           min="0"

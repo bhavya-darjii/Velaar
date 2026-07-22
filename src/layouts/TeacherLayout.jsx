@@ -4,6 +4,7 @@ import { auth, db } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
 import { TEACHER_NAV } from '../config/navigation';
+import { useCopilotContext } from '../context/CopilotContext';
 import './TeacherLayout.css';
 
 const TEACHER_GREETINGS = [
@@ -27,6 +28,7 @@ const TeacherLayout = () => {
   const [currentLecture, setCurrentLecture] = useState(null);
   const [greetingBase] = useState(() => TEACHER_GREETINGS[Math.floor(Math.random() * TEACHER_GREETINGS.length)]);
   const [greeting, setGreeting] = useState(greetingBase + " Teacher.");
+  const { setPageContext } = useCopilotContext();
   const [teacherName, setTeacherName] = useState("");
 
   useEffect(() => {
@@ -70,6 +72,8 @@ const TeacherLayout = () => {
           const docId = querySnapshot.docs[0].id;
           const courseData = { id: docId, teacherName, ...docData };
           setCourse(courseData);
+          // Push course into CopilotContext so the assistant can use it without asking
+          setPageContext({ course: courseData });
           
           let allLectures = [];
           if (courseData.roadmap && !Array.isArray(courseData.roadmap)) {

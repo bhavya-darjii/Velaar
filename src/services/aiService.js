@@ -105,7 +105,7 @@ export const generateQuestionsFromTopics = async (completedTopics, examLength, b
     return await aiPost('generate-questions-topics', { completedTopics, examLength, btPreferences, numericalCount, numericalPrompt, pastNumericals });
   } catch (error) {
     console.error("Topic Exam Gen Error:", error);
-    return [];
+    return { error: error.message || "Failed to generate questions" };
   }
 };
 
@@ -172,14 +172,8 @@ export const generateCoPoMapping = async (courseOutcomes, programOutcomes) => {
   }
 };
 
-export const sendCopilotMessage = async (messages, context = {}) => {
-  try {
-    return await aiPost('copilot-chat', { messages, ...context });
-  } catch (error) {
-    console.error("Copilot Message Error", error);
-    return { reply: "I'm having trouble connecting right now. Please try again later." };
-  }
-};
+
+
 
 export const evaluateAnswerScript = async (payload) => {
   try {
@@ -287,3 +281,35 @@ export const generateTimetable = async (payload) => {
     return { error: 'Failed to generate timetable.' };
   }
 };
+export const classifyCopilotIntent = async (prompt, context) => {
+  try {
+    return await aiPost("intent", { prompt, context });
+  } catch (error) {
+    console.error("Copilot Intent Error:", error);
+    return { error: "Failed to classify intent" };
+  }
+};
+
+
+export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel, pageContext) => {
+  try {
+    const ctx = await getTeacherContext();
+    const res = await fetch(`${API_URL}/copilot-chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages,
+        userRole,
+        pagePath,
+        pageLabel,
+        pageContext: pageContext || {},
+        ...ctx,
+      }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error("Copilot Chat Error:", error);
+    return { error: "Failed to reach Velaar AI." };
+  }
+};
+

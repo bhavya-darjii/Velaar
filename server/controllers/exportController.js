@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign } from "docx";
+﻿import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign } from "docx";
 import { logAiUsage } from '../utils/logAiUsage.js';
 
 const hText = (text, bold = false) => new Paragraph({ 
@@ -470,13 +470,13 @@ export const exportTemplatedExam = async (req, res) => {
           ${numericalPrompt ? `"${numericalPrompt}"` : "Generate numerical problems based on general engineering/science applications."}
           
           ${looksLikeExample ? `
-          ⚠️ TEMPLATE REWRITING MODE:
+          âš ï¸ TEMPLATE REWRITING MODE:
           The guidance above is a SPECIFIC PROBLEM/EXAMPLE. You MUST:
           1. Generate the EXACT SAME TYPE of problem (same algorithm, same concept, same domain).
           2. CHANGE the specific values (e.g., use a different array, different graph edges, different voltage).
           3. Do NOT generate numericals from any other topic.
           ` : `
-          ⚠️ TOPIC MODE: Use the guidance above as the exact subject area.
+          âš ï¸ TOPIC MODE: Use the guidance above as the exact subject area.
           `}
 
           ${pastNumericals && pastNumericals.length > 0 ? `
@@ -625,7 +625,7 @@ export const exportTemplatedExam = async (req, res) => {
         const systemInstruction = `You are a strict Universal Academic Exam Specialist.
         YOUR ONLY JOB is to generate EXACTLY the requested JSON structure. No explanations, no markdown. Answer purely based on the context provided in the prompt.`;
         
-        const fetchResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_KEY}`, {
+        const fetchResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${AI_KEY}`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             systemInstruction: { parts: [{ text: systemInstruction }] },

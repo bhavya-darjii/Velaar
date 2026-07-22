@@ -5,9 +5,9 @@ import { logAiUsage } from '../utils/logAiUsage.js';
 
 const API_KEY = process.env.GOOGLE_API_KEY;
 
-// ─── Helper: call Gemini and return { data, usage } ──────────────────────────
+// â”€â”€â”€ Helper: call Gemini and return { data, usage } â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const callGemini = async (bodyPayload) => {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -16,7 +16,7 @@ const callGemini = async (bodyPayload) => {
   return response.json();
 };
 
-// ─── Extract teacher context from request body ────────────────────────────────
+// â”€â”€â”€ Extract teacher context from request body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const getCtx = (req) => ({
   teacherId:    req.body.teacherId    || 'unknown',
   teacherEmail: req.body.teacherEmail || '',
@@ -25,7 +25,7 @@ const getCtx = (req) => ({
   subjectName:  req.body.subjectName  || '',
 });
 
-// ─── 1. Generate Lecture Roadmap ──────────────────────────────────────────────
+// â”€â”€â”€ 1. Generate Lecture Roadmap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateLectureRoadmap = async (req, res) => {
   const { syllabusText, totalLectures, acceptedModules } = req.body;
   const ctx = getCtx(req);
@@ -91,7 +91,7 @@ export const generateLectureRoadmap = async (req, res) => {
   }
 };
 
-// ─── 2. Generate Questions from Topics ───────────────────────────────────────
+// â”€â”€â”€ 2. Generate Questions from Topics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateQuestionsFromTopics = async (req, res) => {
   const {
     completedTopics, examLength,
@@ -111,26 +111,54 @@ export const generateQuestionsFromTopics = async (req, res) => {
   const numNumerical = Math.min(examLength, numericalCount);
 
   const callAI = async (promptText, systemInstructionText) => {
-    const data = await callGemini({
-      systemInstruction: { parts: [{ text: systemInstructionText }] },
-      contents: [{ parts: [{ text: promptText }] }],
-      generationConfig: { responseMimeType: 'application/json' },
-    });
+    try {
+      const data = await callGemini({
+        systemInstruction: { parts: [{ text: systemInstructionText }] },
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: { responseMimeType: 'application/json' },
+      });
 
-    const usage = data.usageMetadata || {};
+      const usage = data.usageMetadata || {};
 
-    // Log each sub-call individually
-    await logAiUsage({
-      action: 'generate-questions-topics',
-      inputTokens: usage.promptTokenCount || 0,
-      outputTokens: usage.candidatesTokenCount || 0,
-      ...ctx,
-    });
+      // Log each sub-call individually
+      await logAiUsage({
+        action: 'generate-questions-topics',
+        inputTokens: usage.promptTokenCount || 0,
+        outputTokens: usage.candidatesTokenCount || 0,
+        ...ctx,
+      });
 
-    if (data.error || !data.candidates) return [];
-    const textResult = data.candidates[0].content.parts[0].text;
-    const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
-    try { return JSON.parse(cleanJsonStr); } catch (e) { return []; }
+      if (data.error) {
+        throw new Error(data.error.message || "Gemini API Error");
+      }
+      if (!data.candidates || !data.candidates[0]) {
+        throw new Error(data.promptFeedback?.blockReason ? `Blocked by safety filter: ${data.promptFeedback.blockReason}` : "No response from AI");
+      }
+
+      const textResult = data.candidates[0].content.parts[0].text;
+      
+      // Robust JSON extraction
+      const match = textResult.match(/\[[\s\S]*\]/);
+      if (match) {
+        return JSON.parse(match[0]);
+      } else {
+        const objMatch = textResult.match(/\{[\s\S]*\}/);
+        if (objMatch) {
+          const parsed = JSON.parse(objMatch[0]);
+          if (Array.isArray(parsed)) return parsed;
+          if (parsed.questions && Array.isArray(parsed.questions)) return parsed.questions;
+          if (parsed.data && Array.isArray(parsed.data)) return parsed.data;
+          return [parsed];
+        }
+      }
+      
+      // Fallback
+      const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanJsonStr);
+    } catch (e) {
+      console.error("callAI Error:", e);
+      return { error: e.message || "Failed to generate or parse response" };
+    }
   };
 
   let theoryQuestions = [];
@@ -158,6 +186,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
       ]
     `;
     theoryQuestions = await callAI(theoryPrompt, theorySystem);
+    if (theoryQuestions.error) return res.status(500).json(theoryQuestions);
   }
 
   if (numNumerical > 0) {
@@ -171,13 +200,13 @@ export const generateQuestionsFromTopics = async (req, res) => {
       ${numericalPrompt ? `"${numericalPrompt}"` : 'Generate numerical problems based on general engineering/science applications.'}
 
       ${isFullExample ? `
-      ⚠️ TEMPLATE REWRITING MODE:
+      âš ï¸ TEMPLATE REWRITING MODE:
       The guidance above is a SPECIFIC PROBLEM/EXAMPLE. You MUST:
       1. Generate the EXACT SAME TYPE of problem (same algorithm/concept/domain).
       2. CHANGE the specific values (e.g. use a different array, different graph edges, different voltage).
       3. Do NOT generate numericals from any other topic.
       ` : `
-      ⚠️ TOPIC MODE: Use the guidance above as the exact subject area.
+      âš ï¸ TOPIC MODE: Use the guidance above as the exact subject area.
       `}
 
       ${pastNumericals && pastNumericals.length > 0 ? `
@@ -199,6 +228,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
       ]
     `;
     const fetchedNumericals = await callAI(numPrompt, numSystem);
+    if (fetchedNumericals.error) return res.status(500).json(fetchedNumericals);
     if (Array.isArray(fetchedNumericals)) {
       numericalQuestions = fetchedNumericals.map(q => ({ ...q, isNumerical: true }));
     }
@@ -216,7 +246,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
   return res.status(200).json(combined);
 };
 
-// ─── 3. Generate Questions from Syllabus ─────────────────────────────────────
+// â”€â”€â”€ 3. Generate Questions from Syllabus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateQuestionsFromSyllabus = async (req, res) => {
   const { syllabus, examLength } = req.body;
   const ctx = getCtx(req);
@@ -253,7 +283,7 @@ export const generateQuestionsFromSyllabus = async (req, res) => {
   }
 };
 
-// ─── 4. Grade Full Exam ───────────────────────────────────────────────────────
+// â”€â”€â”€ 4. Grade Full Exam â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const gradeFullExam = async (req, res) => {
   const { syllabus, examData } = req.body;
   const ctx = getCtx(req);
@@ -303,7 +333,7 @@ export const gradeFullExam = async (req, res) => {
   }
 };
 
-// ─── 5. Generate Lesson Plan ──────────────────────────────────────────────────
+// â”€â”€â”€ 5. Generate Lesson Plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateLessonPlan = async (req, res) => {
   const { subjectName, modules } = req.body;
   const ctx = getCtx(req);
@@ -368,7 +398,7 @@ export const generateLessonPlan = async (req, res) => {
   }
 };
 
-// ─── 6. Generate Specific Field ───────────────────────────────────────────────
+// â”€â”€â”€ 6. Generate Specific Field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateSpecificField = async (req, res) => {
   const { type, subjectName, modules } = req.body;
   const ctx = getCtx(req);
@@ -410,7 +440,7 @@ export const generateSpecificField = async (req, res) => {
   }
 };
 
-// ─── 7. Generate Supplementary Lesson Plan ────────────────────────────────────
+// â”€â”€â”€ 7. Generate Supplementary Lesson Plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateSupplementaryLessonPlan = async (req, res) => {
   const { subjectName, modules } = req.body;
   const ctx = getCtx(req);
@@ -477,7 +507,7 @@ export const generateSupplementaryLessonPlan = async (req, res) => {
   }
 };
 
-// ─── 8. Generate Day-Wise Enrichment ─────────────────────────────────────────
+// â”€â”€â”€ 8. Generate Day-Wise Enrichment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateDayWiseEnrichment = async (req, res) => {
   const { subjectName, roadmapTitles, textBooks = [], refBooks = [] } = req.body;
   const ctx = getCtx(req);
@@ -533,7 +563,7 @@ export const generateDayWiseEnrichment = async (req, res) => {
   }
 };
 
-// ─── 9. Generate CO-PO Mapping ────────────────────────────────────────────────
+// â”€â”€â”€ 9. Generate CO-PO Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const generateCoPoMapping = async (req, res) => {
   const { courseOutcomes, programOutcomes } = req.body;
   const ctx = getCtx(req);
@@ -598,7 +628,7 @@ export const generateCoPoMapping = async (req, res) => {
   }
 };
 
-// ─── 10. Velaar Copilot Chat ───────────────────────────────────────────────────
+// â”€â”€â”€ 10. Velaar Copilot Chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const copilotChat = async (req, res) => {
   const { messages, userRole = 'teacher', pagePath = '', pageLabel = '', pageContext = {} } = req.body;
   const ctx = getCtx(req);
@@ -609,13 +639,13 @@ export const copilotChat = async (req, res) => {
 
   const slashHints = `
     Slash commands you understand:
-    /generate-rubric — guide user to Rubric Generator
-    /summarize-syllabus — summarize syllabus topics
-    /draft-notice — draft a formal college notice
+    /generate-rubric â€” guide user to Rubric Generator
+    /summarize-syllabus â€” summarize syllabus topics
+    /draft-notice â€” draft a formal college notice
   `;
 
   const systemPrompt = `
-    Role: You are "Velaar Copilot V2", a context-aware AI assistant for Indian engineering colleges (Velaar ERP).
+    You are "Velaar", an AI academic assistant built into the Velaar ERP platform for Indian engineering colleges.
 
     User Context:
     - Role: ${userRole}
@@ -625,12 +655,12 @@ export const copilotChat = async (req, res) => {
     - Current Page: ${pagePath || 'unknown'} (${pageLabel || 'general'})
     - Page Data: ${JSON.stringify(pageContext).substring(0, 2000)}
 
-    ${slashHints}
+    Your Capabilities (mention naturally when relevant):
+    - Generate question banks and exam papers from completed lecture topics
+    - Generate lesson plans / curriculum roadmaps
+    - Answer anything related to academics, teaching, and the Velaar platform
 
-    Personality: Helpful, concise, respectful. Save users time.
-    You understand the user's current page and role. Give page-specific advice when relevant.
-    For actions requiring database writes, provide drafts or step-by-step guidance.
-
+    Personality: Warm, helpful, and concise. You speak naturally - not like a formal bot. If the user just says hi or chats casually, respond like a friendly AI colleague.
     CRITICAL: Keep responses concise with markdown (bolding, bullet points). No essays unless asked.
   `;
 
@@ -644,7 +674,6 @@ export const copilotChat = async (req, res) => {
     const data = await callGemini({
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: formattedContents,
-      // No JSON enforcement, standard text generation
     });
 
     const usage = data.usageMetadata || {};
@@ -670,3 +699,63 @@ export const copilotChat = async (req, res) => {
     return res.status(500).json({ error: 'Copilot Chat Error' });
   }
 };
+
+// ─── Intent Classifier for Copilot ─────────────────────────────────
+export const classifyCopilotIntent = async (req, res) => {
+  const { prompt, context } = req.body;
+  const ctx = getCtx(req);
+
+  try {
+    const systemInstruction = `
+      You are the AI brain behind the "Velaar Copilot", an academic assistant.
+      Your job is to read the user's text and determine if they want to trigger a specific generation task or just chat.
+
+      Available intents:
+      - "generate_questions": The user wants to generate an exam, quiz, or question bank.
+      - "generate_lessonplan": The user wants to generate a lesson plan or curriculum roadmap.
+      - "general_chat": Any other conversational query or question.
+
+      For "generate_questions", try to extract these parameters if provided in the text:
+      - "numQuestions" (number, e.g., 5, 10, 15)
+      - "btLevels" (string, e.g., "Remember", "Apply, Analyse")
+
+      Return ONLY a raw JSON object with this exact schema:
+      {
+        "intent": "generate_questions" | "generate_lessonplan" | "general_chat",
+        "extractedParams": {
+          "numQuestions": 10,
+          "btLevels": "Apply"
+        },
+        "reply": "Conversational response (only needed if intent is general_chat)"
+      }
+      Do NOT include any markdown formatting like \`\`\`json
+    `;
+
+    const data = await callGemini({
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ parts: [{ text: `User text: "${prompt}"\nCourse Context: ${JSON.stringify(context)}` }] }],
+      generationConfig: { responseMimeType: "application/json" }
+    });
+
+    const usage = data.usageMetadata || {};
+    await logAiUsage({
+      action: "classify-intent",
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
+
+    if (data.error) throw new Error(data.error.message);
+    
+    let textResult = data.candidates[0].content.parts[0].text;
+    textResult = textResult.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    const parsed = JSON.parse(textResult);
+    return res.status(200).json(parsed);
+
+  } catch (error) {
+    console.error("Intent Classification Error:", error);
+    return res.status(500).json({ error: "Failed to classify intent" });
+  }
+};
+

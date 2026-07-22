@@ -109,9 +109,9 @@
 .generate-btn {
   width: 100%;
   padding: 14px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
   border-radius: 12px !important;
   font-size: 1.05rem !important;
   font-weight: 800 !important;
@@ -123,8 +123,10 @@
   margin-top: 10px !important;
 }
 .generate-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
+  background: #f0f0f0 !important;
+  color: #000000 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
 }
 
 .generate-btn:disabled {

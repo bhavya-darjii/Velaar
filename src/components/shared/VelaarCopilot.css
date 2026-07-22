@@ -65,15 +65,17 @@
 /* ── Response panel ───────────────────────────────────────────── */
 .copilot-v2__panel {
   margin-bottom: 12px;
-  padding: 18px 20px;
+  padding: 18px 20px 0 20px;
   border-radius: 24px;
   background: #ffffff !important;
   color: #000000 !important;
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: copilotPanelIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 280px;
-  overflow-y: auto;
+  max-height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes copilotPanelIn {
@@ -342,3 +344,177 @@
     flex-shrink: 0;
   }
 }
+
+/* -- Thinking / Loading Animation ------------------------------- */
+.copilot-v2__thinking-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(240, 244, 255, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(94, 92, 230, 0.15);
+  margin-top: 8px;
+  width: fit-content;
+}
+
+.copilot-v2__thinking-spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(94, 92, 230, 0.2);
+  border-top-color: #5E5CE6;
+  border-radius: 50%;
+  animation: spinner 0.8s linear infinite;
+}
+
+.copilot-v2__thinking-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5E5CE6;
+  animation: pulseText 1.5s ease-in-out infinite;
+}
+
+@keyframes spinner {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseText {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+
+.copilot-v2__reply--success {
+  color: #10b981;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  margin-top: 8px;
+}
+
+.copilot-v2__reply--error {
+  color: #ef4444;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  margin-top: 8px;
+}
+
+
+/* -- Message blocks with sender labels ----------------------------- */
+.copilot-v2__message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+.copilot-v2__sender {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #999;
+  margin-bottom: 3px;
+  padding-left: 2px;
+}
+
+.copilot-v2__sender--velaar {
+  color: #5E5CE6;
+}
+
+.copilot-v2__message--user .copilot-v2__user-msg {
+  align-self: flex-end;
+  background: #f0f0f0;
+  border-radius: 14px 14px 4px 14px;
+  padding: 8px 12px;
+  margin: 0;
+  font-size: 0.88rem;
+  color: #111;
+  max-width: 90%;
+}
+
+.copilot-v2__message--user {
+  align-items: flex-end;
+}
+
+/* -- Wave dots typing indicator ------------------------------------- */
+.copilot-v2__wave-dots {
+  display: flex;
+  gap: 5px;
+  padding: 10px 4px 6px;
+  align-items: center;
+}
+
+.copilot-v2__wave-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5E5CE6;
+  animation: waveDot 1.2s ease-in-out infinite;
+}
+
+.copilot-v2__wave-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+  background: #32D2F5;
+}
+
+.copilot-v2__wave-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+  background: #BF5AF2;
+}
+
+@keyframes waveDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* reply div should not be a block p anymore */
+.copilot-v2__reply {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #111;
+}
+
+.copilot-v2__reply code {
+  background: rgba(0,0,0,0.07);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.82rem;
+  font-family: monospace;
+}
+
+
+/* -- Panel body: scrollable interior ------------------------------- */
+.copilot-v2__panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 4px 18px 0;
+  scroll-behavior: smooth;
+
+  /* Custom thin black scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.35) transparent;
+}
+
+.copilot-v2__panel-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.copilot-v2__panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.copilot-v2__panel-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 999px;
+}
+
+.copilot-v2__panel-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+

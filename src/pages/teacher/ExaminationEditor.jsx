@@ -338,7 +338,7 @@ const ExaminationEditor = () => {
             </button>
           </div>
           
-          <p style={{marginTop: '5px', display: 'flex', alignItems: 'center', minHeight: '32px'}}>
+          <div style={{marginTop: '5px', display: 'flex', alignItems: 'center', minHeight: '32px'}}>
             <span>
               {isEditMode 
                 ? "Structurally modify the paper layout. Changes autosave instantly." 
@@ -353,7 +353,7 @@ const ExaminationEditor = () => {
             }}>
               <span className="dot"></span> Syncing to Cloud...
             </div>
-          </p>
+          </div>
         </div>
       </div>
 
