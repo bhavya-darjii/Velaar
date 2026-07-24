@@ -21,6 +21,8 @@ const GlobalCopilot = ({ userRole }) => {
   if (!userRole || userRole === 'pending' || userRole === 'setup') return null;
 
   const role = userRole || getRoleFromPath(location.pathname);
+  if (role === 'student') return null;
+  
   return <VelaarCopilot userRole={role} />;
 };
 

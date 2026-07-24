@@ -61,7 +61,7 @@ export const setAiContextCourse = (courseId, subjectName) => {
 export const clearAiContext = () => { _cachedCtx = null; };
 
 // ─── Shared fetch helper ──────────────────────────────────────────────────────
-const aiPost = async (endpoint, body) => {
+const aiPost = async (endpoint, body, options = {}) => {
   const ctx = await getTeacherContext();
   let res;
   try {
@@ -69,8 +69,10 @@ const aiPost = async (endpoint, body) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...body, ...ctx }),
+      signal: options.signal,
     });
   } catch (err) {
+    if (err.name === 'AbortError') throw err;
     console.error(`Network error calling ${endpoint}:`, err);
     return { error: 'Unable to reach Velaar server. Is the backend running on port 5000?' };
   }
@@ -100,10 +102,11 @@ export const generateLectureRoadmap = async (syllabusText, totalLectures, accept
   }
 };
 
-export const generateQuestionsFromTopics = async (completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = "", pastNumericals = []) => {
+export const generateQuestionsFromTopics = async (completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = "", pastNumericals = [], options = {}) => {
   try {
-    return await aiPost('generate-questions-topics', { completedTopics, examLength, btPreferences, numericalCount, numericalPrompt, pastNumericals });
+    return await aiPost('generate-questions-topics', { completedTopics, examLength, btPreferences, numericalCount, numericalPrompt, pastNumericals }, options);
   } catch (error) {
+    if (error.name === 'AbortError') throw error;
     console.error("Topic Exam Gen Error:", error);
     return { error: error.message || "Failed to generate questions" };
   }
@@ -127,10 +130,11 @@ export const gradeFullExam = async (syllabus, examData) => {
   }
 };
 
-export const generateLessonPlan = async (subjectName, modules) => {
+export const generateLessonPlan = async (subjectName, modules, options = {}) => {
   try {
-    return await aiPost('generate-lesson-plan', { subjectName, modules });
+    return await aiPost('generate-lesson-plan', { subjectName, modules }, options);
   } catch (error) {
+    if (error.name === 'AbortError') throw error;
     console.error("Lesson Plan Generation Error:", error);
     return null;
   }
@@ -281,17 +285,18 @@ export const generateTimetable = async (payload) => {
     return { error: 'Failed to generate timetable.' };
   }
 };
-export const classifyCopilotIntent = async (prompt, context) => {
+export const classifyCopilotIntent = async (prompt, context, options = {}) => {
   try {
-    return await aiPost("intent", { prompt, context });
+    return await aiPost("intent", { prompt, context }, options);
   } catch (error) {
+    if (error.name === 'AbortError') throw error;
     console.error("Copilot Intent Error:", error);
     return { error: "Failed to classify intent" };
   }
 };
 
 
-export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel, pageContext) => {
+export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel, pageContext, options = {}) => {
   try {
     const ctx = await getTeacherContext();
     const res = await fetch(`${API_URL}/copilot-chat`, {
@@ -305,9 +310,11 @@ export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel
         pageContext: pageContext || {},
         ...ctx,
       }),
+      signal: options?.signal,
     });
     return res.json();
   } catch (error) {
+    if (error.name === 'AbortError') throw error;
     console.error("Copilot Chat Error:", error);
     return { error: "Failed to reach Velaar AI." };
   }

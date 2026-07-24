@@ -141,6 +141,7 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
   const panelBodyRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     const fetchName = async () => {
@@ -194,8 +195,8 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
     }
   }, [messages, isTyping]);
 
-  const addMessage = (role, content, status = "normal") => {
-    setMessages((prev) => [...prev, { role, content, status }]);
+  const addMessage = (role, content, status = "normal", retryAction = null) => {
+    setMessages((prev) => [...prev, { role, content, status, retryAction }]);
   };
 
   const runGenerate = async (flowType, params) => {
@@ -228,12 +229,26 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
 
       if (course?.id) setAiContextCourse(course.id, course.subjectName);
 
-      const questions = await generateQuestionsFromTopics(
-        completedTopics,
-        numQuestions,
-        btLevels,
-        0, "", []
-      );
+      abortControllerRef.current = new AbortController();
+      const options = { signal: abortControllerRef.current.signal };
+
+      let questions;
+      try {
+        questions = await generateQuestionsFromTopics(
+          completedTopics,
+          numQuestions,
+          btLevels,
+          0, "", [],
+          options
+        );
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          addMessage("assistant", "Execution stopped.", "aborted", () => runGenerate(flowType, params));
+          setIsTyping(false);
+          return;
+        }
+        throw err;
+      }
 
       if (!questions || questions.error || !Array.isArray(questions) || questions.length === 0) {
         addMessage("assistant", questions?.error || "Could not generate questions. Please try again or use the full Question Bank page.", "error");
@@ -268,10 +283,24 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
         return;
       }
 
-      const lessonPlan = await generateLessonPlan(
-        course?.subjectName || "Course",
-        course?.modules || []
-      );
+      abortControllerRef.current = new AbortController();
+      const options = { signal: abortControllerRef.current.signal };
+
+      let lessonPlan;
+      try {
+        lessonPlan = await generateLessonPlan(
+          course?.subjectName || "Course",
+          course?.modules || [],
+          options
+        );
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          addMessage("assistant", "Execution stopped.", "aborted", () => runGenerate(flowType, params));
+          setIsTyping(false);
+          return;
+        }
+        throw err;
+      }
 
       if (!lessonPlan) {
         addMessage("assistant", "Could not generate the lesson plan. Please try again or use the full Lesson Plan page.", "error");
@@ -320,18 +349,42 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
     }
 
     setIsTyping(true);
-    const intentRes = await classifyCopilotIntent(msg, pageContext?.course || {});
+    abortControllerRef.current = new AbortController();
+    const options = { signal: abortControllerRef.current.signal };
+
+    let intentRes;
+    try {
+      intentRes = await classifyCopilotIntent(msg, pageContext?.course || {}, options);
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        addMessage("assistant", "Execution stopped.", "aborted", () => handleSend(msg));
+        setIsTyping(false);
+        return;
+      }
+      throw err;
+    }
 
     if (intentRes.error || !intentRes.intent || intentRes.intent === "general_chat") {
       // Use real AI chat for general responses
       const chatHistory = [...messages, { role: "user", content: msg }];
-      const chatRes = await sendCopilotMessage(
-        chatHistory,
-        userRole,
-        location.pathname,
-        "",
-        pageContext?.course || {}
-      );
+      let chatRes;
+      try {
+        chatRes = await sendCopilotMessage(
+          chatHistory,
+          userRole,
+          location.pathname,
+          "",
+          pageContext?.course || {},
+          options
+        );
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          addMessage("assistant", "Execution stopped.", "aborted", () => handleSend(msg));
+          setIsTyping(false);
+          return;
+        }
+        throw err;
+      }
       addMessage("assistant", chatRes.reply || chatRes.error || "Sorry, I had trouble responding.");
       setIsTyping(false);
       return;
@@ -392,7 +445,12 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
             <button
               type="button"
               className="copilot-v2__panel-close"
-              onClick={() => { setShowPanel(false); setMessages([]); setFlow(null); }}
+              onClick={() => { 
+                if (isTyping && abortControllerRef.current) {
+                  abortControllerRef.current.abort();
+                }
+                setShowPanel(false); 
+              }}
               aria-label="Close"
             >
               ×
@@ -410,7 +468,16 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
                   <span className="copilot-v2__sender copilot-v2__sender--velaar">Velaar</span>
                   <div className={`copilot-v2__reply copilot-v2__reply--${m.status || 'normal'}`}>
                     {m.status === 'error' && <span style={{marginRight: '6px'}}>&#9888;</span>}
+                    {m.status === 'aborted' && <span style={{marginRight: '6px'}}>&#9888;</span>}
                     {renderMarkdown(m.content)}
+                    {m.retryAction && (
+                      <button 
+                        onClick={() => m.retryAction()} 
+                        style={{marginTop: "8px", padding: "6px 12px", background: "#000", color: "#fff", border: "none", borderRadius: "16px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600"}}
+                      >
+                        Restart
+                      </button>
+                    )}
                   </div>
                 </div>
               )
