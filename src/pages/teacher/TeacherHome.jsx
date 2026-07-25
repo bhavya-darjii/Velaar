@@ -1,4 +1,4 @@
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { ActiveLecture, RoadmapSidebar } from '../../components/teacher/CourseChecklist';
 import HomePageSkeleton from '../../components/skeletons/HomePageSkeleton';
 import './TeacherHome.css';
