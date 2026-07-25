@@ -3,7 +3,6 @@
    ════════════════════════════════════════════════════════════ */
 
 .admin-root {
-  min-height: 100vh;
   /* Fill full width of the flex content-layer parent */
   width: 100%;
   flex: 1;

@@ -5,22 +5,10 @@
 */
 .mesh-background {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   z-index: -1;
   overflow: hidden;
   background-color: #0a1628; /* Matches image dominant color — no flash */
-}
-
-@media (max-width: 768px) {
-  .mesh-background {
-    position: sticky;
-    top: -100px;
-    height: calc(100vh + 400px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
-    margin-bottom: calc(-100vh - 400px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  }
 }
 
 .mesh-background-image {

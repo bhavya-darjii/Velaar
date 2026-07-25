@@ -1,29 +1,14 @@
-/* 
-  1. BASE RESETS
-   Do NOT set overflow-x: hidden on body globally; it breaks Safari scroll hiding!
-*/
 html, body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
   background-color: transparent; 
 }
 
-/* Restore exact previous desktop scroll logic */
-@media (min-width: 769px) {
-  html, body {
-    overflow-x: hidden;
-  }
-}
-
-/* We need #root to allow natural document flow so Safari can hide its top/bottom bars.
-   min-height: 100dvh on mobile forces it to always be exactly viewport height, 
-   rather than shrink-wrapping to its content. */
 #root {
   width: 100%;
-  overflow-x: clip; /* clip prevents horizontal scroll without breaking position: sticky! */
-  /* Do NOT set height/min-height here globally — let content determine height naturally
-     so the document itself scrolls (required for Safari to auto-hide its bars) */
+  min-height: 100dvh;
 }
 
 /* 2. THE FLOATING SCROLLBAR */
@@ -51,18 +36,16 @@ html, body {
 .app-layout {
   position: relative;
   width: 100%;
-  /* No min-height here on mobile — let content overflow naturally for document scroll */
+  min-height: 100dvh;
 }
 
 .background-layer {
-  position: sticky;
-  top: -100px;
+  position: fixed;
+  top: 0;
   left: 0;
-  width: 100vw;
-  height: calc(100vh + 100px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
-  margin-bottom: calc(-100vh - 100px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  height: 100dvh;
   z-index: 0;
-  /* 3. MOVE FALLBACK HERE: Now it's behind the animation AND the scrollbar */
   background-color: #111; 
 }
 

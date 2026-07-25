@@ -529,7 +529,6 @@ label:not([class]) {
   margin: 0 auto;
   padding: 24px 5% var(--shell-padding-bottom);
   box-sizing: border-box;
-  min-height: 100vh;
 }
 @media (max-width: 768px) {
   .velaar-page-shell { padding: 16px 16px var(--shell-padding-bottom); }
