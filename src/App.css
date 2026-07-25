@@ -26,12 +26,6 @@ html, body {
      so the document itself scrolls (required for Safari to auto-hide its bars) */
 }
 
-@media (min-width: 769px) {
-  #root {
-    min-height: 100dvh;
-  }
-}
-
 /* 2. THE FLOATING SCROLLBAR */
 ::-webkit-scrollbar {
   width: 10px;
@@ -58,12 +52,6 @@ html, body {
   position: relative;
   width: 100%;
   /* No min-height here on mobile — let content overflow naturally for document scroll */
-}
-
-@media (min-width: 769px) {
-  .app-layout {
-    min-height: 100dvh;
-  }
 }
 
 .background-layer {
