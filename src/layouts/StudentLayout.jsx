@@ -44,6 +44,7 @@ const StudentLayout = () => {
       title={`Welcome, ${studentName}`} 
       subtitle="All the Best for your Test!" 
       navItems={STUDENT_NAV}
+      showSignOut={false}
     />
   );
 };
