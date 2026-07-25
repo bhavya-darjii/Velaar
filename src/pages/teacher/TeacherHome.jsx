@@ -5,9 +5,28 @@ import './TeacherHome.css';
 
 const TeacherHome = () => {
   const { course, setCourse, currentLecture, setCurrentLecture, loading } = useOutletContext();
+  const navigate = useNavigate();
 
-  if (loading || !course) {
+  if (loading) {
     return <HomePageSkeleton />;
+  }
+
+  if (!course) {
+    return (
+      <div className="teacher-home-empty">
+        <div className="empty-content">
+          <div className="empty-icon">📚</div>
+          <h2>Welcome to your Digital Classroom!</h2>
+          <p>It looks like you don't have any active courses yet. Let's get started by creating your very first course.</p>
+          <button 
+            className="velaar-btn" 
+            onClick={() => navigate('/teacher/create-course')}
+          >
+            Create a Course
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

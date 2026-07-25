@@ -82,7 +82,8 @@ const TeacherLayout = () => {
           const nextUp = allLectures.find(l => !l.isCompleted) || allLectures[allLectures.length - 1];
           setCurrentLecture(nextUp);
         } else {
-          navigate('/teacher/create-course');
+          // Do not force redirect; let them stay on the home dashboard to see the empty state.
+          console.log("No courses found for this teacher.");
         }
       } catch (err) {
         console.error("Error loading course:", err);
