@@ -1,12 +1,11 @@
-.teacher-layout {
+.unified-layout {
   display: flex;
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
 }
 
-/* Floating Sidebar */
-.teacher-sidebar {
+.unified-sidebar {
   width: 300px;
   background: rgba(255, 255, 255, 0.1);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
@@ -18,14 +17,14 @@
   flex-direction: column;
   position: fixed;
   left: -320px;
-  top: 15px;
-  bottom: 15px;
+  top: calc(15px + env(safe-area-inset-top, 0px));
+  bottom: calc(15px + env(safe-area-inset-bottom, 0px));
   z-index: 100;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 5px 0 30px rgba(0, 0, 0, 0.3);
 }
 
-.teacher-sidebar.open {
+.unified-sidebar.open {
   transform: translateX(320px);
 }
 
@@ -158,14 +157,13 @@
   font-size: 20px;
   color: #ffffff !important;
   cursor: pointer;
-  margin-right: 35px;
+  margin-right: 16px;
   padding: 0 !important;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 5px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-shadow: var(--liquid-glass-shadow) !important;
 }
 
@@ -184,12 +182,13 @@
 .header-left {
   display: flex;
   align-items: center;
+  gap: 24px;
 }
 
 .dash-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: 20px;
   padding-bottom: 20px;
 }
@@ -255,13 +254,84 @@
 }
 
 @media screen and (max-width: 768px) {
-  .teacher-layout { padding: 0 !important; overflow-x: hidden; }
-  .main-content { padding: 20px 10px; position: relative; box-sizing: border-box; }
-  .dash-header { flex-direction: column; align-items: center; text-align: center; padding-top: 70px; }
-  .dash-header h1 { font-size: 1.5rem; white-space: normal; word-wrap: break-word; width: 100%; }
-  .header-left { flex-direction: column; align-items: center; }
-  .hamburger-btn { position: absolute; top: 20px; left: 15px; margin: 0; }
-  .header-actions { margin-top: 15px; display: flex; justify-content: center; width: 100%; }
-  .progress-badge { text-align: center; }
-  .subtitle { font-size: 0.9rem; margin-top: 5px; }
+  .unified-layout { padding: 0 !important; overflow-x: hidden; }
+
+  .main-content {
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .outlet-container {
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .dash-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding: 20px 16px 16px !important;
+    margin-bottom: 0;
+    gap: 0;
+  }
+
+  .header-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .hamburger-btn {
+    position: static !important;
+    margin: 0 !important;
+    margin-top: 10px !important; /* Align optically with 1.8rem text */
+    margin-right: 15px !important;
+    flex-shrink: 0;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .dash-header h1 {
+    font-size: 1.8rem;
+    white-space: normal;
+    word-wrap: break-word;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .subtitle { 
+    font-size: 1.05rem; 
+    margin-top: 4px; 
+    margin-bottom: 0; 
+  }
+
+  .header-actions { display: none; }
+  .progress-badge { display: none; }
 }
+
+/* Edge-to-edge Status Bar Protector */
+.ios-status-bar-blur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 9999;
+  background-color: transparent; /* fully transparent at top */
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  pointer-events: none;
+}
+
+.ios-status-bar-blur.scrolled {
+  background-color: rgba(9, 9, 11, 0.4); /* Dark translucent to match app */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  /* No border so it doesn't create a white line */
+}
+

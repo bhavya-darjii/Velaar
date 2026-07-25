@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, microsoftProvider } from '../../services/firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 
 import './LoginPage.css';
@@ -108,6 +108,14 @@ const LoginPage = () => {
       };
       
       await setDoc(userRef, userData, { merge: true });
+      
+      if (preRegData) {
+        try {
+          await deleteDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
+        } catch (delErr) {
+          console.warn('Failed to delete invitation:', delErr);
+        }
+      }
 
       // Force a full page reload so App.jsx auth listener picks up the new role cleanly
       window.location.href = ROLE_REDIRECTS[userData.userType] || '/pending';
@@ -190,6 +198,15 @@ const LoginPage = () => {
       };
       
       await setDoc(userRef, userData, { merge: true });
+      
+      if (preRegData) {
+        try {
+          await deleteDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
+        } catch (delErr) {
+          console.warn('Failed to delete invitation:', delErr);
+        }
+      }
+
       window.location.href = ROLE_REDIRECTS[userData.userType] || '/pending';
 
     } catch (error) {

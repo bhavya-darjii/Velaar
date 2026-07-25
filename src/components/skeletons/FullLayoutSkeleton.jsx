@@ -3,7 +3,7 @@ import QuestionBankSkeleton from './QuestionBankSkeleton';
 import ExaminationSkeleton from './ExaminationSkeleton';
 import LessonPlanSkeleton from './LessonPlanSkeleton';
 import CourseGeneratorSkeleton from './CourseGeneratorSkeleton';
-import '../../layouts/TeacherLayout.css';
+import '../../layouts/UnifiedLayout.css';
 import './SkeletonLoader.css';
 
 /**

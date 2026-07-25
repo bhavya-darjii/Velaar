@@ -1,11 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import AppShell from './AppShell';
+import UnifiedLayout from './UnifiedLayout';
 import { ADMIN_NAV } from '../config/navigation';
 
 const AdminLayout = () => (
-  <AppShell navItems={ADMIN_NAV} showSignOut={false}>
+  <UnifiedLayout title="Administration" navItems={ADMIN_NAV} showSignOut={false}>
     <Outlet />
-  </AppShell>
+  </UnifiedLayout>
 );
 
 export default AdminLayout;

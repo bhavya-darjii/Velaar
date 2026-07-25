@@ -207,13 +207,6 @@
     padding: 12px;
     font-size: 0.95rem;
   }
-  .active-card {
-    padding: 15px;
-    border-radius: 12px;
-  }
-  .roadmap-mini {
-    padding: 15px;
-  }
 }
 
 @keyframes slideInRight {

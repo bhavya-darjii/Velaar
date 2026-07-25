@@ -26,7 +26,7 @@ const AttendanceSession = () => {
         teacherId: user.uid,
         qrCodeString: newQrString,
         createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 30 * 1000), // Expires in 30 seconds
+        expiresAt: new Date(Date.now() + 10 * 1000), // Expires in 10 seconds
         active: true
       });
       
@@ -63,13 +63,13 @@ const AttendanceSession = () => {
         try {
           await updateDoc(doc(db, 'attendance_sessions', sessionId), {
             qrCodeString: newQrString,
-            expiresAt: new Date(Date.now() + 30 * 1000)
+            expiresAt: new Date(Date.now() + 10 * 1000)
           });
           setQrString(newQrString);
         } catch (err) {
           console.error("Error updating QR code:", err);
         }
-      }, 25000);
+      }, 8000);
     }
     return () => clearInterval(interval);
   }, [sessionActive, sessionId, courseId]);
@@ -96,7 +96,7 @@ const AttendanceSession = () => {
     <div className="attendance-session-container">
       <div className="glass-panel">
         <h2>Live Attendance Tracker</h2>
-        <p className="subtitle">Project this QR code on the screen. It refreshes every 30 seconds to prevent proxy attendance.</p>
+        <p className="subtitle">Project this QR code on the screen.</p>
         
         {!sessionActive ? (
           <button className="liquid-btn primary-btn start-btn" onClick={startSession}>
@@ -110,9 +110,10 @@ const AttendanceSession = () => {
                 size={280} 
                 level={"H"} 
                 includeMargin={true}
+                fgColor="#0f172a"
+                bgColor="transparent"
                 className="qr-code"
               />
-              <div className="scan-indicator"></div>
             </div>
             
             <button className="liquid-btn danger-btn" onClick={stopSession}>

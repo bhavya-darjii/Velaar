@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from './services/firebase';
 import MeshBackground from './components/shared/MeshBackground';
 import GlobalCopilot from './components/shared/GlobalCopilot';
@@ -75,7 +75,31 @@ function App() {
       if (user) {
         try {
           const snap = await getDoc(doc(db, 'users', user.uid));
-          const role = snap.exists() ? (snap.data().userType || 'pending') : 'pending';
+          let role = snap.exists() ? (snap.data().userType || 'pending') : 'pending';
+          
+          if (role === 'pending' && user.email) {
+            const inviteSnap = await getDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
+            if (inviteSnap.exists()) {
+              const inviteData = inviteSnap.data();
+              role = inviteData.userType || 'pending';
+              const updatePayload = {
+                userType: role,
+                institutionId: inviteData.institutionId || null,
+                collegeName: inviteData.collegeName || null,
+              };
+              if (inviteData.semester) updatePayload.semester = inviteData.semester;
+              
+              await setDoc(doc(db, 'users', user.uid), updatePayload, { merge: true });
+              try {
+                await deleteDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
+              } catch (delErr) {
+                console.warn('Failed to delete invitation:', delErr);
+              }
+              window.location.href = '/';
+              return;
+            }
+          }
+
           setUserRole(role);
           localStorage.setItem('cachedUserRole', role);
         } catch (e) {

@@ -1,11 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import AppShell from './AppShell';
+import UnifiedLayout from './UnifiedLayout';
 import { PARENT_NAV } from '../config/navigation';
 
 const ParentLayout = () => (
-  <AppShell navItems={PARENT_NAV} showSignOut={false}>
+  <UnifiedLayout title="Parent Portal" subtitle="Your child's progress" navItems={PARENT_NAV} showSignOut={false}>
     <Outlet />
-  </AppShell>
+  </UnifiedLayout>
 );
 
 export default ParentLayout;

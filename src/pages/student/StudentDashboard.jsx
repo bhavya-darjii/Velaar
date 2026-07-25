@@ -129,16 +129,6 @@ const StudentDashboard = () => {
 
   return (
     <div className="student-container">
-      <div className="student-header-section">
-        <div>
-          <h1 className="student-header">Welcome, {fullName || "Student"}</h1>
-          <p className="student-subtext">All the Best for your Test!</p>
-        </div>
-        <button className="student-exit-btn" onClick={handleLogout}>
-          Exit
-        </button>
-      </div>
-
       <div className="student-card">
         {/* PHASE 1: SELECTION */}
         {!isExamStarted && (

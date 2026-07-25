@@ -12,7 +12,7 @@ html, body {
    rather than shrink-wrapping to its content. */
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* 2. THE FLOATING SCROLLBAR */
@@ -40,7 +40,7 @@ html, body {
 .app-layout {
   position: relative;
   width: 100vw;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .background-layer {
@@ -48,7 +48,7 @@ html, body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   z-index: 0;
   /* 3. MOVE FALLBACK HERE: Now it's behind the animation AND the scrollbar */
   background-color: #111; 
@@ -57,6 +57,10 @@ html, body {
 .content-layer {
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
   display: flex;
   justify-content: center;
   width: 100%;
