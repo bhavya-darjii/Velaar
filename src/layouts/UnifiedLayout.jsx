@@ -70,7 +70,13 @@ const UnifiedLayout = ({
       <div className="main-content velaar-page-shell">
         <header className="dash-header">
           <div className="header-left">
-            <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>☰</button>
+            <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+              <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="18" height="2" rx="1" fill="currentColor"/>
+                <rect x="0" y="6" width="18" height="2" rx="1" fill="currentColor"/>
+                <rect x="0" y="12" width="18" height="2" rx="1" fill="currentColor"/>
+              </svg>
+            </button>
             <div className="header-text-block">
               {title && <h1>{title}</h1>}
               {subtitle && <p className="subtitle">{subtitle}</p>}

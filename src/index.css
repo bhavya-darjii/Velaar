@@ -54,11 +54,8 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100dvh;
-  background-color: transparent; /* Plasma handles background */
+  background-color: #0a1628; /* Matches image's dominant dark-blue so no flash on load/bounce */
   cursor: default;
   -webkit-user-select: none;
   user-select: none;

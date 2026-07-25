@@ -1,9 +1,20 @@
+/* 
+  SCROLL-THEN-STICK background:
+  - The image starts at y=0 (strip visible at top)
+  - As user scrolls down, image scrolls up WITH the page
+  - After 100px of scroll, image LOCKS — the strip is gone, and it stays fixed
+  - Negative margin-bottom = collapses it out of flow so content starts at y=0
+*/
 .mesh-background {
-  position: fixed;
-  inset: 0;
+  position: sticky;
+  top: -100px;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh + 400px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
+  margin-bottom: calc(-100vh - 400px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   z-index: -1;
   overflow: hidden;
-  background-color: #d4eef5;
+  background-color: #0a1628; /* Matches image dominant color — no flash */
 }
 
 .mesh-background-image {

@@ -550,7 +550,7 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
           ref={inputRef}
           type="text"
           className="copilot-v2__input"
-          placeholder={userName ? `Ask anything or search, ${userName}` : "Ask anything or search"}
+          placeholder={userName ? `Ask anything, ${userName}` : "Ask anything"}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onFocus={() => {

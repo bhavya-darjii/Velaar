@@ -2,11 +2,12 @@
 
 .login-container {
   width: 100%;
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0px;
+  padding: 0 20px;
   box-sizing: border-box;
 }
 
@@ -14,6 +15,7 @@
 .liquid-glass {
   width: 100%;
   max-width: 420px;
+  margin: 0 auto; /* horizontal centering */
   background: rgba(10, 10, 15, 0.35);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -211,7 +213,7 @@
 
 @media screen and (max-width: 480px) {
   .login-container {
-    padding: 0 20px;
+    padding: 0 16px;
     box-sizing: border-box;
   }
 
@@ -223,9 +225,32 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
-    padding: 40px 24px;
-    border-radius: 28px;
+    padding: 24px 20px 28px; /* tighter vertical padding */
+    border-radius: 24px;
   }
-  .login-title { font-size: 2.8rem; }
-  .login-subtitle { margin-bottom: 30px; }
+
+  .login-title { font-size: 2.4rem; margin-bottom: 4px; }
+
+  .login-subtitle { 
+    font-size: 0.9rem;
+    margin-bottom: 20px; /* was 30px */
+  }
+
+  .email-login-form {
+    gap: 12px; /* was 16px */
+    margin-bottom: 14px; /* was 20px */
+  }
+
+  .liquid-input {
+    padding: 13px 16px; /* was 16px 20px */
+  }
+
+  .divider {
+    margin-bottom: 14px; /* was 20px */
+  }
+
+  .sso-btn {
+    padding: 10px 8px;
+    font-size: 0.7rem !important;
+  }
 }

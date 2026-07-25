@@ -252,7 +252,7 @@ function App() {
                 } />
               </Routes>
 
-              <GlobalCopilot userRole={userRole} />
+              {userRole !== 'pending' && <GlobalCopilot userRole={userRole} />}
             </div>
           ) : (
             <div className="content-layer">
