@@ -36,7 +36,7 @@
   --plasma-color: #000000;
   --plasma-color-rgb: 0, 0, 0;
 
-  --shell-padding-bottom: 40px;
+  --shell-padding-bottom: 100px;
 }
 
 @media (max-width: 768px) {

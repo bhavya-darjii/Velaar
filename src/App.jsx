@@ -60,6 +60,7 @@ import FlashcardViewer from './pages/student/FlashcardViewer';
 import FeedbackForm from './pages/student/FeedbackForm';
 import AssignmentSubmission from './pages/student/AssignmentSubmission';
 import AttendanceScanner from './pages/student/AttendanceScanner';
+import ExamPage from './pages/student/ExamPage';
 import PendingPage from './pages/auth/PendingPage';
 import PendingPageSkeleton from './components/skeletons/PendingPageSkeleton';
 import StudentDashboardSkeleton from './components/skeletons/StudentDashboardSkeleton';
@@ -135,7 +136,9 @@ function App() {
     <Router>
       <CopilotProvider>
         <div className="app-layout">
-          <MeshBackground />
+          <div className="mesh-background-wrapper">
+            <MeshBackground />
+          </div>
 
           {authResolved ? (
             <div className="content-layer">
@@ -179,6 +182,7 @@ function App() {
                   <Route path="assignments" element={<AssignmentSubmission />} />
                   <Route path="feedback" element={<FeedbackForm />} />
                   <Route path="attendance" element={<AttendanceScanner />} />
+                  <Route path="exam" element={<ExamPage />} />
                 </Route>
 
                 {/* Parent nested routes */}

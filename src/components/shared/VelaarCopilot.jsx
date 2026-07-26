@@ -177,6 +177,35 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
   }, [input, showPanel]);
 
   useEffect(() => {
+    if (!window.visualViewport) return;
+    // Only apply on mobile
+    if (window.innerWidth >= 769) return;
+
+    const onViewportResize = () => {
+      const el = wrapperRef.current;
+      if (!el) return;
+
+      const keyboardHeight = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+
+      if (keyboardHeight > 50) {
+        // Keyboard is open — sit 8px above it
+        el.style.bottom = `${keyboardHeight + 8}px`;
+      } else {
+        // Keyboard closed — reset to CSS default
+        el.style.bottom = '';
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', onViewportResize);
+    window.visualViewport.addEventListener('scroll', onViewportResize);
+
+    return () => {
+      window.visualViewport.removeEventListener('resize', onViewportResize);
+      window.visualViewport.removeEventListener('scroll', onViewportResize);
+    };
+  }, []);
+
+  useEffect(() => {
     if (isFocused || input.trim()) {
       setIsExpanded(true);
     } else if (!showPanel) {

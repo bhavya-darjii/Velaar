@@ -256,6 +256,15 @@
 @media screen and (max-width: 768px) {
   .unified-layout { padding: 0 !important; overflow-x: hidden; }
 
+  /* Heavier font weight in sidebar — mobile only */
+  .sidebar-links li {
+    font-weight: 600 !important;
+  }
+
+  .sidebar-links li.active {
+    font-weight: 800 !important;
+  }
+
   .main-content {
     padding: 0;
     width: 100%;

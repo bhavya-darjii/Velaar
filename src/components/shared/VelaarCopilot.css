@@ -9,9 +9,11 @@
   transform: translateX(-50%);
   z-index: 9990;
   width: min(560px, calc(100vw - 32px));
-  transition: width 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.55s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s ease, bottom 0.4s ease;
   pointer-events: none;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
 }
 
 .copilot-v2 > * {
@@ -327,6 +329,9 @@
     left: 16px;
     transform: none;
     width: 48px;
+    top: auto;
+    /* JS will override bottom via inline style when keyboard opens */
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.15s ease-out;
   }
 
   .copilot-v2:not(.copilot-v2--expanded) .copilot-v2__bar {

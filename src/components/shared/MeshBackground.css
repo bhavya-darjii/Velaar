@@ -1,14 +1,13 @@
-/* 
-  SCROLL-THEN-STICK background for mobile:
-  - Mobile gets the scrollable background to hide Safari bottom bar
-  - Desktop stays perfectly fixed
-*/
+/* Default desktop logic: Simple fixed full-screen background */
 .mesh-background {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: -1;
   overflow: hidden;
-  background-color: #0a1628; /* Matches image dominant color — no flash */
+  background-color: #0a1628;
 }
 
 .mesh-background-image {
@@ -18,4 +17,25 @@
   object-position: center;
   pointer-events: none;
   filter: brightness(0.8);
+}
+
+/* Mobile logic: The flawless pure CSS scroll-then-lock hack */
+@media (max-width: 768px) {
+  .mesh-background {
+    /* Sticky naturally scrolls up, then locks at top: -100px */
+    position: sticky;
+    top: -100px;
+    
+    /* We no longer need 9999px because the absolute wrapper provides 
+       the full-page sticky track without affecting document flow. 
+       We only need it tall enough to cover the screen after shifting up 100px. */
+    height: calc(100vh + 150px);
+    
+    /* Remove the negative margin hack */
+    margin-bottom: 0;
+  }
+
+  .mesh-background-image {
+    height: 100%;
+  }
 }

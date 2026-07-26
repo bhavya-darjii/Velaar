@@ -1,243 +1,207 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../services/firebase";
-import { signOut } from "firebase/auth";
-import { doc, getDocs, collection, getDoc } from "firebase/firestore";
-import { gradeFullExam } from "../../services/aiService";
+import { doc, getDoc } from "firebase/firestore";
 import StudentDashboardSkeleton from "../../components/skeletons/StudentDashboardSkeleton";
 import "./StudentDashboard.css";
 
-const StudentDashboard = () => {
-  const navigate = useNavigate();
+/* ── Static placeholder data ─────────────────────────────────── */
+const STATIC_SUBJECTS = [
+  { 
+    name: "Artificial Intelligence & Ethics", 
+    exams: [
+      { name: "End Semester", marks: 28, total: 60 },
+      { name: "Term Test 1", marks: 8, total: 20 },
+      { name: "Term Test 2", marks: 10, total: 20 }
+    ],
+    grade: "C" 
+  },
+  { 
+    name: "Data Structures", 
+    exams: [
+      { name: "End Semester", marks: 32, total: 60 },
+      { name: "Term Test 1", marks: 10, total: 20 },
+      { name: "Term Test 2", marks: 11, total: 20 }
+    ],
+    grade: "C+" 
+  },
+  { 
+    name: "Computer Networks", 
+    exams: [
+      { name: "End Semester", marks: 25, total: 60 },
+      { name: "Term Test 1", marks: 9, total: 20 },
+      { name: "Term Test 2", marks: 8, total: 20 }
+    ],
+    grade: "D" 
+  },
+  { 
+    name: "Operating Systems", 
+    exams: [
+      { name: "End Semester", marks: 38, total: 60 },
+      { name: "Term Test 1", marks: 11, total: 20 },
+      { name: "Term Test 2", marks: 12, total: 20 }
+    ],
+    grade: "B" 
+  },
+];
 
-  // --- Data States ---
+const ATTENDANCE_PERCENT = 68;
+
+const getRiskLabel = (score) => {
+  if (score <= 30) return { label: "Low Risk", color: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  if (score <= 60) return { label: "Moderate", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" };
+  return { label: "High Risk", color: "#ef4444", bg: "rgba(239,68,68,0.12)" };
+};
+
+const getAttendanceColor = (pct) => {
+  if (pct >= 75) return "#22c55e";
+  if (pct >= 60) return "#f59e0b";
+  return "#ef4444";
+};
+
+const StudentDashboard = () => {
   const [fullName, setFullName] = useState("");
-  const [availableExams, setAvailableExams] = useState([]); // List of teachers/syllabi
-  const [selectedExamId, setSelectedExamId] = useState(""); // Selected Teacher's Name
   const [loading, setLoading] = useState(true);
 
-  // --- Exam States ---
-  const [syllabus, setSyllabus] = useState(""); // The content for grading
-  const [examQuestions, setExamQuestions] = useState([]); // The subset of questions for this student
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentAnswer, setCurrentAnswer] = useState("");
-  const [answersArray, setAnswersArray] = useState([]);
-
-  // --- Status States ---
-  const [isExamStarted, setIsExamStarted] = useState(false);
-  const [isExamFinished, setIsExamFinished] = useState(false);
-  const [isGrading, setIsGrading] = useState(false);
-  const [finalResult, setFinalResult] = useState(null);
-
   useEffect(() => {
-    // Use onAuthStateChanged to wait for the user to be fully loaded
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        setLoading(true);
         try {
-          // 1. Fetch User Profile
           const userSnap = await getDoc(doc(db, "users", user.uid));
           if (userSnap.exists()) {
-            setFullName(userSnap.data().fullName);
+            const data = userSnap.data();
+            setFullName((data.fullName || data.name || "Student").split(" ")[0]);
           }
-
-          // 2. Fetch Syllabi
-          const querySnapshot = await getDocs(collection(db, "syllabus"));
-          const examsList = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          setAvailableExams(examsList);
-        } catch (error) {
-          console.error("Fetch Error:", error);
+        } catch (e) {
+          console.error(e);
         }
-        setLoading(false);
-      } else {
-        // If no user is found, redirect to login
-        console.log("No user detected, redirecting...");
-        navigate("/");
       }
+      setLoading(false);
     });
-
-    // Cleanup the listener on unmount
     return () => unsubscribe();
-  }, [navigate]);
-
-  const handleStartExam = async () => {
-    if (!selectedExamId) return alert("Please select an exam first.");
-
-    // Find the selected exam data
-    const selectedData = availableExams.find((ex) => ex.id === selectedExamId);
-
-    if (!selectedData || !selectedData.questionPool) {
-      return alert("Exam data is incomplete.");
-    }
-
-    setSyllabus(selectedData.content);
-
-    // LOGIC: Randomize and Slice for student variety
-    // 1. Get the pool
-    const pool = selectedData.questionPool;
-    // 2. Shuffle
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    // 3. Slice to the specific exam length defined by teacher
-    const examLength = selectedData.examLength || 5;
-    const studentQuestions = shuffled.slice(0, examLength);
-
-    setExamQuestions(studentQuestions);
-    setIsExamStarted(true);
-  };
-
-  const handleNextQuestion = async () => {
-    if (!currentAnswer.trim()) return alert("Please answer before proceeding.");
-
-    const newAnswerEntry = {
-      question: examQuestions[currentIndex],
-      answer: currentAnswer,
-    };
-    const updatedAnswers = [...answersArray, newAnswerEntry];
-    setAnswersArray(updatedAnswers);
-
-    setCurrentAnswer("");
-
-    if (currentIndex < examQuestions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setIsExamFinished(true);
-      processFinalGrading(updatedAnswers, syllabus); // Pass syllabus explicitly
-    }
-  };
-
-  const processFinalGrading = async (finalAnswers, syllabusText) => {
-    setIsGrading(true);
-    try {
-      const result = await gradeFullExam(syllabusText, finalAnswers);
-      setFinalResult(result);
-    } catch (err) {
-      console.error("Grading error:", err);
-      alert("AI Grading failed.");
-    }
-    setIsGrading(false);
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
-  };
+  }, []);
 
   if (loading) return <StudentDashboardSkeleton />;
 
+  const avgMarks = Math.round(
+    STATIC_SUBJECTS.reduce((s, sub) => {
+      const totalMarks = sub.exams.reduce((sum, ex) => sum + ex.marks, 0);
+      const maxMarks = sub.exams.reduce((sum, ex) => sum + ex.total, 0);
+      return s + (totalMarks / maxMarks) * 100;
+    }, 0) / STATIC_SUBJECTS.length
+  );
+
+  const calculatedRiskScore = Math.max(0, Math.min(100, Math.round(100 - ((ATTENDANCE_PERCENT * 0.4) + (avgMarks * 0.6)))));
+  const risk = getRiskLabel(calculatedRiskScore);
+
+  let riskSuggestion = "Keep up the great work!";
+  if (ATTENDANCE_PERCENT < 75 && avgMarks < 60) {
+    riskSuggestion = "Need to improve attendance and scores.";
+  } else if (ATTENDANCE_PERCENT < 75) {
+    riskSuggestion = "Try to attend more classes.";
+  } else if (avgMarks < 60) {
+    riskSuggestion = "Focus on improving your grades.";
+  } else if (calculatedRiskScore > 30) {
+    riskSuggestion = "Room for improvement across the board.";
+  }
+
   return (
-    <div className="student-container">
-      <div className="student-card">
-        {/* PHASE 1: SELECTION */}
-        {!isExamStarted && (
-          <div className="start-area">
-            <h2 className="student-label">Select An Exam</h2>
+    <div className="sd-root">
 
-            <select
-              className="student-select" // Add styling for this
-              value={selectedExamId}
-              onChange={(e) => setSelectedExamId(e.target.value)}
-            >
-              <option value="">-- Choose a Teacher/Subject --</option>
-              {availableExams.map((exam) => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.id} ({exam.examLength} Questions)
-                </option>
-              ))}
-            </select>
+      {/* ── Overview strip ──────────────────────────────────── */}
+      <div className="sd-overview-row">
 
-            <button
-              className="student-btn"
-              onClick={handleStartExam}
-              disabled={!selectedExamId}
-            >
-              Start Exam
-            </button>
+        {/* Attendance */}
+        <div className="sd-stat-card">
+          <div className="sd-stat-label">Attendance</div>
+          <div className="sd-ring-wrap">
+            <svg viewBox="0 0 64 64" className="sd-ring-svg">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
+              <circle
+                cx="32" cy="32" r="26"
+                fill="none"
+                stroke={getAttendanceColor(ATTENDANCE_PERCENT)}
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 26}`}
+                strokeDashoffset={`${2 * Math.PI * 26 * (1 - ATTENDANCE_PERCENT / 100)}`}
+                transform="rotate(-90 32 32)"
+              />
+            </svg>
+            <span className="sd-ring-val" style={{ color: getAttendanceColor(ATTENDANCE_PERCENT) }}>
+              {ATTENDANCE_PERCENT}%
+            </span>
           </div>
-        )}
+        </div>
 
-        {/* PHASE 2: EXAM */}
-        {isExamStarted && !isExamFinished && (
-          <>
-            <div className="exam-progress">
-              <span>
-                Question {currentIndex + 1} of {examQuestions.length}
-              </span>
-              <div className="progress-bar-bg">
-                <div
-                  className="progress-bar-fill"
-                  style={{
-                    width: `${((currentIndex + 1) / examQuestions.length) * 100}%`,
-                  }}
-                ></div>
-              </div>
-            </div>
+        {/* Average Marks */}
+        <div className="sd-stat-card">
+          <div className="sd-stat-label">Avg. Score</div>
+          <div className="sd-big-num">{avgMarks}<span className="sd-big-unit">%</span></div>
+          <div className="sd-stat-sub">Across {STATIC_SUBJECTS.length} subjects</div>
+        </div>
 
-            <div className="question-box">
-              <span className="q-label">QUESTION {currentIndex + 1}</span>
-              <p className="q-text">{examQuestions[currentIndex]}</p>
-            </div>
-
-            <textarea
-              className="student-textarea"
-              value={currentAnswer}
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              placeholder="Type your answer here..."
+        {/* Risk status */}
+        <div className="sd-stat-card" style={{ borderColor: risk.color + "44" }}>
+          <div className="sd-stat-label">Risk Status</div>
+          <div className="sd-risk-pill" style={{ background: risk.color, color: "#ffffff" }}>
+            {risk.label}
+          </div>
+          <div className="sd-risk-bar-bg">
+            <div
+              className="sd-risk-bar-fill"
+              style={{ width: `${calculatedRiskScore}%`, background: risk.color }}
             />
-
-            <div className="student-btn-group">
-              <button className="student-btn" onClick={handleNextQuestion}>
-                {currentIndex === examQuestions.length - 1
-                  ? "Finish Exam"
-                  : "Next Question"}
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* PHASE 3: RESULTS (0-10 Scale) */}
-        {isExamFinished && (
-          <div className="result-area">
-            {isGrading ? (
-              <div className="grading-loader">
-                <h2 className="student-label">Grading in progress...</h2>
-                <p>Analyzing your answers against the syllabus.</p>
-              </div>
-            ) : finalResult ? (
-              /* Inside StudentDashboard.jsx - Phase 3 Area */
-
-              <div className="result-card">
-                <div className="student-label">Final Score</div>
-
-                <div className="score-container">
-                  {/* Display Score out of 10 */}
-                  <h2 className="score-val">{finalResult.score}/10</h2>
-
-                  {/* Logic: Pass if score is 4 or higher */}
-                  <div
-                    className={`score-tag ${finalResult.score >= 4 ? "pass" : "fail"}`}
-                  >
-                    {finalResult.score >= 4 ? "PASS" : "RETRY"}
-                  </div>
-                </div>
-
-                <p className="feedback-text">{finalResult.feedback}</p>
-
-                <button
-                  className="student-btn"
-                  onClick={() => window.location.reload()}
-                >
-                  Back to Dashboard
-                </button>
-              </div>
-            ) : (
-              <p>Error displaying results.</p>
-            )}
           </div>
-        )}
+          <div className="sd-stat-sub">{riskSuggestion}</div>
+        </div>
+
       </div>
+
+      {/* ── Subject-wise marks ──────────────────────────────── */}
+      <div className="sd-section-title">Subject Overview</div>
+      <div className="sd-subjects-list">
+        {STATIC_SUBJECTS.map((sub) => {
+          const totalMarks = sub.exams.reduce((sum, ex) => sum + ex.marks, 0);
+          const maxMarks = sub.exams.reduce((sum, ex) => sum + ex.total, 0);
+
+          return (
+            <div key={sub.name} className="sd-subject-card">
+              <div className="sd-subject-header">
+                <div className="sd-subject-info">
+                  <div className="sd-subject-name">{sub.name}</div>
+                  <div className="sd-subject-grade">Overall Grade: {sub.grade}</div>
+                </div>
+                <div className="sd-subject-right">
+                  <div className="sd-subject-score">{totalMarks}<span className="sd-subject-total">/{maxMarks}</span></div>
+                </div>
+              </div>
+              <div className="sd-exam-list">
+                {sub.exams.map(exam => {
+                  const pct = Math.round((exam.marks / exam.total) * 100);
+                  return (
+                    <div key={exam.name} className="sd-exam-row">
+                      <div className="sd-exam-name">{exam.name}</div>
+                      <div className="sd-subject-right">
+                        <div className="sd-subject-score">{exam.marks}<span className="sd-subject-total">/{exam.total}</span></div>
+                        <div className="sd-subject-bar-bg">
+                          <div
+                            className="sd-subject-bar-fill"
+                            style={{
+                              width: `${pct}%`,
+                              background: pct >= 75 ? "#22c55e" : pct >= 55 ? "#f59e0b" : "#ef4444"
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
     </div>
   );
 };

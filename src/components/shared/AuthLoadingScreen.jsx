@@ -7,7 +7,7 @@ const AuthLoadingScreen = () => {
         <div className="auth-spinner-wrapper">
           <div className="auth-spinner"></div>
         </div>
-        <h2 className="auth-loading-title">Verifying Account...</h2>
+        <h2 className="auth-loading-title">Getting Things Ready...</h2>
         <p className="auth-loading-subtitle">Please wait while we prepare your dashboard.</p>
       </div>
     </div>

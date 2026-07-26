@@ -5,9 +5,27 @@ import { getDoc, doc } from 'firebase/firestore';
 import { STUDENT_NAV } from '../config/navigation';
 import UnifiedLayout from './UnifiedLayout';
 
+const GREETINGS = [
+  "Let's crush some goals!",
+  "Ready to level up?",
+  "Boost that attendance today!",
+  "Keep your grades climbing!",
+  "Time for a study sprint!",
+  "Let's make today count!",
+  "Focus up, you got this!",
+  "Don't skip those classes!",
+  "Push for that A grade!",
+  "Every lecture counts!",
+  "Learning looks good on you!",
+  "Stay curious, stay sharp!",
+  "Let's unlock new achievements!",
+  "Small steps, big results!"
+];
+
 const StudentLayout = () => {
   const [loading, setLoading] = useState(true);
   const [studentName, setStudentName] = useState("Student");
+  const [greeting] = useState(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -42,7 +60,7 @@ const StudentLayout = () => {
   return (
     <UnifiedLayout 
       title={`Welcome, ${studentName}`} 
-      subtitle="All the Best for your Test!" 
+      subtitle={greeting} 
       navItems={STUDENT_NAV}
       showSignOut={false}
     />

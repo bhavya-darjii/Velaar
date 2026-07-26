@@ -42,7 +42,8 @@ export const STUDENT_NAV = [
   { path: '/student/flashcards', label: 'Flashcards' },
   { path: '/student/assignments', label: 'Assignments' },
   { path: '/student/feedback', label: 'Feedback Form' },
-  { path: '/student/attendance', label: 'Attendance Scanner' },
+  { path: '/student/attendance', label: 'Attendance' },
+  { path: '/student/exam', label: 'Exam' },
 ];
 
 export const PARENT_NAV = [
