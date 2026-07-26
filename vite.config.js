@@ -8,4 +8,7 @@ export default defineConfig({
     react(),
     basicSsl()
   ],
+  build: {
+    cssMinify: false // Prevent esbuild from stripping standard backdrop-filter
+  }
 })
