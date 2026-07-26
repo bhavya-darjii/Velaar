@@ -36,8 +36,15 @@
   --plasma-color: #000000;
   --plasma-color-rgb: 0, 0, 0;
 
-  --shell-padding-bottom: 240px;
+  --shell-padding-bottom: 40px;
 }
+
+@media (max-width: 768px) {
+  :root {
+    --shell-padding-bottom: 240px;
+  }
+}
+
 
 /* ══════════════════════════════════════════════════════════════
    GLOBAL FORM ELEMENT RESET + GLASS STYLING
