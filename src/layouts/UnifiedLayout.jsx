@@ -4,13 +4,14 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import './UnifiedLayout.css';
 
-const UnifiedLayout = ({
-  title,
-  subtitle,
-  navItems = [],
-  headerActions,
-  children,
+const UnifiedLayout = ({ 
+  children, 
+  title, 
+  subtitle, 
+  navItems = [], 
+  headerActions = null,
   showSignOut = true,
+  isStudent = false
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,7 +35,7 @@ const UnifiedLayout = ({
   };
 
   return (
-    <div className="unified-layout">
+    <div className={`unified-layout ${isStudent ? 'student-layout' : ''}`}>
       {/* Sidebar Overlay for mobile */}
       <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}></div>
       

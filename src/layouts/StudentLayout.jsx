@@ -63,6 +63,7 @@ const StudentLayout = () => {
       subtitle={greeting} 
       navItems={STUDENT_NAV}
       showSignOut={false}
+      isStudent={true}
     />
   );
 };
