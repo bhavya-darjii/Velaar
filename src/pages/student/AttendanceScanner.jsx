@@ -172,7 +172,7 @@ const AttendanceScanner = () => {
             </button>
           </div>
         )}
-
+ 
         {/* ERROR */}
         {phase === 'error' && (
           <div className="as-status">

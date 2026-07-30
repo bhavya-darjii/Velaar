@@ -49,7 +49,6 @@ const FullLayoutSkeleton = () => (
       <div className="outlet-container">
         {getPageSkeleton()}
       </div>
-
     </div>
   </div>
 );

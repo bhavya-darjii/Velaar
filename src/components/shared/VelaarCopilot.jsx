@@ -106,21 +106,49 @@ const FLOWS = {
 };
 
 
-// Simple markdown renderer: bold, italic, bullet lists
+// Safe markdown renderer: bold, italic, code — uses React elements, NO dangerouslySetInnerHTML
+const parseInlineMarkdown = (text) => {
+  // Split on **bold**, *italic*, and `code` tokens
+  const parts = [];
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1] !== undefined) {
+      parts.push(<strong key={key++}>{match[1]}</strong>);
+    } else if (match[2] !== undefined) {
+      parts.push(<em key={key++}>{match[2]}</em>);
+    } else if (match[3] !== undefined) {
+      parts.push(<code key={key++} style={{background:'rgba(0,0,0,0.08)', padding:'1px 4px', borderRadius:'3px', fontSize:'0.9em'}}>{match[3]}</code>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? parts : [text];
+};
+
 const renderMarkdown = (text) => {
   if (!text) return null;
   const lines = text.split('\n');
   return lines.map((line, i) => {
     const isBullet = /^\s*[*-]\s+/.test(line);
     const clean = line.replace(/^\s*[*-]\s+/, '');
-    const parsed = clean
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`(.+?)`/g, '<code>$1</code>');
+    const parsed = parseInlineMarkdown(clean);
     if (isBullet) {
-      return <div key={i} style={{display:'flex', gap:'6px', marginBottom:'2px'}}><span style={{opacity:0.5, flexShrink:0}}>&bull;</span><span dangerouslySetInnerHTML={{__html: parsed}} /></div>;
+      return (
+        <div key={i} style={{display:'flex', gap:'6px', marginBottom:'2px'}}>
+          <span style={{opacity:0.5, flexShrink:0}}>&bull;</span>
+          <span>{parsed}</span>
+        </div>
+      );
     }
-    return line.trim() === '' ? <div key={i} style={{height:'6px'}} /> : <div key={i} dangerouslySetInnerHTML={{__html: parsed}} />;
+    return line.trim() === '' ? <div key={i} style={{height:'6px'}} /> : <div key={i}>{parsed}</div>;
   });
 };
 
