@@ -1,0 +1,570 @@
+SecureScan Pro
+Advanced Bug Bounty Security Scanner
+
+Professional Edition
+Target URL Scanner
+Enter a URL to perform comprehensive security vulnerability analysis with bug bounty assessment
+https://velaar.vercel.app/
+Start Scan
+
+Enable Deep Scan (includes injection testing, API discovery, bypass techniques, and advanced exploits)
+Security Score
+
+64/100
+
+Total Issues
+
+4
+
+Bug Bounty
+
+3
+
+Critical
+
+1
+
+Vulnerability Report
+Scanned: https://velaar.vercel.app/ • 7/30/2026, 4:33:37 PM
+Download Report
+Deep Scan
+All
+Bypass
+Auth
+Payloads
+Cloud
+WebSocket
+GraphQL
+Dorks
+Google Dorks Scanner
+31 specialized search queries generated for velaar.vercel.app. Click to copy or open directly in Google to find exposed sensitive information, credentials, and vulnerabilities.
+
+Sensitive Files
+5 dorks
+critical
+Bug Bounty
+$5,000 - $25,000
+Exposed Configuration Files
+Find exposed configuration files containing API keys, database credentials, and secrets
+
+site:velaar.vercel.app ext:env OR ext:yml OR ext:yaml OR ext:ini OR ext:conf
+Copy
+Search
+critical
+Bug Bounty
+$3,000 - $15,000
+Exposed Git Repository
+Find exposed .git directories that may leak source code and credentials
+
+site:velaar.vercel.app inurl:.git OR intitle:"index of" ".git"
+Copy
+Search
+high
+Bug Bounty
+$2,000 - $10,000
+Backup Files
+Find backup files that may contain sensitive data or database dumps
+
+site:velaar.vercel.app ext:bak OR ext:backup OR ext:old OR ext:sql.gz OR ext:sql
+Copy
+Search
+high
+Bug Bounty
+$1,500 - $5,000
+Log Files Exposure
+Find exposed log files containing sensitive information, IPs, and user data
+
+site:velaar.vercel.app ext:log OR inurl:log OR intitle:"index of" "access.log"
+Copy
+Search
+critical
+Bug Bounty
+$5,000 - $20,000
+Database Files
+Find exposed database files with potential credentials and user data
+
+site:velaar.vercel.app ext:sql OR ext:db OR ext:sqlite OR ext:mdb
+Copy
+Search
+Admin Access
+3 dorks
+medium
+Admin Panels
+Find admin panels and backend interfaces that may be vulnerable
+
+site:velaar.vercel.app inurl:admin OR inurl:administrator OR inurl:wp-admin OR inurl:backend
+Copy
+Search
+medium
+Login Pages
+Find all login pages for brute force or authentication bypass testing
+
+site:velaar.vercel.app inurl:login OR inurl:signin OR inurl:auth OR intitle:login
+Copy
+Search
+medium
+Dashboard Access
+Find dashboard and portal access points
+
+site:velaar.vercel.app inurl:dashboard OR inurl:portal OR inurl:cpanel
+Copy
+Search
+API Discovery
+3 dorks
+medium
+Bug Bounty
+$500 - $3,000
+API Endpoints
+Discover API endpoints for testing authentication and authorization
+
+site:velaar.vercel.app inurl:api OR inurl:/v1/ OR inurl:/v2/ OR inurl:graphql
+Copy
+Search
+critical
+Bug Bounty
+$3,000 - $15,000
+API Keys Exposed
+Find exposed API keys and access tokens in source code or pages
+
+site:velaar.vercel.app "api_key" OR "apikey" OR "api-key" OR "access_token"
+Copy
+Search
+low
+Swagger/OpenAPI Docs
+Find API documentation that reveals all endpoints and parameters
+
+site:velaar.vercel.app inurl:swagger OR inurl:openapi OR intitle:"Swagger UI"
+Copy
+Search
+Credentials
+4 dorks
+critical
+Bug Bounty
+$5,000 - $25,000
+Hardcoded Passwords
+Find files containing hardcoded passwords
+
+site:velaar.vercel.app "password" filetype:txt OR "passwd" OR "pwd="
+Copy
+Search
+critical
+Bug Bounty
+$10,000 - $50,000
+AWS Credentials
+Find exposed AWS access keys and credentials
+
+site:velaar.vercel.app "AKIA" OR "aws_access_key" OR "aws_secret"
+Copy
+Search
+critical
+Bug Bounty
+$5,000 - $30,000
+Private Keys
+Find exposed private keys for SSL, SSH, or encryption
+
+site:velaar.vercel.app "BEGIN RSA PRIVATE KEY" OR "BEGIN PRIVATE KEY" OR ext:pem
+Copy
+Search
+critical
+Bug Bounty
+$3,000 - $15,000
+SSH Keys
+Find exposed SSH private keys
+
+site:velaar.vercel.app ext:ppk OR "id_rsa" OR "id_dsa"
+Copy
+Search
+Information Disclosure
+4 dorks
+medium
+Bug Bounty
+$500 - $2,000
+Directory Listing
+Find open directory listings exposing file structure
+
+site:velaar.vercel.app intitle:"index of" OR intitle:"directory listing"
+Copy
+Search
+low
+Error Messages
+Find verbose error messages revealing internal details
+
+site:velaar.vercel.app "error" "stack trace" OR "exception" OR "Fatal error"
+Copy
+Search
+medium
+Bug Bounty
+$500 - $1,500
+phpinfo Pages
+Find phpinfo pages revealing server configuration
+
+site:velaar.vercel.app ext:php intitle:phpinfo "PHP Version"
+Copy
+Search
+medium
+Bug Bounty
+$500 - $1,500
+Server Status Pages
+Find server status pages with sensitive information
+
+site:velaar.vercel.app intitle:"Apache Status" OR intitle:"Server Status"
+Copy
+Search
+Injection Points
+3 dorks
+high
+Bug Bounty
+$2,000 - $10,000
+SQL Injection Points
+Find URL parameters potentially vulnerable to SQL injection
+
+site:velaar.vercel.app inurl:id= OR inurl:page= OR inurl:cat= OR inurl:product=
+Copy
+Search
+high
+Bug Bounty
+$2,000 - $8,000
+File Inclusion Points
+Find parameters vulnerable to Local/Remote File Inclusion
+
+site:velaar.vercel.app inurl:file= OR inurl:path= OR inurl:include= OR inurl:document=
+Copy
+Search
+medium
+Bug Bounty
+$500 - $2,500
+Redirect Parameters
+Find open redirect vulnerabilities
+
+site:velaar.vercel.app inurl:redirect= OR inurl:url= OR inurl:next= OR inurl:return=
+Copy
+Search
+Sensitive Documents
+2 dorks
+medium
+Bug Bounty
+$500 - $3,000
+Sensitive Documents
+Find internal or confidential documents
+
+site:velaar.vercel.app ext:pdf OR ext:doc OR ext:xlsx "confidential" OR "internal"
+Copy
+Search
+high
+Bug Bounty
+$2,000 - $10,000
+Employee Information
+Find exposed employee data files
+
+site:velaar.vercel.app ext:csv OR ext:xlsx "employee" OR "salary" OR "ssn"
+Copy
+Search
+Infrastructure
+3 dorks
+info
+Subdomains Discovery
+Discover subdomains that may have different security postures
+
+site:*.velaar.vercel.app -www
+Copy
+Search
+high
+Bug Bounty
+$1,000 - $5,000
+Development/Staging Servers
+Find development and staging environments with weaker security
+
+site:velaar.vercel.app inurl:dev OR inurl:staging OR inurl:test OR inurl:uat
+Copy
+Search
+high
+Bug Bounty
+$2,000 - $8,000
+Jenkins/CI Servers
+Find exposed CI/CD servers
+
+site:velaar.vercel.app intitle:"Dashboard [Jenkins]" OR inurl:jenkins
+Copy
+Search
+CMS
+2 dorks
+critical
+Bug Bounty
+$3,000 - $10,000
+WordPress Config
+Find exposed WordPress configuration files
+
+site:velaar.vercel.app inurl:wp-config.php OR "DB_PASSWORD"
+Copy
+Search
+medium
+WordPress Plugins
+Enumerate WordPress plugins for known vulnerabilities
+
+site:velaar.vercel.app inurl:wp-content/plugins
+Copy
+Search
+Cloud
+2 dorks
+high
+Bug Bounty
+$3,000 - $15,000
+S3 Buckets
+Find references to S3 buckets that may be misconfigured
+
+site:velaar.vercel.app "s3.amazonaws.com" OR "s3-" OR ".s3."
+Copy
+Search
+high
+Bug Bounty
+$2,000 - $10,000
+Firebase Databases
+Find Firebase database references for misconfiguration testing
+
+site:velaar.vercel.app ".firebaseio.com" OR ".firebaseapp.com"
+Copy
+Search
+Sensitive Files
+Exposed Configuration Files
+Find exposed configuration files containing API keys, database credentials, and secrets
+
+critical
+site:velaar.vercel.app ext:env OR ext:yml OR ext:yaml OR ext:ini OR ext:conf
+Copy
+Search
+$5,000 - $25,000
+Exposed Git Repository
+Find exposed .git directories that may leak source code and credentials
+
+critical
+site:velaar.vercel.app inurl:.git OR intitle:"index of" ".git"
+Copy
+Search
+$3,000 - $15,000
+Backup Files
+Find backup files that may contain sensitive data or database dumps
+
+high
+site:velaar.vercel.app ext:bak OR ext:backup OR ext:old OR ext:sql.gz OR ext:sql
+Copy
+Search
+$2,000 - $10,000
+Admin Access
+Admin Panels
+Find admin panels and backend interfaces that may be vulnerable
+
+medium
+site:velaar.vercel.app inurl:admin OR inurl:administrator OR inurl:wp-admin OR inurl:backend
+Copy
+Search
+Login Pages
+Find all login pages for brute force or authentication bypass testing
+
+medium
+site:velaar.vercel.app inurl:login OR inurl:signin OR inurl:auth OR intitle:login
+Copy
+Search
+Dashboard Access
+Find dashboard and portal access points
+
+medium
+site:velaar.vercel.app inurl:dashboard OR inurl:portal OR inurl:cpanel
+Copy
+Search
+API Discovery
+API Endpoints
+Discover API endpoints for testing authentication and authorization
+
+medium
+site:velaar.vercel.app inurl:api OR inurl:/v1/ OR inurl:/v2/ OR inurl:graphql
+Copy
+Search
+$500 - $3,000
+API Keys Exposed
+Find exposed API keys and access tokens in source code or pages
+
+critical
+site:velaar.vercel.app "api_key" OR "apikey" OR "api-key" OR "access_token"
+Copy
+Search
+$3,000 - $15,000
+Swagger/OpenAPI Docs
+Find API documentation that reveals all endpoints and parameters
+
+low
+site:velaar.vercel.app inurl:swagger OR inurl:openapi OR intitle:"Swagger UI"
+Copy
+Search
+Credentials
+Hardcoded Passwords
+Find files containing hardcoded passwords
+
+critical
+site:velaar.vercel.app "password" filetype:txt OR "passwd" OR "pwd="
+Copy
+Search
+$5,000 - $25,000
+AWS Credentials
+Find exposed AWS access keys and credentials
+
+critical
+site:velaar.vercel.app "AKIA" OR "aws_access_key" OR "aws_secret"
+Copy
+Search
+$10,000 - $50,000
+Private Keys
+Find exposed private keys for SSL, SSH, or encryption
+
+critical
+site:velaar.vercel.app "BEGIN RSA PRIVATE KEY" OR "BEGIN PRIVATE KEY" OR ext:pem
+Copy
+Search
+$5,000 - $30,000
+Information Disclosure
+Directory Listing
+Find open directory listings exposing file structure
+
+medium
+site:velaar.vercel.app intitle:"index of" OR intitle:"directory listing"
+Copy
+Search
+$500 - $2,000
+Error Messages
+Find verbose error messages revealing internal details
+
+low
+site:velaar.vercel.app "error" "stack trace" OR "exception" OR "Fatal error"
+Copy
+Search
+phpinfo Pages
+Find phpinfo pages revealing server configuration
+
+medium
+site:velaar.vercel.app ext:php intitle:phpinfo "PHP Version"
+Copy
+Search
+$500 - $1,500
+Built with
+
+v0
+SecureScan Pro
+Advanced Bug Bounty Security Scanner
+
+Professional Edition
+Target URL Scanner
+Enter a URL to perform comprehensive security vulnerability analysis with bug bounty assessment
+https://velaar.vercel.app/
+Start Scan
+
+Enable Deep Scan (includes injection testing, API discovery, bypass techniques, and advanced exploits)
+Security Score
+
+64/100
+
+Total Issues
+
+4
+
+Bug Bounty
+
+3
+
+Critical
+
+1
+
+Vulnerability Report
+Scanned: https://velaar.vercel.app/ • 7/30/2026, 4:33:37 PM
+Download Report
+Deep Scan
+All
+Bypass
+Auth
+Payloads
+Cloud
+WebSocket
+GraphQL
+Dorks
+info
+Information Disclosure
+Server Information Disclosure
+CVSS Score
+
+2
+
+Description:
+
+Server header reveals server information: Vercel
+
+Recommendation:
+
+Remove or obfuscate the Server header to prevent information disclosure.
+
+CWE: CWE-200
+Exploit Complexity: low
+medium
+Bug Bounty
+Security Headers
+Weak Content Security Policy
+CVSS Score
+
+5.3
+
+Description:
+
+Content Security Policy contains 'unsafe-inline' directive, which weakens XSS protection.
+
+Recommendation:
+
+Remove 'unsafe-inline' from CSP and use nonces or hashes for inline scripts.
+
+CWE: CWE-79
+Exploit Complexity: medium
+Est. Bounty: $500 - $1,500
+high
+Bug Bounty
+Injection Attacks
+Cross-Site Scripting (XSS) Attack Surface
+CVSS Score
+
+7.1
+
+Description:
+
+The application accepts user input and may be vulnerable to XSS attacks if input is not properly sanitized before rendering.
+
+Recommendation:
+
+Implement proper output encoding, use Content Security Policy, validate and sanitize all user inputs, and use modern frameworks with built-in XSS protection.
+
+Attack Payload Example:
+
+<script>alert('XSS')</script>
+CWE: CWE-79
+Exploit Complexity: low
+Est. Bounty: $2,000 - $7,500
+critical
+Bug Bounty
+Injection Attacks
+Potential XML External Entity (XXE) Vulnerability
+CVSS Score
+
+8.6
+
+Description:
+
+The application processes XML data and may be vulnerable to XXE attacks, potentially leading to file disclosure, SSRF, or denial of service.
+
+Recommendation:
+
+Disable external entity processing in XML parsers. Use less complex data formats like JSON when possible.
+
+Attack Payload Example:
+
+<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>
+CWE: CWE-611
+Exploit Complexity: medium
+Est. Bounty: $3,000 - $10,000
+Built with
+
+v0
