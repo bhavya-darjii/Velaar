@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../services/firebase";
-import { doc, getDocs, collection, getDoc } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import { gradeFullExam } from "../../services/aiService";
 import StudentDashboardSkeleton from "../../components/skeletons/StudentDashboardSkeleton";
 import "./StudentDashboard.css";
@@ -26,25 +25,47 @@ const ExamPage = () => {
   const [finalResult, setFinalResult] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setLoading(true);
-        try {
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          if (userSnap.exists()) setFullName(userSnap.data().fullName);
+    let mounted = true;
+    const fetchExamData = async (user) => {
+      setLoading(true);
+      try {
+        const { data: userData } = await supabase.from("users").select("full_name").eq("id", user.id).single();
+        if (mounted && userData) setFullName(userData.full_name);
 
-          const querySnapshot = await getDocs(collection(db, "syllabus"));
-          const examsList = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const { data: syllabusData } = await supabase.from("syllabus").select("*");
+        if (mounted && syllabusData) {
+          const examsList = syllabusData.map(d => {
+            const content = typeof d.content === 'object' && d.content !== null ? d.content : {};
+            return { id: d.id, ...content, ...d };
+          });
           setAvailableExams(examsList);
-        } catch (error) {
-          console.error("Fetch Error:", error);
         }
-        setLoading(false);
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      }
+      if (mounted) setLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchExamData(session.user);
       } else {
-        navigate("/");
+        if (mounted) navigate("/");
       }
     });
-    return () => unsubscribe();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        fetchExamData(session.user);
+      } else {
+        if (mounted) navigate("/");
+      }
+    });
+
+    return () => { 
+      mounted = false;
+      subscription?.unsubscribe(); 
+    };
   }, [navigate]);
 
   const handleStartExam = async () => {

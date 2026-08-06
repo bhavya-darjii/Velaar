@@ -7,9 +7,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../../services/firebase';
-import { signOut } from 'firebase/auth';
-import { collection, getDocs, updateDoc, doc, deleteDoc, addDoc, setDoc } from 'firebase/firestore';
+import { supabase } from '../../services/supabase';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
@@ -117,20 +115,23 @@ const VelaarAdminDashboard = () => {
 
   const ASSIGNABLE_ROLES = ['student', 'teacher', 'hod', 'registrar', 'admin', 'parent'];
 
-  const currentUserId = auth.currentUser?.uid;
+  const [currentUserId, setCurrentUserId] = useState(null);
   const currentUserData = users.find(u => u.uid === currentUserId);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [userSnap, courseSnap, instSnap] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'courses')),
-          getDocs(collection(db, 'institutions'))
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) setCurrentUserId(session.user.id);
+
+        const [{ data: usersData }, { data: coursesData }, { data: instsData }] = await Promise.all([
+          supabase.from('users').select('*'),
+          supabase.from('courses').select('*'),
+          supabase.from('institutions').select('*'),
         ]);
-        setUsers(userSnap.docs.map(d => ({ uid: d.id, ...d.data() })));
-        setCourses(courseSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setInstitutions(instSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setUsers((usersData || []).map(d => ({ uid: d.id, ...d, institutionId: d.institution_id, collegeName: d.college_name, userType: d.user_type, fullName: d.full_name })));
+        setCourses((coursesData || []).map(d => ({ id: d.id, ...d })));
+        setInstitutions((instsData || []).map(d => ({ id: d.id, ...d })));
       } catch (err) {
         console.error('VelaarAdmin load error:', err);
       }
@@ -149,8 +150,12 @@ const VelaarAdminDashboard = () => {
       if (u.userType === 'teacher') map[id].teachers++;
       if (u.userType === 'student') map[id].students++;
     });
+    courses.forEach(c => {
+      const id = c.institution_id || 'unassigned';
+      if (map[id]) map[id].courses++;
+    });
     return Object.values(map).sort((a, b) => b.users - a.users);
-  }, [users]);
+  }, [users, courses]);
 
   const roleDistribution = useMemo(() => {
     const map = {};
@@ -189,8 +194,8 @@ const VelaarAdminDashboard = () => {
     if (!window.confirm(`Change role to ${ROLE_LABELS[newRole]}?`)) return;
     setUpdating(uid);
     try {
-      await updateDoc(doc(db, 'users', uid), { userType: newRole });
-      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, userType: newRole } : u));
+      await supabase.from('users').update({ user_type: newRole }).eq('id', uid);
+      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, userType: newRole, user_type: newRole } : u));
     } catch (err) {
       console.error('Role update error:', err);
     }
@@ -203,7 +208,7 @@ const VelaarAdminDashboard = () => {
     if (!window.confirm(`Move to institution: ${newInstName}?`)) return;
     setUpdating(uid);
     try {
-      await updateDoc(doc(db, 'users', uid), { institutionId: newInstId, collegeName: newInstName });
+      await supabase.from('users').update({ institution_id: newInstId, college_name: newInstName }).eq('id', uid);
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, institutionId: newInstId, collegeName: newInstName } : u));
     } catch (err) {
       console.error('Institution update error:', err);
@@ -226,16 +231,15 @@ const VelaarAdminDashboard = () => {
       let count = 0;
       for (const email of emailList) {
         const inviteData = {
-          userType: inviteRole,
-          institutionId: inviteInstId,
-          collegeName: instName,
-          createdAt: new Date(),
-          invitedBy: currentUserId
+          email,
+          user_type: inviteRole,
+          institution_id: inviteInstId,
+          college_name: instName,
         };
         if (inviteRole === 'student' && inviteSemester) {
           inviteData.semester = inviteSemester;
         }
-        await setDoc(doc(db, 'role_invitations', email), inviteData);
+        await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
         count++;
       }
       setInviteMsg(`Successfully sent ${count} invitation(s).`);
@@ -261,22 +265,25 @@ const VelaarAdminDashboard = () => {
       const text = await bulkFile.text();
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
       let count = 0;
+      const inviteRows = [];
       for (const line of lines) {
         const email = line.split(',')[0].trim().toLowerCase();
         if (email.includes('@')) {
           const inviteData = {
-            userType: inviteRole,
-            institutionId: inviteInstId,
-            collegeName: instName,
-            createdAt: new Date(),
-            invitedBy: currentUserId
+            email,
+            user_type: inviteRole,
+            institution_id: inviteInstId,
+            college_name: instName,
           };
           if (inviteRole === 'student' && inviteSemester) {
             inviteData.semester = inviteSemester;
           }
-          await setDoc(doc(db, 'role_invitations', email), inviteData);
+          inviteRows.push(inviteData);
           count++;
         }
+      }
+      if (inviteRows.length > 0) {
+        await supabase.from('role_invitations').upsert(inviteRows, { onConflict: 'email' });
       }
       setInviteMsg(`Successfully invited ${count} users.`);
       setBulkFile(null);
@@ -290,7 +297,7 @@ const VelaarAdminDashboard = () => {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate('/');
   };
 
@@ -309,12 +316,14 @@ const VelaarAdminDashboard = () => {
     if (!newInstName.trim()) return;
     setInviting(true);
     try {
-      const docRef = await addDoc(collection(db, 'institutions'), {
-        name: newInstName.trim(),
-        createdAt: new Date()
-      });
-      setInstitutions(prev => [...prev, { id: docRef.id, name: newInstName.trim() }]);
-      setInviteInstId(docRef.id);
+      const { data: newInst, error } = await supabase
+        .from('institutions')
+        .insert({ name: newInstName.trim() })
+        .select()
+        .single();
+      if (error) throw error;
+      setInstitutions(prev => [...prev, { id: newInst.id, name: newInst.name }]);
+      setInviteInstId(newInst.id);
       setInviteMsg(`Successfully created institution "${newInstName.trim()}".`);
       setNewInstName('');
       setShowCreateModal(false);

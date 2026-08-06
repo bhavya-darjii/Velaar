@@ -19,7 +19,7 @@
 
 .tag-live {
   background: rgba(255, 255, 255, 0.15);
-  color: var(--accent-teal);
+  color: #ffffff;
   font-size: 0.75rem;
   padding: 5px 10px;
   border-radius: 6px;
@@ -58,7 +58,7 @@
 
 .checklist-area h3 {
   font-size: 1.1rem;
-  color: var(--accent-teal);
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 5px;

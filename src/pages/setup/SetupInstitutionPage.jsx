@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../../services/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { supabase } from '../../services/supabase';
 import PendingPageSkeleton from '../../components/skeletons/PendingPageSkeleton';
 import '../auth/LoginPage.css';
 
@@ -14,22 +12,24 @@ const SetupInstitutionPage = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        setUser(u);
-        try {
-          const snap = await getDoc(doc(db, 'users', u.uid));
-          if (snap.exists() && snap.data().userType !== 'setup') {
-            navigate('/');
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        navigate('/');
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { navigate('/'); return; }
+      setUser(session.user);
+      try {
+        const { data } = await supabase.from('users').select('user_type').eq('id', session.user.id).single();
+        if (data && data.user_type !== 'setup') navigate('/');
+      } catch (err) {
+        console.error(err);
       }
+    };
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) navigate('/');
+      else setUser(session.user);
     });
-    return () => unsub();
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSetup = async (e) => {
@@ -43,14 +43,7 @@ const SetupInstitutionPage = () => {
     setError('');
     
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        collegeName: collegeName.trim(),
-        userType: 'admin'
-      });
-      // Once updated, redirecting to admin
-      // Since userType changed, the app root will handle redirect if we go to '/'
-      // but going to '/admin' directly is fine, but wait! We should trigger a full reload
-      // or redirect to '/' so the global state picks up 'admin' role correctly.
+      await supabase.from('users').update({ college_name: collegeName.trim(), user_type: 'admin' }).eq('id', user.id);
       window.location.href = '/admin';
     } catch (err) {
       console.error(err);

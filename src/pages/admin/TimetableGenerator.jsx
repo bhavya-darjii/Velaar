@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
-import { db, auth } from '../../services/firebase';
+import { supabase } from '../../services/supabase';
 import { generateTimetable } from '../../services/aiService';
 import InteractiveTimetableGrid from '../../components/timetable/InteractiveTimetableGrid';
 import './TimetableGenerator.css';
@@ -55,38 +54,35 @@ const TimetableGenerator = () => {
   const [editingCell, setEditingCell] = useState(null); 
 
   useEffect(() => {
-    const fetchFirebaseData = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch HOD's collegeName
-        const hodDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        if (hodDoc.exists()) {
-           setMeta(prev => ({ ...prev, instituteName: hodDoc.data().collegeName || '' }));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        // Fetch current user's collegeName for instituteName
+        const { data: hodData } = await supabase.from('users').select('college_name').eq('id', session.user.id).single();
+        if (hodData) {
+          setMeta(prev => ({ ...prev, instituteName: hodData.college_name || '' }));
         }
 
-        // Fetch Teachers
-        const tQ = query(collection(db, 'users'), where('userType', '==', 'teacher'));
-        const tSnap = await getDocs(tQ);
-        const teachersList = tSnap.docs.map(doc => ({
-          uid: doc.id,
-          name: doc.data().fullName || doc.data().name || 'Unknown',
-          initials: (doc.data().fullName || doc.data().name || 'U').split(' ').map(n=>n[0]).join('').toUpperCase()
-        }));
-        setAvailableTeachers(teachersList);
+        // Fetch Teachers (user_type = 'teacher')
+        const { data: teachersList } = await supabase.from('users').select('id, full_name').eq('user_type', 'teacher');
+        setAvailableTeachers((teachersList || []).map(t => ({
+          uid: t.id,
+          name: t.full_name || 'Unknown',
+          initials: (t.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase()
+        })));
 
-        // Fetch Courses to derive Years/Semesters/Divisions
-        const cSnap = await getDocs(collection(db, 'courses'));
-        const courses = cSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        
-        // Filter courses for this department
-        const deptCourses = courses.filter(c => c.department?.toLowerCase().includes('artificial') || c.department === meta.department);
+        // Fetch Courses
+        const { data: courses } = await supabase.from('courses').select('*');
+        const allCourses = courses || [];
+        const deptCourses = allCourses.filter(c => (c.department || '').toLowerCase().includes('artificial') || c.department === meta.department);
         setCoursesData(deptCourses);
 
         const uniqueYears = [...new Set(deptCourses.map(c => c.program).filter(Boolean))];
         const uniqueSemesters = [...new Set(deptCourses.map(c => c.semester).filter(Boolean))];
-        
-        // Flatten all division arrays to get unique divisions
         let allDivs = [];
-        deptCourses.forEach(c => { if(Array.isArray(c.divisions)) allDivs.push(...c.divisions); });
+        deptCourses.forEach(c => { if (Array.isArray(c.divisions)) allDivs.push(...c.divisions); });
         const uniqueDivisions = [...new Set(allDivs)];
 
         setAvailableYears(uniqueYears.length > 0 ? uniqueYears : ['FIRST', 'SECOND', 'THIRD', 'FINAL']);
@@ -94,10 +90,10 @@ const TimetableGenerator = () => {
         setAvailableDivisions(uniqueDivisions.length > 0 ? uniqueDivisions : ['A', 'B', 'C']);
 
       } catch (err) {
-        console.error("Failed to fetch data", err);
+        console.error('Failed to fetch data', err);
       }
     };
-    fetchFirebaseData();
+    fetchData();
   }, []);
 
   // When Semester changes, derive Subjects automatically
@@ -282,24 +278,23 @@ const TimetableGenerator = () => {
   };
 
   const handleSaveToDatabase = async (silent = false) => {
-      setLoading(true);
-      try {
-          const docId = `${meta.department}_${meta.year}_${meta.division}_${meta.semester}`.replace(/\s+/g, '_').toLowerCase();
-          const docRef = doc(db, 'timetables', docId);
-          await setDoc(docRef, {
-              docId,
-              meta: timetableData.meta,
-              timeSlots: timetableData.timeSlots,
-              grid: timetableData.grid,
-              createdAt: new Date()
-          }, { merge: true });
-          if (!silent) alert('Timetable saved/updated to database successfully!');
-      } catch (err) {
-          console.error("Failed to save timetable", err);
-          if (!silent) alert('Failed to save timetable.');
-      } finally {
-          setLoading(false);
-      }
+    setLoading(true);
+    try {
+      const timetableId = `${meta.department}_${meta.year}_${meta.division}_${meta.semester}`.replace(/\s+/g, '_').toLowerCase();
+      const { error } = await supabase.from('timetable').upsert({
+        id: timetableId,
+        department: meta.department,
+        semester: meta.semester,
+        schedule: { meta: timetableData.meta, timeSlots: timetableData.timeSlots, grid: timetableData.grid },
+      }, { onConflict: 'id' });
+      if (error) throw error;
+      if (!silent) alert('Timetable saved/updated to database successfully!');
+    } catch (err) {
+      console.error('Failed to save timetable', err);
+      if (!silent) alert('Failed to save timetable.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportPDF = async () => {

@@ -1,9 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { auth, db } from './services/firebase';
+import { supabase } from './services/supabase';
 import MeshBackground from './components/shared/MeshBackground';
 import GlobalCopilot from './components/shared/GlobalCopilot';
 import { CopilotProvider } from './context/CopilotContext';
@@ -71,50 +69,84 @@ function App() {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      setInitialUser(user);
-      if (user) {
-        try {
-          const snap = await getDoc(doc(db, 'users', user.uid));
-          let role = snap.exists() ? (snap.data().userType || 'pending') : 'pending';
-          
-          if (role === 'pending' && user.email) {
-            const inviteSnap = await getDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
-            if (inviteSnap.exists()) {
-              const inviteData = inviteSnap.data();
-              role = inviteData.userType || 'pending';
-              const updatePayload = {
-                userType: role,
-                institutionId: inviteData.institutionId || null,
-                collegeName: inviteData.collegeName || null,
-              };
-              if (inviteData.semester) updatePayload.semester = inviteData.semester;
-              
-              await setDoc(doc(db, 'users', user.uid), updatePayload, { merge: true });
-              try {
-                await deleteDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
-              } catch (delErr) {
-                console.warn('Failed to delete invitation:', delErr);
-              }
-              window.location.href = '/';
-              return;
-            }
-          }
+    let mounted = true;
 
+    const checkUser = async (session) => {
+      if (!session?.user) {
+        if (mounted) {
+          setInitialUser(null);
+          setUserRole(null);
+          localStorage.removeItem('cachedUserRole');
+          setAuthResolved(true);
+        }
+        return;
+      }
+      
+      const user = session.user;
+      if (mounted) setInitialUser(user);
+
+      try {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+
+        let role = userData ? (userData.user_type || 'pending') : 'pending';
+
+        if (role === 'pending' && user.email) {
+          const { data: inviteData } = await supabase
+            .from('role_invitations')
+            .select('*')
+            .eq('email', user.email.toLowerCase())
+            .single();
+
+          if (inviteData) {
+            role = inviteData.user_type || 'pending';
+            const updatePayload = {
+              user_type: role,
+              institution_id: inviteData.institution_id || null,
+              college_name: inviteData.college_name || null,
+            };
+            if (inviteData.semester) updatePayload.semester = inviteData.semester;
+
+            await supabase.from('users').update(updatePayload).eq('id', user.id);
+            await supabase.from('role_invitations').delete().eq('email', user.email.toLowerCase());
+            
+            window.location.href = '/';
+            return;
+          }
+        }
+
+        if (mounted) {
           setUserRole(role);
           localStorage.setItem('cachedUserRole', role);
-        } catch (e) {
-          console.error('Offline or error fetching role', e);
+        }
+      } catch (e) {
+        console.error('Offline or error fetching role', e);
+        if (mounted) {
           const cachedRole = localStorage.getItem('cachedUserRole') || 'teacher';
           setUserRole(cachedRole);
         }
-      } else {
-        setUserRole(null);
-        localStorage.removeItem('cachedUserRole');
       }
-      setAuthResolved(true);
+      
+      if (mounted) setAuthResolved(true);
+    };
+
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      checkUser(session);
     });
-    return () => unsub();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      checkUser(session);
+    });
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const RootRedirect = () => {
@@ -147,7 +179,7 @@ function App() {
 
                 {/* Admin nested routes */}
                 <Route path="/admin" element={
-                  <ProtectedRoute allowedRoles={['admin']} fallback={<AdminDashboardSkeleton />}>
+                  <ProtectedRoute allowedRoles={['admin']}>
                     <AdminLayout />
                   </ProtectedRoute>
                 }>

@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../services/firebase";
-import { signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import GenericDashboardSkeleton from "../../components/skeletons/GenericDashboardSkeleton";
 import "./RegistrarDashboard.css";
 
@@ -12,28 +10,24 @@ const RegistrarDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setLoading(true);
-        try {
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          if (userSnap.exists()) {
-            setFullName(userSnap.data().fullName);
-          }
-        } catch (error) {
-          console.error("Fetch Error:", error);
-        }
-        setLoading(false);
-      } else {
-        navigate("/");
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { navigate('/'); return; }
+      setLoading(true);
+      try {
+        const { data } = await supabase.from('users').select('full_name').eq('id', session.user.id).single();
+        if (data) setFullName(data.full_name);
+      } catch (error) {
+        console.error('Fetch Error:', error);
       }
-    });
-    return () => unsubscribe();
+      setLoading(false);
+    };
+    fetchData();
   }, [navigate]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
+    await supabase.auth.signOut();
+    navigate('/');
   };
 
   if (loading) return <GenericDashboardSkeleton />;

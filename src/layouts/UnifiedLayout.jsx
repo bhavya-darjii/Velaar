@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { supabase } from '../services/supabase';
 import './UnifiedLayout.css';
 
 const UnifiedLayout = ({ 
@@ -18,7 +17,7 @@ const UnifiedLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate('/');
   };
 

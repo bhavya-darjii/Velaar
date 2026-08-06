@@ -21,8 +21,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import { useCopilotContext } from "../../context/CopilotContext";
-import { auth, db } from "../../services/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import "./VelaarCopilot.css";
 
 const QUICK_ACTIONS = [
@@ -173,16 +172,16 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
 
   useEffect(() => {
     const fetchName = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      if (user.displayName) {
-        setUserName(user.displayName.split(" ")[0]);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const user = session.user;
+      if (user.user_metadata?.full_name) {
+        setUserName(user.user_metadata.full_name.split(" ")[0]);
       } else {
         try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists()) {
-            const data = snap.data();
-            setUserName((data.name || data.fullName || "").split(" ")[0]);
+          const { data } = await supabase.from('users').select('full_name').eq('id', user.id).single();
+          if (data && data.full_name) {
+            setUserName(data.full_name.split(" ")[0]);
           }
         } catch { }
       }
@@ -320,11 +319,11 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
         const existingQuestionBank = course.questionBank || [];
         const updatedQuestionBank = [...existingQuestionBank, ...newQuestionsWithMeta];
 
-        await updateDoc(doc(db, "courses", course.id), {
-          activeExam: questions, 
-          questionBank: updatedQuestionBank, 
-          lastExamDate: new Date(),
-        });
+        await supabase.from("courses").update({
+          active_exam: questions, 
+          question_bank: updatedQuestionBank, 
+          last_exam_date: new Date().toISOString(),
+        }).eq("id", course.id);
       } catch (err) {
         console.error("Failed to save to Firestore:", err);
       }

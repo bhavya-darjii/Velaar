@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../../services/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import ExaminationSkeleton from '../../components/skeletons/ExaminationSkeleton';
 import './ExaminationPage.css';
@@ -12,43 +10,22 @@ const EXAM_TYPES = [
 ];
 
 const ExaminationPage = () => {
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { course, loading: layoutLoading } = useOutletContext() || {};
   const navigate = useNavigate();
-  // also get layout-level loading so skeleton shows immediately
-  const outletCtx = useOutletContext ? useOutletContext() : {};
-  const layoutLoading = outletCtx?.loading ?? false;
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (!auth.currentUser) return;
-      try {
-        const q = query(collection(db, "courses"), where("teacherId", "==", auth.currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          setCourse({ id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() });
-        }
-      } catch (err) {
-        console.error("Failed to load course details", err);
-      }
-      setLoading(false);
-    };
-    fetchCourse();
-  }, []);
 
   const handleNavigateToEditor = (examId) => {
     navigate(`/teacher/examination/${examId}`);
   };
 
-  if (loading || layoutLoading) return <ExaminationSkeleton />;
+  if (layoutLoading) return <ExaminationSkeleton />;
   if (!course) return <ExaminationSkeleton />;
 
   return (
-    <div className="lesson-plan-container" style={{ padding: '20px' }}>
-      <div className="lesson-plan-grid glass" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '40px' }}>
-        <div className="exams-header" style={{marginBottom: "30px", textAlign: "center"}}>
+    <div className="lesson-plan-container" style={{ padding: '16px' }}>
+      <div className="lesson-plan-grid glass" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '24px' }}>
+        <div className="exams-header" style={{marginBottom: "20px", textAlign: "center"}}>
           <h2 style={{color: '#ffffff', margin: 0, fontSize: '2rem', fontWeight: 900}}>Institutional Examinations</h2>
-          <p style={{color: '#ffffff', margin: '10px 0 0 0', fontSize: '1rem', opacity: 0.9}}>
+          <p style={{color: '#ffffff', margin: '8px 0 0 0', fontSize: '1rem', opacity: 0.9}}>
             Dynamically compile correctly formatted College-issued Word Documents based on your syllabus.
           </p>
         </div>

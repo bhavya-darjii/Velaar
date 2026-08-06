@@ -32,10 +32,10 @@
   --btn-secondary-border: rgba(255, 255, 255, 0.1);
   --btn-secondary-hover: rgba(255, 255, 255, 0.1);
 
-  /* Central Theme Color (now translucent white) */
-  --theme-color: #ffffff;
-  --theme-color-rgb: 255, 255, 255;
-  --accent-teal: #ffffff; /* Overriding all legacy teal references to white */
+  /* Central Theme Color */
+  --theme-color: #0a8fa8;
+  --theme-color-rgb: 10, 143, 168;
+  --accent-teal: #0a8fa8;
   
   /* Plasma Background Color */
   --plasma-color: #ea580c;

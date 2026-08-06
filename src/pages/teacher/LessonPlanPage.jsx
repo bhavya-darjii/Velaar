@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../services/firebase';
+import { supabase } from '../../services/supabase';
 import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonPlan, generateDayWiseEnrichment, generateCoPoMapping, setAiContextCourse } from '../../services/aiService';
 import { exportLessonPlanToWord } from '../../utils/wordExport';
 import LessonPlanSkeleton from '../../components/skeletons/LessonPlanSkeleton';
@@ -163,7 +162,7 @@ const LessonPlanPage = () => {
       setIsSaving(true);
       try {
         const clean = sanitizeForFirestore(lessonPlan);
-        await updateDoc(doc(db, "courses", course.id), { lessonPlan: clean });
+        await supabase.from("courses").update({ lesson_plan: clean }).eq("id", course.id);
         setCourse(prev => ({ ...prev, lessonPlan: clean }));
       } catch (error) {
         console.error("Auto-save failed:", error);
@@ -239,7 +238,7 @@ const LessonPlanPage = () => {
         dayWiseDates: defaultActualDates
       };
 
-      await updateDoc(doc(db, "courses", course.id), { lessonPlan: defaultPlan });
+      await supabase.from("courses").update({ lesson_plan: defaultPlan }).eq("id", course.id);
       setCourse({ ...course, lessonPlan: defaultPlan });
       setLessonPlan(defaultPlan);
 
@@ -254,7 +253,7 @@ const LessonPlanPage = () => {
     setLoading(true);
     try {
       const clean = sanitizeForFirestore(lessonPlan);
-      await updateDoc(doc(db, "courses", course.id), { lessonPlan: clean });
+      await supabase.from("courses").update({ lesson_plan: clean }).eq("id", course.id);
       setCourse({ ...course, lessonPlan: clean });
 
       // Inherently synthesize docx binary buffer directly
@@ -270,7 +269,7 @@ const LessonPlanPage = () => {
     setLoading(true);
     try {
       const clean = sanitizeForFirestore(lessonPlan);
-      await updateDoc(doc(db, "courses", course.id), { lessonPlan: clean });
+      await supabase.from("courses").update({ lesson_plan: clean }).eq("id", course.id);
       setCourse({ ...course, lessonPlan: clean });
     } catch (e) { console.error("Save error", e); }
     setLoading(false);

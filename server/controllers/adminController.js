@@ -1,42 +1,77 @@
-﻿import { adminDb } from '../firebaseAdmin.js';
+import { adminSupabase } from '../supabaseAdmin.js';
 
-// â”€â”€â”€ GET /api/admin/summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/admin/summary ────────────────────────────────────────────────────
 export const getAdminSummary = async (req, res) => {
-  if (!adminDb) {
-    return res.status(500).json({ error: "Server Configuration Error: GOOGLE_SERVICE_ACCOUNT_KEY is missing on Render. Admin Database unavailable." });
+  if (!adminSupabase) {
+    return res.status(500).json({ error: 'Server Configuration Error: SUPABASE_SERVICE_ROLE_KEY is missing. Admin Database unavailable.' });
   }
 
   try {
-    const statsSnapshot = await adminDb.collection('aiStats').get();
-    const stats = statsSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Global totals — aggregate the whole ai_logs table
+    const { data: globalRow } = await adminSupabase
+      .from('ai_logs')
+      .select('cost_inr, input_tokens, output_tokens')
+      .then(({ data }) => ({
+        data: data ? {
+          totalCalls:      data.length,
+          totalCostINR:    data.reduce((s, r) => s + (r.cost_inr    || 0), 0),
+          totalTokensIn:   data.reduce((s, r) => s + (r.input_tokens  || 0), 0),
+          totalTokensOut:  data.reduce((s, r) => s + (r.output_tokens || 0), 0),
+        } : { totalCalls: 0, totalCostINR: 0, totalTokensIn: 0, totalTokensOut: 0 }
+      }));
 
-    // â”€â”€ Totals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const globalStat = stats.find(s => s.id === 'global') || { totalCalls: 0, totalCostINR: 0, totalTokensIn: 0, totalTokensOut: 0 };
-    const { totalCalls, totalCostINR, totalTokensIn, totalTokensOut } = globalStat;
+    // All logs (capped at 5000 for aggregation)
+    const { data: logs = [] } = await adminSupabase
+      .from('ai_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5000);
 
-    // â”€â”€ Per-month breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const monthlyData = stats
-      .filter(s => s.id.startsWith('month_'))
+    // ── Per-month breakdown ──────────────────────────────────────────────────
+    const monthMap = {};
+    logs.forEach(l => {
+      const m = l.month || '';
+      if (!monthMap[m]) monthMap[m] = { month: m, calls: 0, costINR: 0, inputTokens: 0, outputTokens: 0 };
+      monthMap[m].calls++;
+      monthMap[m].costINR      += l.cost_inr    || 0;
+      monthMap[m].inputTokens  += l.input_tokens  || 0;
+      monthMap[m].outputTokens += l.output_tokens || 0;
+    });
+    const monthlyData = Object.values(monthMap)
       .sort((a, b) => a.month.localeCompare(b.month))
       .slice(-6);
 
-    // â”€â”€ Per-teacher breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const teacherData = stats
-      .filter(s => s.id.startsWith('teacher_'))
-      .sort((a, b) => b.costINR - a.costINR);
+    // ── Per-teacher breakdown ────────────────────────────────────────────────
+    const teacherMap = {};
+    logs.forEach(l => {
+      const tid = l.teacher_id || 'unknown';
+      if (!teacherMap[tid]) teacherMap[tid] = { teacherId: tid, teacherName: l.teacher_name, teacherEmail: l.teacher_email, calls: 0, costINR: 0, inputTokens: 0, outputTokens: 0 };
+      teacherMap[tid].calls++;
+      teacherMap[tid].costINR      += l.cost_inr    || 0;
+      teacherMap[tid].inputTokens  += l.input_tokens  || 0;
+      teacherMap[tid].outputTokens += l.output_tokens || 0;
+    });
+    const teacherData = Object.values(teacherMap).sort((a, b) => b.costINR - a.costINR);
 
-    // â”€â”€ Per-action breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    const actionData = stats
-      .filter(s => s.id.startsWith('action_'))
-      .sort((a, b) => b.calls - a.calls);
+    // ── Per-action breakdown ─────────────────────────────────────────────────
+    const actionMap = {};
+    logs.forEach(l => {
+      const a = l.action || 'unknown';
+      if (!actionMap[a]) actionMap[a] = { action: a, actionLabel: l.action_label || a, calls: 0, costINR: 0, inputTokens: 0, outputTokens: 0 };
+      actionMap[a].calls++;
+      actionMap[a].costINR      += l.cost_inr    || 0;
+      actionMap[a].inputTokens  += l.input_tokens  || 0;
+      actionMap[a].outputTokens += l.output_tokens || 0;
+    });
+    const actionData = Object.values(actionMap).sort((a, b) => b.calls - a.calls);
 
-    // â”€â”€ Current month stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Current month ────────────────────────────────────────────────────────
     const now          = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const thisMonth    = stats.find(s => s.id === `month_${currentMonth}`) || { calls: 0, costINR: 0 };
+    const thisMonth    = monthMap[currentMonth] || { calls: 0, costINR: 0 };
 
     return res.status(200).json({
-      totals: { totalCalls, totalCostINR, totalTokensIn, totalTokensOut },
+      totals: globalRow,
       thisMonth,
       monthlyData,
       teacherData,
@@ -50,27 +85,47 @@ export const getAdminSummary = async (req, res) => {
   }
 };
 
-// â”€â”€â”€ GET /api/admin/logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/admin/logs ───────────────────────────────────────────────────────
 export const getAdminLogs = async (req, res) => {
-  if (!adminDb) {
-    return res.status(500).json({ error: "Server Configuration Error: GOOGLE_SERVICE_ACCOUNT_KEY is missing on Render. Admin Database unavailable." });
+  if (!adminSupabase) {
+    return res.status(500).json({ error: 'Server Configuration Error: SUPABASE_SERVICE_ROLE_KEY is missing. Admin Database unavailable.' });
   }
-  
+
   try {
     const { month, teacherId, pageSize = 500 } = req.query;
 
-    const snapshot = await adminDb.collection('aiLogs')
-      .orderBy('timestamp', 'desc')
-      .limit(Number(pageSize))
-      .get();
+    let query = adminSupabase
+      .from('ai_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(Number(pageSize));
 
-    let logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Push filters to the DB query (avoid fetching all rows in memory)
+    if (month)     query = query.eq('month', month);
+    if (teacherId) query = query.eq('teacher_id', teacherId);
 
-    // Memory filter to avoid complex Firestore composite indexes
-    if (month)     logs = logs.filter(l => l.month === month);
-    if (teacherId) logs = logs.filter(l => l.teacherId === teacherId);
+    const { data: logs = [], error } = await query;
+    if (error) throw error;
 
-    return res.status(200).json({ logs, total: logs.length });
+    // Map snake_case to camelCase for frontend compatibility
+    const mapped = logs.map(l => ({
+      id:           l.id,
+      action:       l.action,
+      actionLabel:  l.action_label,
+      teacherId:    l.teacher_id,
+      teacherName:  l.teacher_name,
+      teacherEmail: l.teacher_email,
+      courseId:     l.course_id,
+      subjectName:  l.subject_name,
+      inputTokens:  l.input_tokens,
+      outputTokens: l.output_tokens,
+      costUSD:      l.cost_usd,
+      costINR:      l.cost_inr,
+      month:        l.month,
+      timestamp:    l.created_at,
+    }));
+
+    return res.status(200).json({ logs: mapped, total: mapped.length });
   } catch (err) {
     console.error('[adminController] getAdminLogs error:', err);
     return res.status(500).json({ error: err.message });

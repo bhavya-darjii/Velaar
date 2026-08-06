@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../services/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import StudentDashboardSkeleton from "../../components/skeletons/StudentDashboardSkeleton";
 import "./StudentDashboard.css";
 
@@ -63,21 +62,46 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        try {
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          if (userSnap.exists()) {
-            const data = userSnap.data();
-            setFullName((data.fullName || data.name || "Student").split(" ")[0]);
-          }
-        } catch (e) {
-          console.error(e);
+    // Fallback: always exit loading after 4 seconds max
+    const timer = setTimeout(() => setLoading(false), 4000);
+    const fetchProfile = async (user) => {
+      try {
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        if (userData && !error) {
+          setFullName((userData.full_name || "Student").split(" ")[0]);
+        } else {
+          const name = user.user_metadata?.full_name || user.email?.split('@')[0] || "Student";
+          setFullName(name.split(" ")[0]);
         }
+      } catch (e) {
+        const name = user.user_metadata?.full_name || user.email?.split('@')[0] || "Student";
+        setFullName(name.split(" ")[0]);
       }
+      clearTimeout(timer);
       setLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      } else {
+        clearTimeout(timer);
+        setLoading(false);
+      }
     });
-    return () => unsubscribe();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      }
+    });
+
+    return () => { subscription?.unsubscribe(); clearTimeout(timer); };
   }, []);
 
   if (loading) return <StudentDashboardSkeleton />;

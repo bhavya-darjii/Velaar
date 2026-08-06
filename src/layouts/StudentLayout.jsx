@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { auth, db } from '../services/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { getDoc, doc } from 'firebase/firestore';
+import { supabase } from '../services/supabase';
 import { STUDENT_NAV } from '../config/navigation';
 import UnifiedLayout from './UnifiedLayout';
 
@@ -28,29 +26,46 @@ const StudentLayout = () => {
   const [greeting] = useState(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    let mounted = true;
+
+    const fetchStudentName = async (user) => {
       try {
-        let name = "Student";
-        if (user.displayName) {
-          name = user.displayName.split(' ')[0];
-        } else {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            const fullName = userDoc.data().fullName || userDoc.data().name || "Student";
-            name = fullName.split(' ')[0];
+        const { data: userData } = await supabase.from('users').select('full_name').eq('id', user.id).single();
+        if (mounted) {
+          if (userData && userData.full_name) {
+            setStudentName(userData.full_name.split(' ')[0]);
+          } else {
+            setStudentName((user.user_metadata?.full_name || "Student").split(' ')[0]);
           }
         }
-        setStudentName(name);
       } catch (error) {
-        console.error("Error fetching name:", error);
+        if (mounted) setStudentName((user.user_metadata?.full_name || "Student").split(' ')[0]);
       }
-      setLoading(false);
+      if (mounted) setLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchStudentName(session.user);
+      } else if (mounted) {
+        setLoading(false);
+      }
     });
-    return () => unsubscribe();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (session?.user) {
+          fetchStudentName(session.user);
+        } else if (mounted) {
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   if (loading) {

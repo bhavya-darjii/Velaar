@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { auth, db } from '../services/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { getDocs, getDoc, doc, collection, query, where } from 'firebase/firestore';
+import { supabase } from '../services/supabase';
 import { TEACHER_NAV } from '../config/navigation';
 import { useCopilotContext } from '../context/CopilotContext';
 import UnifiedLayout from './UnifiedLayout';
@@ -31,68 +29,94 @@ const TeacherLayout = () => {
   const [teacherName, setTeacherName] = useState("");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    let mounted = true;
 
-      let teacherName = "Teacher";
-
+    const fetchTeacherData = async (user) => {
+      let tName = "Teacher";
       try {
-        if (user.displayName) {
-          teacherName = user.displayName.split(' ')[0];
-        } else {
-          const userDocRef = doc(db, "users", user.uid);
-          const userSnap = await getDoc(userDocRef);
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            const fullName = userData.name || userData.fullName || "Teacher";
-            teacherName = fullName.split(' ')[0];
-          }
+        const { data: userData } = await supabase.from('users').select('full_name').eq('id', user.id).single();
+        if (userData && userData.full_name) {
+          tName = userData.full_name.split(' ')[0];
+        } else if (user.user_metadata?.full_name) {
+          tName = user.user_metadata.full_name.split(' ')[0];
         }
       } catch (error) {
         console.error("Error fetching user name:", error);
       }
 
-      setTeacherName(teacherName);
-      setGreeting(`${greetingBase} ${teacherName}.`);
+      if (mounted) {
+        setTeacherName(tName);
+        setGreeting(`${greetingBase} ${tName}.`);
+      }
 
       try {
-        const q = query(collection(db, "courses"), where("teacherId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
+        const { data: coursesData } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('teacher_id', user.id)
+          .limit(1);
         
-        if (!querySnapshot.empty) {
-          const docData = querySnapshot.docs[0].data();
-          const docId = querySnapshot.docs[0].id;
-          const courseData = { id: docId, teacherName, ...docData };
-          setCourse(courseData);
-          setPageContext({ course: courseData });
-          
-          let allLectures = [];
-          if (courseData.roadmap && !Array.isArray(courseData.roadmap)) {
-            Object.entries(courseData.roadmap).forEach(([div, lecs]) => {
-              lecs.forEach(l => allLectures.push({ ...l, division: div }));
-            });
-          } else if (Array.isArray(courseData.roadmap)) {
-            allLectures = courseData.roadmap.map(l => ({ ...l, division: "A" }));
-          }
+        if (coursesData && coursesData.length > 0) {
+          const docData = coursesData[0];
+          const courseData = { 
+            teacherName: tName, 
+            subjectName: docData.name || docData.subjectName,
+            lessonPlan: docData.lesson_plan || docData.lessonPlan,
+            totalLectures: docData.total_lectures || docData.totalLectures,
+            examPatterns: docData.exam_patterns || docData.examPatterns,
+            ...docData 
+          };
+          if (mounted) {
+            setCourse(courseData);
+            setPageContext({ course: courseData });
+            
+            let allLectures = [];
+            if (courseData.roadmap && !Array.isArray(courseData.roadmap)) {
+              Object.entries(courseData.roadmap).forEach(([div, lecs]) => {
+                lecs.forEach(l => allLectures.push({ ...l, division: div }));
+              });
+            } else if (Array.isArray(courseData.roadmap)) {
+              allLectures = courseData.roadmap.map(l => ({ ...l, division: "A" }));
+            }
 
-          allLectures.sort((a, b) => new Date(a.fullIsoDate || 0) - new Date(b.fullIsoDate || 0));
-          const nextUp = allLectures.find(l => !l.isCompleted) || allLectures[allLectures.length - 1];
-          setCurrentLecture(nextUp);
+            allLectures.sort((a, b) => new Date(a.fullIsoDate || 0) - new Date(b.fullIsoDate || 0));
+            const nextUp = allLectures.find(l => !l.isCompleted) || allLectures[allLectures.length - 1];
+            setCurrentLecture(nextUp);
+          }
         } else {
-          // Do not force redirect; let them stay on the home dashboard to see the empty state.
           console.log("No courses found for this teacher.");
         }
       } catch (err) {
         console.error("Error loading course:", err);
       }
-      setLoading(false);
+      if (mounted) setLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchTeacherData(session.user);
+      } else if (mounted) {
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
-  }, [navigate, greetingBase, setPageContext]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only re-fetch on actual sign-in events, NOT on TOKEN_REFRESHED
+      // TOKEN_REFRESHED fires every few minutes and would cause an infinite request loop
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (session?.user) {
+          fetchTeacherData(session.user);
+        } else if (mounted) {
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   if (loading) {
     return <div className="velaar-page-shell"><div className="skeleton-base" style={{ height: '32px', width: '280px', borderRadius: '8px', marginBottom: '8px' }} /></div>;

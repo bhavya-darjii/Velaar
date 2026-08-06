@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../../services/firebase';
-import { signOut } from 'firebase/auth';
+import { supabase } from '../../services/supabase';
 import './PendingPage.css';
 import '../auth/LoginPage.css'; // inherit liquid-glass styles
 
@@ -8,7 +7,7 @@ const PendingPage = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate('/');
   };
 

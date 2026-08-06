@@ -1,6 +1,6 @@
+import './env.js'; // Must be the very first import to load env vars before other imports
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import aiRoutes from './routes/aiRoutes.js';
 import exportRoutes from './routes/exportRoutes.js';
@@ -9,8 +9,6 @@ import adminRoutes from './routes/adminRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import noticeRoutes from './routes/noticeRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
-
-dotenv.config();
 
 const app = express();
 
@@ -27,6 +25,7 @@ app.disable('x-powered-by');
 const ALLOWED_ORIGINS = [
   'https://velaar.vercel.app',
   'http://localhost:5173',
+  'https://localhost:5173',
   'http://localhost:5174',
 ];
 

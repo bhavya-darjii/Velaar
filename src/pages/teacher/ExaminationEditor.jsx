@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { db, auth } from '../../services/firebase';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
+import { supabase } from '../../services/supabase';
 import './ExaminationEditor.css';
 
 const TT_PATTERN = [
@@ -53,8 +52,8 @@ const BT_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Cr
 const ExaminationEditor = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { course, setCourse, loading: layoutLoading } = useOutletContext() || {};
+  const [localLoading, setLocalLoading] = useState(true);
   
   const [pattern, setPattern] = useState([]);
   const [headerConfig, setHeaderConfig] = useState(DEFAULT_HEADER);
@@ -67,35 +66,25 @@ const ExaminationEditor = () => {
   const [validationError, setValidationError] = useState(null);
   const [headerErrors, setHeaderErrors] = useState({});
 
-  // 1. Fetch Course Data
+  // 1. Initialize course data when available
   useEffect(() => {
-    const fetchCourse = async () => {
-      if (!auth.currentUser) return;
-      try {
-        const q = query(collection(db, "courses"), where("teacherId", "==", auth.currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const courseData = querySnapshot.docs[0].data();
-          const docId = querySnapshot.docs[0].id;
-          setCourse({ id: docId, ...courseData });
+    if (!course) return;
+    try {
+      const isTT = examId === 'tt1' || examId === 'tt2';
+      const localDefaultPattern = isTT ? TT_PATTERN : ENDSEM_PATTERN;
+      const localDefaultHeader = isTT ? TT_HEADER : ENDSEM_HEADER;
 
-          // Choose relevant default template if not already saved
-          const isTT = examId === 'tt1' || examId === 'tt2';
-          const localDefaultPattern = isTT ? TT_PATTERN : ENDSEM_PATTERN;
-          const localDefaultHeader = isTT ? TT_HEADER : ENDSEM_HEADER;
-
-          // Load Saved Pattern or Default
-          const savedPatterns = courseData.examPatterns || {};
-          if (savedPatterns[examId]) {
-            // Migration: Ensure 'isNumerical' exists in loaded patterns
-            let loadedPattern = savedPatterns[examId].pattern || localDefaultPattern;
+      const savedPatterns = course.exam_patterns || course.examPatterns || {};
+      if (savedPatterns[examId]) {
+        // Migration: Ensure 'isNumerical' exists in loaded patterns
+        let loadedPattern = savedPatterns[examId].pattern || localDefaultPattern;
             
             // Fix for TT1 caching the EndSem pattern from previous versions
             if (isTT && loadedPattern.length === 4) {
                 loadedPattern = localDefaultPattern;
             }
             
-            const maxCOs = courseData?.lessonPlan?.courseOutcomes?.length || courseData?.courseOutcomes?.length || 6;
+            const maxCOs = course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6;
             loadedPattern = loadedPattern.map((q, qIndex) => ({
                ...q,
                subs: q.subs.map(s => {
@@ -127,7 +116,7 @@ const ExaminationEditor = () => {
             setHeaderConfig(loadedHeader);
             setNumericalPrompt(savedPatterns[examId].numericalPrompt || "");
           } else {
-            const maxCOs = courseData?.lessonPlan?.courseOutcomes?.length || courseData?.courseOutcomes?.length || 6;
+            const maxCOs = course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6;
             const mappedDefaultPattern = localDefaultPattern.map((q, qIndex) => ({
                ...q,
                subs: q.subs.map(s => {
@@ -142,41 +131,40 @@ const ExaminationEditor = () => {
             setHeaderConfig(localDefaultHeader);
             setNumericalPrompt("");
           }
-        }
-      } catch (err) {
-        console.error("Failed to load course details", err);
-      }
-      setLoading(false);
-    };
-    fetchCourse();
-  }, [examId]);
+    } catch (err) {
+      console.error("Failed to load course details", err);
+    }
+      setLocalLoading(false);
+  }, [examId, course]);
 
   // 2. Debounced Auto-Save
   const savePatternToDb = useCallback(async (currentPattern, currentHeader, currentPrompt) => {
     if (!course) return;
     setIsSaving(true);
     try {
+      const currentPatterns = course.exam_patterns || course.examPatterns || {};
       const updatedPatterns = { 
-        ...(course.examPatterns || {}), 
+        ...currentPatterns, 
         [examId]: { 
           pattern: currentPattern, 
           headerConfig: currentHeader,
           numericalPrompt: currentPrompt
         } 
       };
-      await updateDoc(doc(db, "courses", course.id), { examPatterns: updatedPatterns });
+      await supabase.from('courses').update({ exam_patterns: updatedPatterns }).eq('id', course.id);
+      setCourse({ ...course, exam_patterns: updatedPatterns });
       setTimeout(() => setIsSaving(false), 800);
     } catch (err) {
       console.error(err);
       setTimeout(() => setIsSaving(false), 800);
     }
-  }, [course, examId]);
+  }, [course, examId, setCourse]);
 
   useEffect(() => {
-    if (loading || !course) return;
+    if (localLoading || layoutLoading || !course) return;
     const timeoutId = setTimeout(() => { savePatternToDb(pattern, headerConfig, numericalPrompt); }, 1500);
     return () => clearTimeout(timeoutId);
-  }, [pattern, headerConfig, numericalPrompt, savePatternToDb, loading, course]);
+  }, [pattern, headerConfig, numericalPrompt, savePatternToDb, localLoading, layoutLoading, course]);
 
   // 3. UI Handlers for Modifying Pattern Configs
   const handleBtChange = (qIndex, subIndex, level) => {
@@ -314,11 +302,11 @@ const ExaminationEditor = () => {
     setGenerating(false);
   };
 
-  if (loading) return <div style={{textAlign:'center', marginTop:'50px', color:'white'}}>Loading Editor...</div>;
+  if (localLoading || layoutLoading) return <div style={{textAlign:'center', marginTop:'50px', color:'white'}}>Loading Editor...</div>;
 
   return (
-    <div className="lesson-plan-container" style={{ padding: '20px' }}>
-      <div className="lesson-plan-grid glass" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '40px' }}>
+    <div className="lesson-plan-container" style={{ padding: '16px' }}>
+      <div className="lesson-plan-grid glass" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '24px' }}>
         <div className="editor-container">
       <div className="editor-header-nav">
         <div className="header-title-group" style={{width: '100%', position: 'relative'}}>
@@ -430,7 +418,7 @@ const ExaminationEditor = () => {
          </div>
       </div>
 
-      {true && (
+
       <div className="pattern-builder">
         {pattern.map((q, qIndex) => (
           <div key={`q_${qIndex}`} className="question-block">
@@ -536,7 +524,7 @@ const ExaminationEditor = () => {
           </button>
         )}
       </div>
-      )}
+
 
       {!isEditMode && (
         <div className="q-card generation-configurator" style={{ marginTop: '30px' }}>

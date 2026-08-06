@@ -1,9 +1,15 @@
-import React from 'react';
-import { auth } from '../../services/firebase';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../services/supabase';
 import './TeacherProfile.css';
 
 const TeacherProfile = () => {
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+  }, []);
 
   const actionCards = [
     { title: 'Class Teacher Dashboard' },
@@ -21,17 +27,17 @@ const TeacherProfile = () => {
         {/* Header / Avatar Section */}
         <div className="profile-top">
           <div className="profile-avatar">
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="Profile" />
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="Profile" />
             ) : (
               <div className="avatar-placeholder">
-                {user?.displayName ? user.displayName.charAt(0).toUpperCase() : '👤'}
+                {user?.user_metadata?.full_name ? user.user_metadata.full_name.charAt(0).toUpperCase() : '👤'}
               </div>
             )}
           </div>
           <div className="profile-details">
             <h3>Faculty Profile</h3>
-            <p className="profile-name">Prof. {user?.displayName || 'Faculty Member'}</p>
+            <p className="profile-name">Prof. {user?.user_metadata?.full_name || 'Faculty Member'}</p>
             <p className="profile-info">{user?.email}</p>
             <div className="profile-badge-group">
               <span className="profile-badge">Artificial Intelligence and Data Science</span>

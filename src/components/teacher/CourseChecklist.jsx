@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../services/firebase';
+import { supabase } from '../../services/supabase';
 import './CourseChecklist.css';
 
 // Component 1: The Active Lecture Checklist
@@ -35,8 +34,7 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
     setCourse({ ...course, roadmap: newFullRoadmap });
     setCurrentLecture({ ...updatedRoadmapContent[lectureIndex], division: div });
 
-    const courseRef = doc(db, "courses", course.id);
-    await updateDoc(courseRef, { roadmap: newFullRoadmap });
+    await supabase.from("courses").update({ roadmap: newFullRoadmap }).eq("id", course.id);
   };
 
   const finishLecture = async () => {
@@ -55,7 +53,7 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
       const newFullRoadmap = isObjectRoadmap ? { ...course.roadmap, [div]: updatedRoadmapContent } : updatedRoadmapContent;
 
       setCourse({ ...course, roadmap: newFullRoadmap });
-      await updateDoc(doc(db, "courses", course.id), { roadmap: newFullRoadmap });
+      await supabase.from("courses").update({ roadmap: newFullRoadmap }).eq("id", course.id);
 
       let allLectures = [];
       if (isObjectRoadmap) {

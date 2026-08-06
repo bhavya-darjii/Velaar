@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../services/firebase";
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import { extractTextFromPDF } from "../../services/pdfService";
 import { generateLectureRoadmap, setAiContextCourse } from "../../services/aiService";
 import "./CourseGeneratorPage.css";
@@ -410,16 +409,17 @@ const CourseGenerator = () => {
 
   // --- SAVE ---
   const handleSaveCourse = async () => {
-    if (!auth.currentUser) return setValidationError("You must be logged in to save courses.");
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (!user) return setValidationError("You must be logged in to save courses.");
+    
     setLoading(true);
     setLoadingStatus("Saving to Cloud...");
 
     try {
-      // Fetch the teacher's actual institutionId + collegeName from their profile
-      const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
-      const userProfile = userSnap.exists() ? userSnap.data() : {};
-      const resolvedCollegeId   = userProfile.institutionId || auth.currentUser.uid; // fallback to uid if not set
-      const resolvedCollegeName = userProfile.collegeName   || null;
+      // Fetch the teacher's actual institutionId from their profile
+      const { data: userProfile } = await supabase.from("users").select("*").eq("id", user.id).single();
+      const resolvedCollegeId = userProfile?.institution_id || null;
 
       const modulesToSave = modules.map((m) => ({
         id: m.id,
@@ -427,30 +427,26 @@ const CourseGenerator = () => {
       }));
 
       const courseData = {
-        teacherId: auth.currentUser.uid,
-        taughtBy: auth.currentUser.displayName || auth.currentUser.email || "Unknown Teacher",
-        teacherEmail: auth.currentUser.email || "",
-        collegeId: resolvedCollegeId,   // ✅ Real institution ID from profile
+        teacher_id: user.id,
+        institution_id: resolvedCollegeId,
         department,
         program,
         semester,
-        subjectName,
-        totalLectures: Number(totalLectures),
+        name: subjectName,
+        total_lectures: Number(totalLectures),
         divisions: divisionsList,
-        weeklySchedule,
-        startDate,
-        endDate,
+        weekly_schedule: weeklySchedule,
+        start_date: startDate,
+        end_date: endDate,
         modules: modulesToSave,
-        roadmap: generatedRoadmap,
-        createdAt: new Date(),
+        roadmap: generatedRoadmap
       };
 
-      // Only attach collegeName if available
-      if (resolvedCollegeName) courseData.collegeName = resolvedCollegeName;
+      const { data, error } = await supabase.from("courses").insert(courseData).select().single();
+      
+      if (error) throw error;
 
-      const docRef = await addDoc(collection(db, "courses"), courseData);
-
-      console.log("Course saved successfully with ID: ", docRef.id);
+      console.log("Course saved successfully with ID: ", data.id);
       navigate("/teacher");
     } catch (err) {
       setValidationError("Cloud Save Failed: " + err.message);

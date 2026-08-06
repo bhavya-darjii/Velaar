@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
-import { auth } from '../../services/firebase';
+import { supabase } from '../../services/supabase';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
-import { collection, getDocs, updateDoc, doc, query, where, getDoc, addDoc, setDoc } from 'firebase/firestore';
-import { db } from '../../services/firebase';
 import './AdminDashboard.css';
 import AdminDashboardSkeleton from '../../components/skeletons/AdminDashboardSkeleton';
 
@@ -137,6 +134,11 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [currentUserData, setCurrentUserData] = useState(null);
   const [updatingUser, setUpdatingUser] = useState(null);
+
+  // velaarAdmin institution picker
+  const [institutions, setInstitutions] = useState([]);
+  const [selectedInstitutionId, setSelectedInstitutionId] = useState('');
+  const isVelaarAdmin = currentUserData?.user_type === 'velaarAdmin';
   
   // Invite state
   const [inviteEmails, setInviteEmails] = useState('');
@@ -154,6 +156,7 @@ export default function AdminDashboard() {
     student:        'Student',
     examController: 'Exam Controller',
     parent:         'Parent',
+    velaarAdmin:    'Velaar Admin',
   };
 
   const fetchData = useCallback(async (showRefreshing = false) => {
@@ -171,16 +174,22 @@ export default function AdminDashboard() {
       setSummary(sumData);
       setLogs(logData.logs || []);
 
-      // Fetch current admin's institution data
-      if (auth.currentUser) {
-        const adminDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        if (adminDoc.exists()) {
-          const adminData = adminDoc.data();
-          setCurrentUserData(adminData);
-          if (adminData.institutionId) {
-            const q = query(collection(db, 'users'), where('institutionId', '==', adminData.institutionId));
-            const usersSnap = await getDocs(q);
-            setUsers(usersSnap.docs.map(d => ({ uid: d.id, ...d.data() })));
+      // Fetch current admin's data
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: adminData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
+        if (adminData) {
+          setCurrentUserData({ ...adminData, institutionId: adminData.institution_id, collegeName: adminData.college_name });
+
+          if (adminData.user_type === 'velaarAdmin') {
+            // velaarAdmin: load ALL institutions
+            const { data: allInsts } = await supabase.from('institutions').select('*').order('name');
+            setInstitutions(allInsts || []);
+            // Don't load users until an institution is selected
+          } else if (adminData.institution_id) {
+            // Regular admin: load users from own institution
+            const { data: usersData } = await supabase.from('users').select('*').eq('institution_id', adminData.institution_id);
+            setUsers((usersData || []).map(d => ({ uid: d.id, ...d, institutionId: d.institution_id, collegeName: d.college_name, userType: d.user_type, fullName: d.full_name })));
           }
         }
       }
@@ -193,10 +202,25 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  // velaarAdmin: when they pick an institution, load its users
+  const handleInstitutionSelect = useCallback(async (instId) => {
+    setSelectedInstitutionId(instId);
+    if (!instId) { setUsers([]); return; }
+    const { data: usersData } = await supabase.from('users').select('*').eq('institution_id', instId);
+    const inst = institutions.find(i => i.id === instId);
+    setUsers((usersData || []).map(d => ({
+      uid: d.id, ...d,
+      institutionId: d.institution_id,
+      collegeName: d.college_name || inst?.name,
+      userType: d.user_type,
+      fullName: d.full_name
+    })));
+  }, [institutions]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate('/');
   };
 
@@ -296,20 +320,20 @@ export default function AdminDashboard() {
     setInviting(true);
     setInviteMsg('');
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const emailList = inviteEmails.split(/[,\n\r]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@'));
       let count = 0;
       for (const email of emailList) {
         const inviteData = {
-          userType: inviteRole,
-          institutionId: currentUserData.institutionId,
-          collegeName: currentUserData.collegeName || 'Unknown',
-          createdAt: new Date(),
-          invitedBy: auth.currentUser.uid
+          email,
+          user_type: inviteRole,
+          institution_id: currentUserData.institutionId,
+          college_name: currentUserData.collegeName || 'Unknown',
         };
         if (inviteRole === 'student' && inviteSemester) {
           inviteData.semester = inviteSemester;
         }
-        await setDoc(doc(db, 'role_invitations', email), inviteData);
+        await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
         count++;
       }
       setInviteMsg(`Successfully sent ${count} invitation(s).`);
@@ -331,22 +355,25 @@ export default function AdminDashboard() {
       const text = await bulkFile.text();
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
       let count = 0;
+      const inviteRows = [];
       for (const line of lines) {
         const email = line.split(',')[0].trim().toLowerCase();
         if (email.includes('@')) {
           const inviteData = {
-            userType: inviteRole,
-            institutionId: currentUserData.institutionId,
-            collegeName: currentUserData.collegeName || 'Unknown',
-            createdAt: new Date(),
-            invitedBy: auth.currentUser.uid
+            email,
+            user_type: inviteRole,
+            institution_id: currentUserData.institutionId,
+            college_name: currentUserData.collegeName || 'Unknown',
           };
           if (inviteRole === 'student' && inviteSemester) {
             inviteData.semester = inviteSemester;
           }
-          await setDoc(doc(db, 'role_invitations', email), inviteData);
+          inviteRows.push(inviteData);
           count++;
         }
+      }
+      if (inviteRows.length > 0) {
+        await supabase.from('role_invitations').upsert(inviteRows, { onConflict: 'email' });
       }
       setInviteMsg(`Successfully invited ${count} users.`);
       setBulkFile(null);
@@ -394,6 +421,23 @@ export default function AdminDashboard() {
 
         {/* FILTER STRIP */}
         <div className="glass-card filter-strip">
+          {/* velaarAdmin: institution selector */}
+          {isVelaarAdmin && (
+            <div className="filter-group">
+              <label className="filter-label">Institution</label>
+              <select
+                id="admin-institution-filter"
+                className="admin-select"
+                value={selectedInstitutionId}
+                onChange={e => handleInstitutionSelect(e.target.value)}
+              >
+                <option value="">— Select Institution —</option>
+                {institutions.map(inst => (
+                  <option key={inst.id} value={inst.id}>{inst.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="filter-group">
             <label className="filter-label">Month</label>
             <select
@@ -425,9 +469,11 @@ export default function AdminDashboard() {
         </div>
 
         {/* ── PRE-REGISTRATION INVITES ── */}
+        {/* Show invite panel only when an institution context is available */}
+        {(!isVelaarAdmin || selectedInstitutionId) && (
         <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '20px' }}>
           <div className="section-header">
-            <span className="section-title">Invite Users to {currentUserData?.collegeName || 'Your Institution'}</span>
+            <span className="section-title">Invite Users to {currentUserData?.collegeName || institutions.find(i => i.id === selectedInstitutionId)?.name || 'Your Institution'}</span>
           </div>
           
           {inviteMsg && (
@@ -527,6 +573,15 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* velaarAdmin: show prompt when no institution selected */}
+        {isVelaarAdmin && !selectedInstitutionId && (
+          <div className="glass-card" style={{ width: '100%', padding: '40px', boxSizing: 'border-box', marginBottom: '20px', textAlign: 'center' }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" style={{ margin: '0 auto 16px' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>Select an institution above to view its users and send invitations.</p>
+          </div>
+        )}
 
         {/* ── USER DIRECTORY ── */}
         <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '40px' }}>

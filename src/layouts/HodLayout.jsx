@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { auth, db } from '../services/firebase';
-import { getDoc, doc } from 'firebase/firestore';
+import { supabase } from '../services/supabase';
 import { HOD_NAV } from '../config/navigation';
 import UnifiedLayout from './UnifiedLayout';
 
@@ -12,18 +11,16 @@ const HodLayout = () => {
 
   useEffect(() => {
     const initLayout = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
       try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userDocRef);
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          setFullName(data.fullName || data.name || "HOD");
-          setDepartmentName(data.department || "Artificial Intelligence and Data Science");
+        const { data } = await supabase.from('users').select('full_name, department').eq('id', session.user.id).single();
+        if (data) {
+          setFullName(data.full_name || 'HOD');
+          setDepartmentName(data.department || 'Artificial Intelligence and Data Science');
         }
       } catch (error) {
-        console.error("Error fetching HOD details:", error);
+        console.error('Error fetching HOD details:', error);
       }
       setLoading(false);
     };

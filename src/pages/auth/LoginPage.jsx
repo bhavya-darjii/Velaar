@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { auth, db, googleProvider, microsoftProvider } from '../../services/firebase';
-import { onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { supabase } from '../../services/supabase';
 import { useState, useEffect } from 'react';
 
 import './LoginPage.css';
@@ -33,108 +31,43 @@ const LoginPage = () => {
 
   // Prevent logged-in users from seeing the login page
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    let mounted = true;
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && mounted) {
         setLoading(true);
-        try {
-          const userSnap = await getDoc(doc(db, 'users', user.uid));
-          if (userSnap.exists()) {
-            redirectByRole(userSnap.data().userType, navigate);
-          }
-          // If the user document doesn't exist yet, we do NOTHING here.
-          // We let handleSSO finish its execution, create the document, and then redirect.
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        } finally {
-          setLoading(false);
-        }
+        supabase.from('users').select('user_type').eq('id', session.user.id).single()
+          .then(({ data }) => {
+            if (data && mounted) {
+              redirectByRole(data.user_type, navigate);
+            }
+          })
+          .catch((err) => console.error("Error fetching user data:", err))
+          .finally(() => {
+            if (mounted) setLoading(false);
+          });
       }
     });
-    return () => unsubscribe();
+
+    return () => { mounted = false; };
   }, [navigate]);
 
   // ── SSO Handler (Google or Microsoft) ────────────────────
-  const handleSSO = async (provider, providerName) => {
+  const handleSSO = async (providerName) => {
     setLoading(true);
     setAuthError('');
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Check if user already has a Firestore profile
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      let existingData = userSnap.exists() ? userSnap.data() : null;
-
-      // If they exist and are NOT pending, just log them in
-      if (existingData && existingData.userType !== 'pending') {
-        redirectByRole(existingData.userType, navigate);
-        return;
-      }
-
-      // Check for role invitation
-      let preRegData = null;
-      let assignedRole = existingData ? existingData.userType : 'pending';
-      let institutionId = existingData ? existingData.institutionId : null;
-      let collegeName = existingData ? existingData.collegeName : null;
-
-      try {
-        const inviteRef = doc(db, 'role_invitations', user.email.toLowerCase());
-        const inviteSnap = await getDoc(inviteRef);
-        if (inviteSnap.exists()) {
-          preRegData = inviteSnap.data();
-          assignedRole = preRegData.userType || assignedRole;
-          institutionId = preRegData.institutionId || institutionId;
-          collegeName = preRegData.collegeName || collegeName;
-        }
-      } catch (err) {
-        console.warn("Role invitation check failed:", err);
-      }
-      
-      if (!existingData && !preRegData) {
-        assignedRole = 'pending';
-      }
-
-      // New SSO user or rescuing a pending user — create/update profile
-      const userData = {
-        fullName: existingData?.fullName || user.displayName || user.email,
-        email: existingData?.email || user.email,
-        userType: assignedRole,
-        institutionId: institutionId,
-        collegeName: collegeName,
-        createdAt: existingData?.createdAt || new Date(),
-        authProvider: existingData?.authProvider || providerName.toLowerCase(),
-      };
-      
-      await setDoc(userRef, userData, { merge: true });
-      
-      if (preRegData) {
-        try {
-          await deleteDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
-        } catch (delErr) {
-          console.warn('Failed to delete invitation:', delErr);
-        }
-      }
-
-      // Force a full page reload so App.jsx auth listener picks up the new role cleanly
-      window.location.href = ROLE_REDIRECTS[userData.userType] || '/pending';
-
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: providerName.toLowerCase() === 'microsoft' ? 'azure' : 'google'
+      });
+      if (error) throw error;
+      // Note: Supabase OAuth automatically redirects to the provider and back to the site.
+      // Profile creation and role handling are done by PostgreSQL triggers and App.jsx.
     } catch (error) {
       console.error('SSO Error details:', error);
-      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-        let msg = `${providerName} sign-in failed.`;
-        if (error.code === 'auth/operation-not-allowed') {
-          msg += ' Make sure this provider is enabled in your Firebase Console.';
-        } else if (error.code === 'auth/unauthorized-domain') {
-          msg += ' The current domain is not in the Firebase Authorized Domains list.';
-        } else {
-          msg += ` (${error.code || error.message})`;
-        }
-        setAuthError(msg);
-      }
+      setAuthError(`${providerName} sign-in failed: ${error.message}`);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // ── Email/Password Handler ──────────────────────────────
@@ -147,80 +80,24 @@ const LoginPage = () => {
     setLoading(true);
     setAuthError('');
     try {
-      let result;
+      let authError;
       if (isSignUp) {
-        result = await createUserWithEmailAndPassword(auth, email, password);
+        const { error } = await supabase.auth.signUp({ email, password });
+        authError = error;
       } else {
-        result = await signInWithEmailAndPassword(auth, email, password);
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        authError = error;
       }
       
-      const user = result.user;
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      let existingData = userSnap.exists() ? userSnap.data() : null;
+      if (authError) throw authError;
 
-      if (existingData && existingData.userType !== 'pending') {
-        redirectByRole(existingData.userType, navigate);
-        return;
-      }
-
-      let preRegData = null;
-      let assignedRole = existingData ? existingData.userType : 'pending';
-      let institutionId = existingData ? existingData.institutionId : null;
-      let collegeName = existingData ? existingData.collegeName : null;
-
-      try {
-        const inviteRef = doc(db, 'role_invitations', user.email.toLowerCase());
-        const inviteSnap = await getDoc(inviteRef);
-        if (inviteSnap.exists()) {
-          preRegData = inviteSnap.data();
-          assignedRole = preRegData.userType || assignedRole;
-          institutionId = preRegData.institutionId || institutionId;
-          collegeName = preRegData.collegeName || collegeName;
-        }
-      } catch (err) {
-        console.warn("Role invitation check failed:", err);
-      }
-      
-      if (!existingData && !preRegData) {
-        assignedRole = 'pending';
-      }
-
-      const userData = {
-        fullName: existingData?.fullName || user.email,
-        email: existingData?.email || user.email,
-        userType: assignedRole,
-        institutionId: institutionId,
-        collegeName: collegeName,
-        createdAt: existingData?.createdAt || new Date(),
-        authProvider: 'email',
-      };
-      
-      await setDoc(userRef, userData, { merge: true });
-      
-      if (preRegData) {
-        try {
-          await deleteDoc(doc(db, 'role_invitations', user.email.toLowerCase()));
-        } catch (delErr) {
-          console.warn('Failed to delete invitation:', delErr);
-        }
-      }
-
-      window.location.href = ROLE_REDIRECTS[userData.userType] || '/pending';
-
+      // On success, App.jsx's onAuthStateChange will handle the redirect.
     } catch (error) {
       console.error('Email Auth Error:', error);
-      let msg = 'Authentication failed.';
-      if (error.code === 'auth/email-already-in-use') msg = 'Email already in use. Please sign in instead.';
-      else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = 'Invalid email or password.';
-      else if (error.code === 'auth/user-not-found') msg = 'Account not found. Please create one.';
-      else if (error.code === 'auth/weak-password') msg = 'Password must be at least 6 characters.';
-      else msg += ` (${error.code || error.message})`;
-      
-      setAuthError(msg);
+      setAuthError(error.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -264,7 +141,7 @@ const LoginPage = () => {
             className="sso-btn sso-btn--google liquid-btn"
             type="button"
             disabled={loading}
-            onClick={() => handleSSO(googleProvider, 'Google')}
+            onClick={() => handleSSO('Google')}
           >
             <svg width="24" height="24" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -279,7 +156,7 @@ const LoginPage = () => {
             className="sso-btn sso-btn--microsoft liquid-btn"
             type="button"
             disabled={loading}
-            onClick={() => handleSSO(microsoftProvider, 'Microsoft')}
+            onClick={() => handleSSO('Microsoft')}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <rect x="1" y="1" width="10" height="10" fill="#F25022"/>

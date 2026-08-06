@@ -1,8 +1,8 @@
 .examination-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
-  margin-top: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
 }
 
 @media (max-width: 900px) {
@@ -15,7 +15,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 24px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -37,7 +37,7 @@
   color: #ffffff;
   opacity: 0.8;
   line-height: 1.4;
-  margin-bottom: 35px;
+  margin-bottom: 16px;
 }
 
 .exam-actions {
@@ -49,10 +49,10 @@
 
 .btn-generate {
   width: 100%;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  background: #ffffff;
+  color: #000000;
+  border: none;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 800;
@@ -64,16 +64,17 @@
 }
 
 .btn-generate:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: #f0f0f0;
+  color: #000000;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
 .btn-generate:disabled {
-  background: rgba(0, 0, 0, 0.05);
-  color: #000000;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
   opacity: 0.5;
   cursor: not-allowed;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: none;
 }

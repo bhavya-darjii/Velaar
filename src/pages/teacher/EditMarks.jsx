@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate, useParams } from 'react-router-dom';
-import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../services/firebase';
+import { supabase } from '../../services/supabase';
 import './EditMarks.css';
 
 const EditMarks = () => {
@@ -19,22 +18,25 @@ const EditMarks = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const queryConstraints = [where('userType', '==', 'student')];
-        if (course?.collegeId) {
-          queryConstraints.push(where('institutionId', '==', course.collegeId));
+        let q = supabase.from('users').select('*').eq('user_type', 'student');
+        if (course?.institution_id) {
+          q = q.eq('institution_id', course.institution_id);
+        } else if (course?.collegeId) {
+          q = q.eq('institution_id', course.collegeId);
         }
         if (course?.semester) {
-          queryConstraints.push(where('semester', '==', course.semester));
+          q = q.eq('semester', course.semester);
         }
-        const q = query(collection(db, 'users'), ...queryConstraints);
-        const snap = await getDocs(q);
+
+        const { data: snap, error } = await q;
+        if (error) throw error;
+
         const loadedStudents = [];
-        snap.forEach(d => {
-          const data = d.data();
+        (snap || []).forEach(data => {
           loadedStudents.push({
-            uid: d.id,
-            name: data.fullName || data.name || data.email || "Unknown Student",
-            rollNo: data.rollNo || d.id.substring(0, 4).toUpperCase()
+            uid: data.id,
+            name: data.full_name || data.name || data.email || "Unknown Student",
+            rollNo: data.rollNo || data.id.substring(0, 4).toUpperCase()
           });
         });
         loadedStudents.sort((a, b) => a.name.localeCompare(b.name));
@@ -51,7 +53,7 @@ const EditMarks = () => {
       navigate('/teacher/create-course');
     } else if (course && examId) {
       // Dynamically build questions from Examination Editor pattern
-      const patternData = course.examPatterns?.[examId];
+      const patternData = course.exam_patterns?.[examId] || course.examPatterns?.[examId];
       if (patternData && patternData.pattern) {
         const generatedQuestions = [];
         patternData.pattern.forEach(q => {
@@ -74,9 +76,12 @@ const EditMarks = () => {
       }
 
       // Load existing marks or init empty
-      const dbMarksField = `${examId}Marks`;
+      const dbMarksField = `${examId}_marks`;
+      const fallbackField = `${examId}Marks`;
       if (course[dbMarksField]) {
         setMarksData(course[dbMarksField]);
+      } else if (course[fallbackField]) {
+        setMarksData(course[fallbackField]);
       } else {
         setMarksData({});
       }
@@ -97,10 +102,13 @@ const EditMarks = () => {
     if (!course?.id) return;
     setIsSaving(true);
     try {
-      const dbMarksField = `${examId}Marks`;
-      await updateDoc(doc(db, 'courses', course.id), {
-        [dbMarksField]: marksData
-      });
+      const dbMarksField = `${examId}_marks`;
+      const { error } = await supabase
+        .from('courses')
+        .update({ [dbMarksField]: marksData })
+        .eq('id', course.id);
+        
+      if (error) throw error;
       setCourse({ ...course, [dbMarksField]: marksData });
       alert("Marks saved successfully!");
     } catch (error) {
@@ -115,19 +123,22 @@ const EditMarks = () => {
      if (!course?.id) return;
      setQuestions(prev => prev.map(q => q.id === `q${parentQId}${subId}` ? { ...q, co: newCo } : q));
      
-     const patternData = JSON.parse(JSON.stringify(course.examPatterns[examId]));
+     const currentPatterns = course.exam_patterns || course.examPatterns || {};
+     const patternData = JSON.parse(JSON.stringify(currentPatterns[examId] || {}));
+     if (!patternData.pattern) return;
+     
      const mainQ = patternData.pattern.find(q => q.id === parentQId);
      if (mainQ) {
         const sub = mainQ.subs.find(s => s.id === subId);
         if (sub) {
            sub.co = newCo;
            const updatedPatterns = { 
-             ...(course.examPatterns || {}), 
+             ...currentPatterns, 
              [examId]: patternData 
            };
            try {
-             await updateDoc(doc(db, "courses", course.id), { examPatterns: updatedPatterns });
-             setCourse({ ...course, examPatterns: updatedPatterns });
+             await supabase.from('courses').update({ exam_patterns: updatedPatterns }).eq('id', course.id);
+             setCourse({ ...course, exam_patterns: updatedPatterns });
            } catch (err) {
              console.error("Failed to update CO", err);
            }

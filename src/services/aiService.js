@@ -1,8 +1,7 @@
 // Wrapper service to connect to our secure Node.js backend.
 // Every request now includes teacher context so the server can log AI usage accurately.
 
-import { auth, db } from './firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { supabase } from './supabase';
 
 const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
@@ -21,23 +20,23 @@ const getTeacherContext = async () => {
     return _cachedCtx;
   }
 
-  const user = auth.currentUser;
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return {};
 
-  let teacherName  = user.displayName || '';
+  let teacherName = user.user_metadata?.full_name || '';
 
   try {
     if (!teacherName) {
-      const userSnap = await getDoc(doc(db, 'users', user.uid));
-      if (userSnap.exists()) {
-        const d = userSnap.data();
-        teacherName = d.fullName || d.name || d.taughtBy || '';
+      const { data: userData } = await supabase.from('users').select('*').eq('id', user.id).single();
+      if (userData) {
+        teacherName = userData.full_name || userData.name || userData.taught_by || '';
       }
     }
   } catch (_) { /* silent */ }
 
   _cachedCtx = {
-    teacherId:    user.uid,
+    teacherId:    user.id,
     teacherEmail: user.email || '',
     teacherName,
     courseId:     _pendingCourseId,

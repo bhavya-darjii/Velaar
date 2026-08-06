@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../services/firebase";
+import { supabase } from "../../services/supabase";
 import { generateQuestionsFromTopics, setAiContextCourse } from "../../services/aiService";
 import {
   Document,
@@ -183,7 +182,7 @@ const ExamSection = ({ course }) => {
         selectedBT,
         numericalCount,
         numericalPrompt,
-        course.pastNumericals || []
+        course.past_numericals || course.pastNumericals || []
       );
 
       if (!questions || questions.error || !Array.isArray(questions)) {
@@ -196,7 +195,7 @@ const ExamSection = ({ course }) => {
 
       // Extract new numericals to feed back into context memory limit to 5
       const newNumericals = questions.filter(q => q.isNumerical).map(q => q.question);
-      let updatedNumericals = [...(course.pastNumericals || [])];
+      let updatedNumericals = [...(course.past_numericals || course.pastNumericals || [])];
       if (newNumericals.length > 0) {
         updatedNumericals = [...newNumericals, ...updatedNumericals].slice(0, 5);
       }
@@ -204,16 +203,16 @@ const ExamSection = ({ course }) => {
       // Create a master log of ALL questions ever generated (no overwriting)
       const generationTimestamp = new Date().toISOString();
       const newQuestionsWithMeta = questions.map(q => ({ ...q, generatedAt: generationTimestamp }));
-      const existingQuestionBank = course.questionBank || [];
+      const existingQuestionBank = course.question_bank || course.questionBank || [];
       const updatedQuestionBank = [...existingQuestionBank, ...newQuestionsWithMeta];
 
-      // Save to Firestore
-      await updateDoc(doc(db, "courses", course.id), {
-        activeExam: questions, // Keeping this for backward compatibility if any screen uses the "latest" exam
-        questionBank: updatedQuestionBank, // The persistent, ever-growing master question bank
-        lastExamDate: new Date(),
-        pastNumericals: updatedNumericals
-      });
+      // Save to Supabase
+      await supabase.from("courses").update({
+        active_exam: questions,
+        question_bank: updatedQuestionBank,
+        last_exam_date: new Date().toISOString(),
+        past_numericals: updatedNumericals
+      }).eq("id", course.id);
 
       // Trigger Word Download
       await exportToWord(questions);

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../services/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import GenericDashboardSkeleton from "../../components/skeletons/GenericDashboardSkeleton";
 import RiskScoreCard from "../../components/teacher/RiskScoreCard";
 import "./HodDashboard.css";
@@ -16,52 +15,41 @@ const HodDashboard = () => {
   const [teachers, setTeachers] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setLoading(true);
-        try {
-          // Get HOD profile
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          let dept = "Artificial Intelligence and Data Science";
-          if (userSnap.exists()) {
-            setFullName(userSnap.data().fullName || "HOD");
-            if (userSnap.data().department) {
-              dept = userSnap.data().department;
-              setDepartmentName(dept);
-            }
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { navigate('/'); return; }
+      setLoading(true);
+      try {
+        // Get HOD profile
+        const { data: userData } = await supabase.from('users').select('full_name, department').eq('id', session.user.id).single();
+        let dept = 'Artificial Intelligence and Data Science';
+        if (userData) {
+          setFullName(userData.full_name || 'HOD');
+          if (userData.department) {
+            dept = userData.department;
+            setDepartmentName(dept);
           }
-
-          // Fetch all courses in this department
-          const coursesQ = query(collection(db, "courses"), where("department", "==", dept));
-          const coursesSnap = await getDocs(coursesQ);
-          setTotalCourses(coursesSnap.size);
-
-          // Collect unique teacher IDs from courses
-          const teacherIds = new Set();
-          coursesSnap.forEach((d) => {
-            if (d.data().teacherId) teacherIds.add(d.data().teacherId);
-          });
-          setTotalTeachers(teacherIds.size);
-
-          // Fetch teacher profiles for those IDs
-          if (teacherIds.size > 0) {
-            const teacherProfiles = await Promise.all(
-              [...teacherIds].map((uid) => getDoc(doc(db, "users", uid)))
-            );
-            const profiles = teacherProfiles
-              .filter((s) => s.exists())
-              .map((s) => ({ id: s.id, ...s.data() }));
-            setTeachers(profiles);
-          }
-        } catch (error) {
-          console.error("Fetch Error:", error);
         }
-        setLoading(false);
-      } else {
-        navigate("/");
+
+        // Fetch all courses in this department
+        const { data: courses } = await supabase.from('courses').select('id, teacher_id').eq('department', dept);
+        setTotalCourses((courses || []).length);
+
+        // Collect unique teacher IDs from courses
+        const teacherIds = [...new Set((courses || []).map(c => c.teacher_id).filter(Boolean))];
+        setTotalTeachers(teacherIds.length);
+
+        // Fetch teacher profiles
+        if (teacherIds.length > 0) {
+          const { data: profiles } = await supabase.from('users').select('id, full_name, email').in('id', teacherIds);
+          setTeachers((profiles || []).map(p => ({ id: p.id, fullName: p.full_name, email: p.email })));
+        }
+      } catch (error) {
+        console.error('Fetch Error:', error);
       }
-    });
-    return () => unsubscribe();
+      setLoading(false);
+    };
+    fetchData();
   }, [navigate]);
 
   if (loading) return <GenericDashboardSkeleton />;

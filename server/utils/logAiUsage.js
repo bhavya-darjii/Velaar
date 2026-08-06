@@ -1,6 +1,5 @@
-// Uses Firebase Admin SDK so writes bypass Firestore security rules.
-import { adminDb } from '../firebaseAdmin.js';
-import { FieldValue } from 'firebase-admin/firestore';
+// Uses Supabase Admin client so writes bypass Row Level Security.
+import { adminSupabase } from '../supabaseAdmin.js';
 
 // ── Gemini 2.0 Flash pricing (USD per 1M tokens, May 2026) ───────────────────
 const INPUT_COST_PER_MILLION  = 0.10;
@@ -26,13 +25,15 @@ export const ACTION_LABELS = {
  * @param {string} opts.action         - Endpoint key e.g. 'generate-roadmap'
  * @param {number} opts.inputTokens    - Prompt token count from usageMetadata
  * @param {number} opts.outputTokens   - Response token count from usageMetadata
- * @param {string} opts.teacherId      - Firebase UID of the calling teacher
+ * @param {string} opts.teacherId      - Supabase user ID of the calling teacher
  * @param {string} opts.teacherEmail   - Teacher's email
  * @param {string} opts.teacherName    - Teacher's display name
- * @param {string} opts.courseId       - Active course document ID (optional)
+ * @param {string} opts.courseId       - Active course ID (optional)
  * @param {string} opts.subjectName    - Subject name (optional)
  */
 export const logAiUsage = async (opts) => {
+  if (!adminSupabase) return; // Silently skip if not configured
+
   try {
     const {
       action, inputTokens = 0, outputTokens = 0,
@@ -47,74 +48,27 @@ export const logAiUsage = async (opts) => {
     const now   = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    const entry = {
+    // Insert a single raw log row — stats are computed from aggregation queries
+    const { error } = await adminSupabase.from('ai_logs').insert({
       action,
-      actionLabel: ACTION_LABELS[action] || action,
-      teacherId,
-      teacherEmail,
-      teacherName,
-      courseId,
-      subjectName,
-      inputTokens,
-      outputTokens,
-      costUSD,
-      costINR,
+      action_label:  ACTION_LABELS[action] || action,
+      teacher_id:    teacherId,
+      teacher_email: teacherEmail,
+      teacher_name:  teacherName,
+      course_id:     courseId || null,
+      subject_name:  subjectName || null,
+      input_tokens:  inputTokens,
+      output_tokens: outputTokens,
+      cost_usd:      costUSD,
+      cost_inr:      costINR,
       month,
-      timestamp: now.toISOString(),
-    };
+      created_at:    now.toISOString(),
+    });
 
-    const batch = adminDb.batch();
-
-    // 1. Raw log entry
-    const logRef = adminDb.collection('aiLogs').doc();
-    batch.set(logRef, entry);
-
-    // 2a. Global totals
-    const globalRef = adminDb.collection('aiStats').doc('global');
-    batch.set(globalRef, {
-      totalCalls:     FieldValue.increment(1),
-      totalCostINR:   FieldValue.increment(costINR),
-      totalTokensIn:  FieldValue.increment(inputTokens),
-      totalTokensOut: FieldValue.increment(outputTokens),
-    }, { merge: true });
-
-    // 2b. Monthly stats
-    const monthRef = adminDb.collection('aiStats').doc(`month_${month}`);
-    batch.set(monthRef, {
-      month,
-      calls:        FieldValue.increment(1),
-      costINR:      FieldValue.increment(costINR),
-      inputTokens:  FieldValue.increment(inputTokens),
-      outputTokens: FieldValue.increment(outputTokens),
-    }, { merge: true });
-
-    // 2c. Teacher stats
-    const teacherRef = adminDb.collection('aiStats').doc(`teacher_${teacherId}`);
-    batch.set(teacherRef, {
-      teacherId,
-      teacherName,
-      teacherEmail,
-      calls:        FieldValue.increment(1),
-      costINR:      FieldValue.increment(costINR),
-      inputTokens:  FieldValue.increment(inputTokens),
-      outputTokens: FieldValue.increment(outputTokens),
-    }, { merge: true });
-
-    // 2d. Action stats
-    const actionRef = adminDb.collection('aiStats').doc(`action_${action}`);
-    batch.set(actionRef, {
-      action,
-      actionLabel:  ACTION_LABELS[action] || action,
-      calls:        FieldValue.increment(1),
-      costINR:      FieldValue.increment(costINR),
-      inputTokens:  FieldValue.increment(inputTokens),
-      outputTokens: FieldValue.increment(outputTokens),
-    }, { merge: true });
-
-    await batch.commit();
+    if (error) throw error;
 
   } catch (err) {
     // Never crash the main AI request just because logging failed
-    console.error('[logAiUsage] Failed to write log to Firestore:', err.message);
+    console.error('[logAiUsage] Failed to write log to Supabase:', err.message);
   }
 };

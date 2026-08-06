@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.46.0",
+    "@supabase/supabase-js": "^2.112.1",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "docx": "^9.6.1",
@@ -18,8 +19,6 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "file-saver": "^2.0.5",
-    "firebase": "^12.8.0",
-    "firebase-admin": "^14.2.0",
     "helmet": "^8.3.0",
     "html5-qrcode": "^2.3.8",
     "multer": "^2.1.1",

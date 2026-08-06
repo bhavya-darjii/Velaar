@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { db, auth } from '../../services/firebase';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { supabase } from '../../services/supabase';
 import './AttendanceScanner.css';
 
 const AttendanceScanner = () => {
@@ -55,46 +54,47 @@ const AttendanceScanner = () => {
   const handleCheckIn = async (qrCodeString) => {
     setErrorMsg('');
     try {
-      const user = auth.currentUser;
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) throw new Error('Not authenticated');
 
-      const q = query(
-        collection(db, 'attendance_sessions'),
-        where('qrCodeString', '==', qrCodeString),
-        where('active', '==', true)
-      );
-      const snapshot = await getDocs(q);
+      const { data: sessionDocs, error: sessionErr } = await supabase
+        .from('attendance_sessions')
+        .select('*')
+        .eq('qr_token', qrCodeString);
 
-      if (snapshot.empty) {
-        throw new Error('QR Code expired or invalid. Wait for the teacher\'s screen to refresh and try again.');
+      if (sessionErr || !sessionDocs || sessionDocs.length === 0) {
+        throw new Error("QR Code expired or invalid. Wait for the teacher's screen to refresh and try again.");
       }
 
-      const sessionDoc = snapshot.docs[0];
-      const sessionData = sessionDoc.data();
+      const sessionData = sessionDocs[0];
 
-      if (new Date() > sessionData.expiresAt.toDate()) {
+      if (new Date() > new Date(sessionData.expires_at)) {
         throw new Error('This QR Code has expired. Please scan the new one on screen.');
       }
 
-      const logQ = query(
-        collection(db, 'attendance_logs'),
-        where('sessionId', '==', sessionDoc.id),
-        where('studentId', '==', user.uid)
-      );
-      const logSnap = await getDocs(logQ);
-      if (!logSnap.empty) {
+      const { data: logSnap, error: logErr } = await supabase
+        .from('attendance_logs')
+        .select('id')
+        .eq('session_id', sessionData.id)
+        .eq('student_id', user.id);
+
+      if (logSnap && logSnap.length > 0) {
         throw new Error('You are already checked in for this session!');
       }
 
-      await addDoc(collection(db, 'attendance_logs'), {
-        sessionId: sessionDoc.id,
-        courseId: sessionData.courseId,
-        studentId: user.uid,
-        studentEmail: user.email,
-        studentName: user.displayName || user.email,
-        timestamp: new Date(),
-        status: 'present',
+      const { error: insertErr } = await supabase.from('attendance_logs').insert({
+        session_id: sessionData.id,
+        course_id: sessionData.course_id,
+        student_id: user.id
       });
+
+      if (insertErr) {
+        if (insertErr.code === '23505') {
+          throw new Error('You are already checked in for this session!');
+        }
+        throw new Error(insertErr.message);
+      }
 
       setSuccessMsg('Attendance marked successfully!');
       setPhase('success');

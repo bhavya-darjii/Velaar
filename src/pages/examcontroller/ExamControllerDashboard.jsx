@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../services/firebase";
-import { signOut } from "firebase/auth";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { supabase } from "../../services/supabase";
 import GenericDashboardSkeleton from "../../components/skeletons/GenericDashboardSkeleton";
 import "./ExamControllerDashboard.css";
 
@@ -18,36 +16,32 @@ const ExamControllerDashboard = () => {
   const [papersGenerated, setPapersGenerated] = useState(0);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setLoading(true);
-        try {
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          if (userSnap.exists()) {
-            setFullName(userSnap.data().fullName || "Exam Controller");
-            setCollegeName(userSnap.data().collegeName || "Institution");
-          }
-
-          // Fetch courses to simulate exam data
-          const coursesSnap = await getDocs(collection(db, "courses"));
-          setTotalCourses(coursesSnap.size);
-          setActiveExams(Math.floor(coursesSnap.size * 1.5)); // Simulated data
-          setPapersGenerated(coursesSnap.size * 3); // Simulated data
-
-        } catch (error) {
-          console.error("Fetch Error:", error);
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { navigate('/'); return; }
+      setLoading(true);
+      try {
+        const { data: userData } = await supabase.from('users').select('full_name, college_name').eq('id', session.user.id).single();
+        if (userData) {
+          setFullName(userData.full_name || 'Exam Controller');
+          setCollegeName(userData.college_name || 'Institution');
         }
-        setLoading(false);
-      } else {
-        navigate("/");
+
+        const { count } = await supabase.from('courses').select('id', { count: 'exact', head: true });
+        setTotalCourses(count || 0);
+        setActiveExams(Math.floor((count || 0) * 1.5));
+        setPapersGenerated((count || 0) * 3);
+      } catch (error) {
+        console.error('Fetch Error:', error);
       }
-    });
-    return () => unsubscribe();
+      setLoading(false);
+    };
+    fetchData();
   }, [navigate]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
+    await supabase.auth.signOut();
+    navigate('/');
   };
 
   if (loading) return <GenericDashboardSkeleton />;
