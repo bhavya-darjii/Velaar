@@ -42,7 +42,7 @@ const HodDashboard = () => {
         // Fetch teacher profiles
         if (teacherIds.length > 0) {
           const { data: profiles } = await supabase.from('users').select('id, full_name, email').in('id', teacherIds);
-          setTeachers((profiles || []).map(p => ({ id: p.id, fullName: p.full_name, email: p.email })));
+          setTeachers((profiles || []).map(p => ({ id: p.id, full_name: p.full_name, email: p.email })));
         }
       } catch (error) {
         console.error('Fetch Error:', error);
@@ -115,11 +115,11 @@ const HodDashboard = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '0.85rem', fontWeight: 700, flexShrink: 0,
                   }}>
-                    {(t.fullName || t.name || '?')[0].toUpperCase()}
+                    {(t.full_name || t.name || '?')[0].toUpperCase()}
                   </span>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#f8fafc' }}>
-                      {t.fullName || t.name || 'Unknown'}
+                      {t.full_name || t.name || 'Unknown'}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#ffffff' }}>{t.email || ''}</div>
                   </div>

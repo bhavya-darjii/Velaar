@@ -43,7 +43,7 @@ const STATIC_SUBJECTS = [
   },
 ];
 
-const ATTENDANCE_PERCENT = 68;
+
 
 const getRiskLabel = (score) => {
   if (score <= 30) return { label: "Low Risk", color: "#22c55e", bg: "rgba(34,197,94,0.12)" };
@@ -60,20 +60,57 @@ const getAttendanceColor = (pct) => {
 const StudentDashboard = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [attendancePercent, setAttendancePercent] = useState(0);
 
   useEffect(() => {
     // Fallback: always exit loading after 4 seconds max
     const timer = setTimeout(() => setLoading(false), 4000);
-    const fetchProfile = async (user) => {
+    const fetchProfileAndAttendance = async (user) => {
       try {
         const { data: userData, error } = await supabase
           .from("users")
-          .select("full_name")
+          .select("full_name, institution_id, semester")
           .eq("id", user.id)
           .single();
 
         if (userData && !error) {
           setFullName((userData.full_name || "Student").split(" ")[0]);
+          
+          if (userData.institution_id && userData.semester) {
+            // Fetch all courses and filter in JS to avoid column-not-found errors
+            const { data: allCourses } = await supabase
+              .from("courses")
+              .select("*");
+              
+            const courses = (allCourses || []).filter(c => {
+              const matchInst = c.institution_id === userData.institution_id;
+              const matchSem = String(c.semester) === String(userData.semester);
+              return matchInst && matchSem;
+            });
+            
+            if (courses && courses.length > 0) {
+              const courseIds = courses.map((c) => c.id);
+              
+              const { count: totalSessions } = await supabase
+                .from("attendance_sessions")
+                .select("*", { count: "exact", head: true })
+                .in("course_id", courseIds);
+                
+              const { count: attendedSessions } = await supabase
+                .from("attendance_logs")
+                .select("*", { count: "exact", head: true })
+                .eq("student_id", user.id)
+                .in("course_id", courseIds);
+                
+              if (totalSessions && totalSessions > 0) {
+                setAttendancePercent(Math.round(((attendedSessions || 0) / totalSessions) * 100));
+              } else {
+                setAttendancePercent(100);
+              }
+            } else {
+              setAttendancePercent(100); // Default if no courses found
+            }
+          }
         } else {
           const name = user.user_metadata?.full_name || user.email?.split('@')[0] || "Student";
           setFullName(name.split(" ")[0]);
@@ -88,7 +125,7 @@ const StudentDashboard = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchProfile(session.user);
+        fetchProfileAndAttendance(session.user);
       } else {
         clearTimeout(timer);
         setLoading(false);
@@ -97,7 +134,7 @@ const StudentDashboard = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchProfile(session.user);
+        fetchProfileAndAttendance(session.user);
       }
     });
 
@@ -114,13 +151,13 @@ const StudentDashboard = () => {
     }, 0) / STATIC_SUBJECTS.length
   );
 
-  const calculatedRiskScore = Math.max(0, Math.min(100, Math.round(100 - ((ATTENDANCE_PERCENT * 0.4) + (avgMarks * 0.6)))));
+  const calculatedRiskScore = Math.max(0, Math.min(100, Math.round(100 - ((attendancePercent * 0.4) + (avgMarks * 0.6)))));
   const risk = getRiskLabel(calculatedRiskScore);
 
   let riskSuggestion = "Keep up the great work!";
-  if (ATTENDANCE_PERCENT < 75 && avgMarks < 60) {
+  if (attendancePercent < 75 && avgMarks < 60) {
     riskSuggestion = "Need to improve attendance and scores.";
-  } else if (ATTENDANCE_PERCENT < 75) {
+  } else if (attendancePercent < 75) {
     riskSuggestion = "Try to attend more classes.";
   } else if (avgMarks < 60) {
     riskSuggestion = "Focus on improving your grades.";
@@ -143,16 +180,16 @@ const StudentDashboard = () => {
               <circle
                 cx="32" cy="32" r="26"
                 fill="none"
-                stroke={getAttendanceColor(ATTENDANCE_PERCENT)}
+                stroke={getAttendanceColor(attendancePercent)}
                 strokeWidth="7"
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 26}`}
-                strokeDashoffset={`${2 * Math.PI * 26 * (1 - ATTENDANCE_PERCENT / 100)}`}
+                strokeDashoffset={`${2 * Math.PI * 26 * (1 - attendancePercent / 100)}`}
                 transform="rotate(-90 32 32)"
               />
             </svg>
-            <span className="sd-ring-val" style={{ color: getAttendanceColor(ATTENDANCE_PERCENT) }}>
-              {ATTENDANCE_PERCENT}%
+            <span className="sd-ring-val" style={{ color: getAttendanceColor(attendancePercent) }}>
+              {attendancePercent}%
             </span>
           </div>
         </div>

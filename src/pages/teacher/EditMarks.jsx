@@ -21,8 +21,6 @@ const EditMarks = () => {
         let q = supabase.from('users').select('*').eq('user_type', 'student');
         if (course?.institution_id) {
           q = q.eq('institution_id', course.institution_id);
-        } else if (course?.collegeId) {
-          q = q.eq('institution_id', course.collegeId);
         }
         if (course?.semester) {
           q = q.eq('semester', course.semester);

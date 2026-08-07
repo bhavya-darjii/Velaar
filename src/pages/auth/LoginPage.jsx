@@ -58,7 +58,10 @@ const LoginPage = () => {
     setAuthError('');
     try {
       const { error } = await supabase.auth.signInWithOAuth({ 
-        provider: providerName.toLowerCase() === 'microsoft' ? 'azure' : 'google'
+        provider: providerName.toLowerCase() === 'microsoft' ? 'azure' : 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
       if (error) throw error;
       // Note: Supabase OAuth automatically redirects to the provider and back to the site.

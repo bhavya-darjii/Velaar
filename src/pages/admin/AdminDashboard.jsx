@@ -179,7 +179,7 @@ export default function AdminDashboard() {
       if (session?.user) {
         const { data: adminData } = await supabase.from('users').select('*').eq('id', session.user.id).single();
         if (adminData) {
-          setCurrentUserData({ ...adminData, institutionId: adminData.institution_id, collegeName: adminData.college_name });
+          setCurrentUserData({ ...adminData });
 
           if (adminData.user_type === 'velaarAdmin') {
             // velaarAdmin: load ALL institutions
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
           } else if (adminData.institution_id) {
             // Regular admin: load users from own institution
             const { data: usersData } = await supabase.from('users').select('*').eq('institution_id', adminData.institution_id);
-            setUsers((usersData || []).map(d => ({ uid: d.id, ...d, institutionId: d.institution_id, collegeName: d.college_name, userType: d.user_type, fullName: d.full_name })));
+            setUsers(usersData || []);
           }
         }
       }
@@ -208,13 +208,7 @@ export default function AdminDashboard() {
     if (!instId) { setUsers([]); return; }
     const { data: usersData } = await supabase.from('users').select('*').eq('institution_id', instId);
     const inst = institutions.find(i => i.id === instId);
-    setUsers((usersData || []).map(d => ({
-      uid: d.id, ...d,
-      institutionId: d.institution_id,
-      collegeName: d.college_name || inst?.name,
-      userType: d.user_type,
-      fullName: d.full_name
-    })));
+    setUsers(usersData || []);
   }, [institutions]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -316,7 +310,7 @@ export default function AdminDashboard() {
   // Directory Handlers
   const handleSingleInvite = async (e) => {
     e.preventDefault();
-    if (!inviteEmails || !currentUserData?.institutionId) return;
+    if (!inviteEmails || !currentUserData?.institution_id) return;
     setInviting(true);
     setInviteMsg('');
     try {
@@ -327,8 +321,8 @@ export default function AdminDashboard() {
         const inviteData = {
           email,
           user_type: inviteRole,
-          institution_id: currentUserData.institutionId,
-          college_name: currentUserData.collegeName || 'Unknown',
+          institution_id: currentUserData.institution_id,
+          college_name: currentUserData.college_name || 'Unknown',
         };
         if (inviteRole === 'student' && inviteSemester) {
           inviteData.semester = inviteSemester;
@@ -348,7 +342,7 @@ export default function AdminDashboard() {
 
   const handleBulkCSV = async (e) => {
     e.preventDefault();
-    if (!bulkFile || !currentUserData?.institutionId) return;
+    if (!bulkFile || !currentUserData?.institution_id) return;
     setInviting(true);
     setInviteMsg('');
     try {
@@ -362,8 +356,8 @@ export default function AdminDashboard() {
           const inviteData = {
             email,
             user_type: inviteRole,
-            institution_id: currentUserData.institutionId,
-            college_name: currentUserData.collegeName || 'Unknown',
+            institution_id: currentUserData.institution_id,
+            college_name: currentUserData.college_name || 'Unknown',
           };
           if (inviteRole === 'student' && inviteSemester) {
             inviteData.semester = inviteSemester;
@@ -473,7 +467,7 @@ export default function AdminDashboard() {
         {(!isVelaarAdmin || selectedInstitutionId) && (
         <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '20px' }}>
           <div className="section-header">
-            <span className="section-title">Invite Users to {currentUserData?.collegeName || institutions.find(i => i.id === selectedInstitutionId)?.name || 'Your Institution'}</span>
+            <span className="section-title">Invite Users to {currentUserData?.college_name || institutions.find(i => i.id === selectedInstitutionId)?.name || 'Your Institution'}</span>
           </div>
           
           {inviteMsg && (
@@ -601,25 +595,25 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {activeUsers.map(u => {
-                  const joinedDate = u.createdAt && u.createdAt.toDate ? u.createdAt.toDate() : (u.createdAt ? new Date(u.createdAt) : null);
+                  const joinedDate = u.created_at ? new Date(u.created_at) : null;
                   return (
-                    <tr key={u.uid}>
+                    <tr key={u.id || u.uid}>
                       <td>
                         <div className="teacher-name-cell">
-                          <div className="teacher-avatar sm">{initials(u.fullName || u.email)}</div>
+                          <div className="teacher-avatar sm">{initials(u.full_name || u.email)}</div>
                           <div>
-                            <span className="teacher-name sm">{u.fullName || '—'}</span>
+                            <span className="teacher-name sm">{u.full_name || '—'}</span>
                             <span className="teacher-email">{u.email || '—'}</span>
                           </div>
                         </div>
                       </td>
                       <td>
                         <span className="action-tag" style={{ background: 'rgba(255,255,255,0.05)', color: '#ffffff' }}>
-                          {ROLE_LABELS[u.userType] || u.userType}
+                          {ROLE_LABELS[u.user_type] || u.user_type}
                         </span>
                       </td>
                       <td>
-                        {u.userType === 'student' ? (
+                        {u.user_type === 'student' ? (
                           <input 
                             type="text"
                             value={u.semester || ''}
@@ -629,7 +623,7 @@ export default function AdminDashboard() {
                             }}
                             onBlur={async (e) => {
                               try {
-                                await updateDoc(doc(db, 'users', u.uid), { semester: e.target.value });
+                                await supabase.from('users').update({ semester: e.target.value }).eq('id', u.id || u.uid);
                               } catch (err) {
                                 console.error('Failed to update semester', err);
                               }

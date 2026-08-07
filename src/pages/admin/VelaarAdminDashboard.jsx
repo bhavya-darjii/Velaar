@@ -2,7 +2,7 @@
  * VelaarAdminDashboard.jsx
  * ─────────────────────────────────────────────
  * Super Admin control panel for the Velaar platform.
- * Accessible only to users with userType: 'velaarAdmin'.
+ * Accessible only to users with user_type: 'velaarAdmin'.
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -129,7 +129,7 @@ const VelaarAdminDashboard = () => {
           supabase.from('courses').select('*'),
           supabase.from('institutions').select('*'),
         ]);
-        setUsers((usersData || []).map(d => ({ uid: d.id, ...d, institutionId: d.institution_id, collegeName: d.college_name, userType: d.user_type, fullName: d.full_name })));
+        setUsers((usersData || []).map(d => ({ ...d, uid: d.id })));
         setCourses((coursesData || []).map(d => ({ id: d.id, ...d })));
         setInstitutions((instsData || []).map(d => ({ id: d.id, ...d })));
       } catch (err) {
@@ -143,12 +143,12 @@ const VelaarAdminDashboard = () => {
   const colleges = useMemo(() => {
     const map = {};
     users.forEach(u => {
-      const c = u.collegeName || 'Unassigned';
-      const id = u.institutionId || 'unassigned';
+      const c = u.college_name || 'Unassigned';
+      const id = u.institution_id || 'unassigned';
       if (!map[id]) map[id] = { id, name: c, users: 0, teachers: 0, students: 0, courses: 0 };
       map[id].users++;
-      if (u.userType === 'teacher') map[id].teachers++;
-      if (u.userType === 'student') map[id].students++;
+      if (u.user_type === 'teacher') map[id].teachers++;
+      if (u.user_type === 'student') map[id].students++;
     });
     courses.forEach(c => {
       const id = c.institution_id || 'unassigned';
@@ -160,7 +160,7 @@ const VelaarAdminDashboard = () => {
   const roleDistribution = useMemo(() => {
     const map = {};
     users.forEach(u => {
-      const r = u.userType || 'student';
+      const r = u.user_type || 'student';
       map[r] = (map[r] || 0) + 1;
     });
     return Object.entries(map).map(([role, count]) => ({
@@ -180,12 +180,12 @@ const VelaarAdminDashboard = () => {
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();
     return users.filter(u => {
-      if (globalInstId && u.institutionId !== globalInstId) return false;
-      const matchRole   = roleFilter === 'all' || u.userType === roleFilter;
+      if (globalInstId && u.institution_id !== globalInstId) return false;
+      const matchRole   = roleFilter === 'all' || u.user_type === roleFilter;
       const matchSearch = !q
-        || (u.fullName || '').toLowerCase().includes(q)
+        || (u.full_name || '').toLowerCase().includes(q)
         || (u.email   || '').toLowerCase().includes(q)
-        || (u.collegeName || '').toLowerCase().includes(q);
+        || (u.college_name || '').toLowerCase().includes(q);
       return matchRole && matchSearch;
     });
   }, [users, search, roleFilter, globalInstId]);
@@ -195,7 +195,7 @@ const VelaarAdminDashboard = () => {
     setUpdating(uid);
     try {
       await supabase.from('users').update({ user_type: newRole }).eq('id', uid);
-      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, userType: newRole, user_type: newRole } : u));
+      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, user_type: newRole } : u));
     } catch (err) {
       console.error('Role update error:', err);
     }
@@ -209,7 +209,7 @@ const VelaarAdminDashboard = () => {
     setUpdating(uid);
     try {
       await supabase.from('users').update({ institution_id: newInstId, college_name: newInstName }).eq('id', uid);
-      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, institutionId: newInstId, collegeName: newInstName } : u));
+      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, institution_id: newInstId, college_name: newInstName } : u));
     } catch (err) {
       console.error('Institution update error:', err);
     }
@@ -342,7 +342,7 @@ const VelaarAdminDashboard = () => {
          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="va-header-left">
               <h1 style={{ fontSize: '2.2rem', fontWeight: 800, margin: 0 }}>
-                Welcome to Velaar{currentUserData?.fullName ? `, ${currentUserData.fullName.split(' ')[0]}!` : '!'}
+                Welcome to Velaar{currentUserData?.full_name ? `, ${currentUserData.full_name.split(' ')[0]}!` : '!'}
               </h1>
               <p style={{ color: '#ffffff', fontSize: '1.05rem', margin: '5px 0 0 0' }}>
                 Global platform overview — {users.length} users across {colleges.filter(c => c.name !== 'Unassigned').length} institutions
@@ -385,12 +385,12 @@ const VelaarAdminDashboard = () => {
         </div>
         <div className="va-kpi">
           <div className="va-kpi__icon"><Icons.Users /></div>
-          <div className="va-kpi__value">{users.filter(u => u.userType === 'teacher').length}</div>
+          <div className="va-kpi__value">{users.filter(u => u.user_type === 'teacher').length}</div>
           <div className="va-kpi__label">Teachers</div>
         </div>
         <div className="va-kpi">
           <div className="va-kpi__icon"><Icons.Users /></div>
-          <div className="va-kpi__value">{users.filter(u => u.userType === 'student').length}</div>
+          <div className="va-kpi__value">{users.filter(u => u.user_type === 'student').length}</div>
           <div className="va-kpi__label">Students</div>
         </div>
       </div>
@@ -480,7 +480,7 @@ const VelaarAdminDashboard = () => {
             </thead>
             <tbody>
               {filteredUsers.map(u => {
-                const initial = (u.fullName || u.email || '?')[0].toUpperCase();
+                const initial = (u.full_name || u.email || '?')[0].toUpperCase();
                 const isUpdating = updating === u.uid;
                 const canModify = u.uid !== currentUserId; // Don't let Velaar Admin modify themselves here easily
 
@@ -490,14 +490,14 @@ const VelaarAdminDashboard = () => {
                       <div className="va-user-cell">
                         <div className="va-avatar">{initial}</div>
                         <div>
-                          <div className="va-user-name">{u.fullName || '—'}</div>
+                          <div className="va-user-name">{u.full_name || '—'}</div>
                           <div className="va-user-email">{u.email || '—'}</div>
                         </div>
                       </div>
                     </td>
-                    <td><RoleBadge role={u.userType} /></td>
+                    <td><RoleBadge role={u.user_type} /></td>
                     <td>
-                      {u.userType === 'student' ? (
+                      {u.user_type === 'student' ? (
                         <input 
                           type="text"
                           value={u.semester || ''}
@@ -507,7 +507,7 @@ const VelaarAdminDashboard = () => {
                           }}
                           onBlur={async (e) => {
                             try {
-                              await updateDoc(doc(db, 'users', u.uid), { semester: e.target.value });
+                              await supabase.from('users').update({ semester: e.target.value }).eq('id', u.uid);
                             } catch (err) {
                               console.error('Failed to update semester', err);
                             }
@@ -520,15 +520,15 @@ const VelaarAdminDashboard = () => {
                         <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
                       )}
                     </td>
-                    <td style={{ color: u.collegeName ? '#e2e8f0' : 'rgba(255, 255, 255, 0.7)' }}>
-                      {u.collegeName || 'Unassigned'}
+                    <td style={{ color: u.college_name ? '#e2e8f0' : 'rgba(255, 255, 255, 0.7)' }}>
+                      {u.college_name || 'Unassigned'}
                     </td>
                     <td>
                       {canModify ? (
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           <select 
                             className="va-action-select"
-                            value={u.userType || 'student'}
+                            value={u.user_type || 'student'}
                             onChange={(e) => handleRoleChange(u.uid, e.target.value)}
                             disabled={isUpdating}
                           >

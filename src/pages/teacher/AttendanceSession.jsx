@@ -162,7 +162,6 @@ const AttendanceSession = () => {
           // 3. Get all students in this course's institution/semester
           let studentsQ = supabase.from('users').select('*').eq('user_type', 'student');
           if (course?.institution_id) studentsQ = studentsQ.eq('institution_id', course.institution_id);
-          else if (course?.collegeId) studentsQ = studentsQ.eq('institution_id', course.collegeId);
           if (course?.semester) studentsQ = studentsQ.eq('semester', course.semester);
           
           const { data: studentsData } = await studentsQ;
