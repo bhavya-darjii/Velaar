@@ -68,16 +68,21 @@
 }
 
 .ppt-card__btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 11px 16px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  /* Match the Generate New PPT control in Lecture Overview. */
+  font-size: 0.9rem !important;
+  width: 100% !important;
+  height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
   letter-spacing: 0.06em;
-  border-radius: 12px;
+  line-height: normal !important;
+  margin: 0 !important;
+}
+
+.ppt-card__btn .ppt-spinner {
+  margin-top: 0;
 }
 
 

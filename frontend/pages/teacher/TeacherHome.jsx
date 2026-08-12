@@ -114,7 +114,7 @@ const PptCard = ({ course, currentLecture }) => {
             <select
               className="ppt-card__select"
               value={selectedId}
-              onChange={(e) => { setSelectedId(e.target.value); setMessage(''); }}
+              onChange={(e) => { setSelectedId(e.target.value); setError(''); }}
             >
               {lectures.map((l) => (
                 <option key={`${l.division || 'A'}-${l.lectureNum}`} value={`${l.division || 'A'}-${l.lectureNum || 0}`}>
@@ -124,7 +124,7 @@ const PptCard = ({ course, currentLecture }) => {
             </select>
 
             <button
-              className={`glass-btn ppt-card__btn${loading ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`}
+              className={`glass-btn glass-btn--primary ppt-card__btn${loading ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`}
               onClick={handleGenerate}
               disabled={loading || done}
             >
