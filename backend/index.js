@@ -9,6 +9,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import noticeRoutes from './routes/noticeRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
+import { generalLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.use(helmet({
 
 // ─── Security: Remove X-Powered-By to reduce information disclosure ───────────
 app.disable('x-powered-by');
+
+// ─── Security: Global rate limiter (100 req/min per IP) ──────────────────────
+app.use(generalLimiter);
 
 // ─── Security: Restrict CORS to known origins only ───────────────────────────
 const ALLOWED_ORIGINS = [
@@ -79,8 +83,9 @@ app.use('/api/timetable', timetableRoutes);
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   if (err.message && err.message.startsWith('CORS policy violation')) {
-    return res.status(403).json({ error: 'Forbidden', message: err.message });
+    return res.status(403).json({ error: 'Forbidden' });
   }
+  // ponytail: never expose err.message or stack to client — leaks file paths and internals
   console.error('[Server Error]', err);
   res.status(500).json({ error: 'Internal Server Error' });
 });

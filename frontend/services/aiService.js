@@ -62,11 +62,19 @@ export const clearAiContext = () => { _cachedCtx = null; };
 // ─── Shared fetch helper ──────────────────────────────────────────────────────
 const aiPost = async (endpoint, body, options = {}) => {
   const ctx = await getTeacherContext();
+
+  // Get the Supabase JWT to send as Authorization header (required by requireAuth middleware)
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
   let res;
   try {
     res = await fetch(`${API_URL}/${endpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ ...body, ...ctx }),
       signal: options.signal,
     });

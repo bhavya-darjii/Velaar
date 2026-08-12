@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { getCourseRiskProfiles, getRiskLevel } from '../../services/dataService';
-import { predictStudentRisk } from '../../services/aiService';
 
 const RISK_COLORS = {
   high:   { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', badge: '#ef4444', label: 'High Risk' },
@@ -26,11 +25,11 @@ const RiskBar = ({ value }) => (
 const StudentRiskAnalytics = () => {
   const { course } = useOutletContext() || {};
   const [profiles, setProfiles] = useState([]);
-  const [aiResults, setAiResults] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [aiLoading, setAiLoading] = useState(false);
   const [filter, setFilter] = useState('All');
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const loadProfiles = useCallback(async () => {
     if (!course?.id) { setLoading(false); return; }
@@ -49,28 +48,7 @@ const StudentRiskAnalytics = () => {
 
   useEffect(() => { loadProfiles(); }, [loadProfiles]);
 
-  const handleAiEnrich = async () => {
-    if (!profiles.length) return;
-    setAiLoading(true);
-    try {
-      const payload = profiles.slice(0, 20).map((s) => ({
-        studentId: s.id,
-        studentName: s.name,
-        attendance: s.attendancePct,
-        tt1: s.tt1Pct ?? 70,
-        tt2: s.tt2Pct ?? 70,
-        consecutiveAbsences: s.consecutiveAbsences,
-      }));
-      const result = await predictStudentRisk({ students: payload });
-      if (result?.students) {
-        // Merge AI interventions into profiles
-        const aiMap = Object.fromEntries(result.students.map((s) => [s.studentId, s]));
-        setAiResults(aiMap);
-      }
-    } finally {
-      setAiLoading(false);
-    }
-  };
+
 
   const filtered = profiles.filter((p) => {
     if (filter === 'All') return true;
@@ -84,6 +62,13 @@ const StudentRiskAnalytics = () => {
   const medCount  = profiles.filter((p) => p.riskLevel === 'medium').length;
   const lowCount  = profiles.filter((p) => p.riskLevel === 'low').length;
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const currentStudents = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -95,36 +80,19 @@ const StudentRiskAnalytics = () => {
             Live data from attendance sessions and marks · {profiles.length} students
           </p>
         </div>
-        <button
-          onClick={handleAiEnrich}
-          disabled={aiLoading || profiles.length === 0}
-          style={{
-            padding: '10px 20px',
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            border: 'none',
-            borderRadius: 12,
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: '0.88rem',
-            cursor: aiLoading || profiles.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: aiLoading || profiles.length === 0 ? 0.6 : 1,
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {aiLoading ? 'Analyzing with AI…' : '✨ AI Intervention Suggestions'}
-        </button>
+
       </div>
 
       {/* Summary cards */}
       {!loading && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
           {[
-            { label: 'High Risk', count: highCount, color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-            { label: 'Moderate',  count: medCount,  color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-            { label: 'Low Risk',  count: lowCount,  color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+            { label: 'High Risk', count: highCount },
+            { label: 'Moderate',  count: medCount },
+            { label: 'Low Risk',  count: lowCount },
           ].map((s) => (
-            <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.color}30`, borderRadius: 16, padding: '18px 20px' }}>
-              <span style={{ fontSize: '1.8rem', fontWeight: 800, color: s.color }}>{s.count}</span>
+            <div key={s.label} className="glass-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>{s.count}</span>
               <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</p>
             </div>
           ))}
@@ -175,16 +143,13 @@ const StudentRiskAnalytics = () => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filtered.map((student) => {
+          {currentStudents.map((student) => {
             const risk = RISK_COLORS[student.riskLevel];
-            const ai = aiResults?.[student.id];
             return (
               <div
                 key={student.id}
+                className="glass-card"
                 style={{
-                  background: risk.bg,
-                  border: `1px solid ${risk.border}`,
-                  borderRadius: 18,
                   padding: '20px 24px',
                   transition: 'transform 0.2s ease',
                 }}
@@ -195,9 +160,9 @@ const StudentRiskAnalytics = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: 10,
-                        background: `${risk.badge}20`,
+                        background: 'rgba(255, 255, 255, 0.1)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 800, color: risk.badge, fontSize: '0.9rem',
+                        fontWeight: 800, color: '#fff', fontSize: '0.9rem',
                         flexShrink: 0,
                       }}>
                         {student.name.charAt(0).toUpperCase()}
@@ -206,8 +171,8 @@ const StudentRiskAnalytics = () => {
                         <p style={{ margin: 0, fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>{student.name}</p>
                         <span style={{
                           fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
-                          letterSpacing: '0.8px', color: risk.badge,
-                          background: `${risk.badge}18`, padding: '2px 8px', borderRadius: 6,
+                          letterSpacing: '0.8px', color: '#fff',
+                          background: 'rgba(255, 255, 255, 0.1)', padding: '2px 8px', borderRadius: 6,
                         }}>
                           {risk.label}
                         </span>
@@ -217,48 +182,62 @@ const StudentRiskAnalytics = () => {
                     {/* Metrics row */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 12 }}>
                       <div>
-                        <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Attendance</p>
+                        <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Attendance</p>
                         <p style={{ margin: 0, fontWeight: 800, color: '#fff', fontSize: '1rem' }}>{student.attendancePct}%</p>
                         <RiskBar value={student.attendancePct} />
                       </div>
                       {student.tt1Pct !== null && student.tt1Pct !== undefined && (
                         <div>
-                          <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>TT1</p>
+                          <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>TT1</p>
                           <p style={{ margin: 0, fontWeight: 800, color: '#fff', fontSize: '1rem' }}>{student.tt1Pct}%</p>
                           <RiskBar value={student.tt1Pct} />
                         </div>
                       )}
                       {student.tt2Pct !== null && student.tt2Pct !== undefined && (
                         <div>
-                          <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>TT2</p>
+                          <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>TT2</p>
                           <p style={{ margin: 0, fontWeight: 800, color: '#fff', fontSize: '1rem' }}>{student.tt2Pct}%</p>
                           <RiskBar value={student.tt2Pct} />
                         </div>
                       )}
                       <div>
-                        <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Risk Score</p>
-                        <p style={{ margin: 0, fontWeight: 800, color: risk.badge, fontSize: '1rem' }}>{student.riskScore}</p>
+                        <p style={{ margin: '0 0 4px', fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Risk Score</p>
+                        <p style={{ margin: 0, fontWeight: 800, color: '#fff', fontSize: '1rem' }}>{student.riskScore}</p>
                         <RiskBar value={student.riskScore} />
                       </div>
                     </div>
 
-                    {/* AI Intervention */}
-                    {ai?.intervention && (
-                      <div style={{
-                        marginTop: 12, padding: '10px 14px',
-                        background: 'rgba(99,102,241,0.1)', borderRadius: 10,
-                        border: '1px solid rgba(99,102,241,0.2)',
-                      }}>
-                        <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(167,139,250,0.9)', fontWeight: 600 }}>
-                          💡 {ai.intervention}
-                        </p>
-                      </div>
-                    )}
+
                   </div>
                 </div>
               </div>
             );
           })}
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 16 }}>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="glass-btn glass-btn--ghost"
+                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              >
+                Previous
+              </button>
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600 }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="glass-btn glass-btn--ghost"
+                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

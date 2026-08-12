@@ -1,19 +1,9 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 dotenv.config();
 
 import { logAiUsage } from '../utils/logAiUsage.js';
+import { callGemini } from '../utils/gemini.js';
 
-const API_KEY = process.env.GOOGLE_API_KEY;
-
-const callGemini = async (bodyPayload) => {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(bodyPayload),
-  });
-  return response.json();
-};
 
 const getCtx = (req) => ({
   teacherId: req.body.teacherId || req.body.userId || 'unknown',

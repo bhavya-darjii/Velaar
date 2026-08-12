@@ -370,10 +370,42 @@ label:not([class]) {
   background: #f0f0f0 !important;
   transform: translateY(-1px);
 }
-.glass-btn--primary:disabled {
+.glass-btn--primary:disabled:not(.glass-btn--loading):not(.glass-btn--done) {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none !important;
+}
+
+.glass-btn--loading {
+  background: #ffffff !important;
+  color: #000000 !important;
+  opacity: 1 !important;
+  cursor: wait !important;
+}
+
+.glass-btn--done {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+
+.ppt-spinner {
+  display: block; /* Centers perfectly in flex container */
+  box-sizing: border-box;
+  margin-top: 7px; /* Visual tweak to align with Inter font baseline */
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: ppt-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ppt-spin {
+  to { transform: rotate(360deg); }
 }
 
 .glass-btn--ghost {

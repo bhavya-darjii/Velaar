@@ -178,7 +178,7 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
         )}
 
         <button 
-          className={`glass-btn glass-btn--primary generate-btn-mini${done ? ' ppt-card__btn--done' : ''}`} 
+          className={`glass-btn glass-btn--primary generate-btn-mini${generatingPpt ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`} 
           onClick={generateNewPpt}
           disabled={generatingPpt || done}
         >

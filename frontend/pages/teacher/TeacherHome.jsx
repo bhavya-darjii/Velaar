@@ -124,7 +124,7 @@ const PptCard = ({ course, currentLecture }) => {
             </select>
 
             <button
-              className={`velaar-btn ppt-card__btn${done ? ' ppt-card__btn--done' : ''}`}
+              className={`glass-btn ppt-card__btn${loading ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`}
               onClick={handleGenerate}
               disabled={loading || done}
             >

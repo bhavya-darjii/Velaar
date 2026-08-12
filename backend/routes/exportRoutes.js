@@ -1,5 +1,6 @@
 import express from 'express';
-import { exportLessonPlanToWord, exportTemplatedExam } from '../controllers/exportController.js';
+import { exportLessonPlanToWord } from '../controllers/lessonPlanExportController.js';
+import { exportTemplatedExam } from '../controllers/examExportController.js';
 
 const router = express.Router();
 

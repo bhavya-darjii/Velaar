@@ -19,8 +19,14 @@ import {
   generateStudyMaterial,
   generateLabManual,
 } from '../controllers/rubricController.js';
+import { requireAuth } from '../middleware/auth.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
+
+// Apply AI rate limiter + auth to all AI routes
+router.use(aiLimiter);
+router.use(requireAuth);
 
 router.post('/generate-roadmap', generateLectureRoadmap);
 router.post('/generate-questions-topics', generateQuestionsFromTopics);
