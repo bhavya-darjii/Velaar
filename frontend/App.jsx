@@ -224,6 +224,7 @@ function App() {
                   <Route path="attendance" element={<AttendanceSession />} />
                   <Route path="question-bank" element={<QuestionBankPage />} />
                   <Route path="examination" element={<ExaminationPage />} />
+                  <Route path="examination/:examId" element={<ExaminationEditor />} />
                   <Route path="examination/editor" element={<ExaminationEditor />} />
                   <Route path="lecture-overview" element={<LectureOverview />} />
                   <Route path="lecture-overview/:lectureId" element={<LectureOverview />} />
