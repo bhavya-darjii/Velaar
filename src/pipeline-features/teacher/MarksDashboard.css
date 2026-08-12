@@ -1,0 +1,166 @@
+.marks-dashboard {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.marks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+}
+
+.marks-card {
+  padding: 30px;
+  border-radius: 16px;
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.marks-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+.card-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-controls label {
+  color: #ffffff;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.marks-select, .marks-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.marks-select:focus, .marks-input:focus {
+  outline: none;
+  border-color: var(--theme-color);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.marks-select option {
+  background: #09090b;
+  color: #ffffff;
+}
+
+.exam-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.marks-exam-card {
+  padding: 35px 30px;
+  border-radius: 16px;
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.marks-exam-card:hover {
+  transform: translateY(-5px);
+  background: rgba(234, 88, 12, 0.1);
+  border-color: rgba(234, 88, 12, 0.3);
+  box-shadow: 0 10px 30px rgba(234, 88, 12, 0.2);
+}
+
+.marks-exam-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+/* Button matching btn-super-generate exactly */
+.marks-action-btn {
+  width: 100%;
+  padding: 12px;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
+  margin-top: 15px;
+}
+.marks-action-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #000000;
+  transform: translateY(-2px);
+}
+.marks-action-btn:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.marks-delete-btn {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+}
+.marks-delete-btn:hover:not(:disabled) {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4) !important;
+}
+
+.marks-card-desc {
+  color: #ffffff;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.selection-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.selection-subtitle {
+  color: #ffffff;
+  margin-bottom: 40px;
+  font-size: 1.1rem;
+}
+
+.marks-exam-card p {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1rem;
+}

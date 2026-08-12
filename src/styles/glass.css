@@ -369,7 +369,6 @@ label:not([class]) {
 .glass-btn--primary:hover:not(:disabled) {
   background: #f0f0f0 !important;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25) !important;
 }
 .glass-btn--primary:disabled {
   opacity: 0.45;

@@ -14,51 +14,33 @@ import AdminLayout from './layouts/AdminLayout';
 import StudentLayout from './layouts/StudentLayout';
 import HodLayout from './layouts/HodLayout';
 import ParentLayout from './layouts/ParentLayout';
+import PrincipalLayout from './layouts/PrincipalLayout';
 import TeacherHome from './pages/teacher/TeacherHome';
-import QuestionBankPage from './pages/teacher/QuestionBankPage';
 import LessonPlanPage from './pages/teacher/LessonPlanPage';
+import QuestionBankPage from './pages/teacher/QuestionBankPage';
 import ExaminationPage from './pages/teacher/ExaminationPage';
 import ExaminationEditor from './pages/teacher/ExaminationEditor';
 import CourseGeneratorPage from './pages/teacher/CourseGeneratorPage';
+import LectureOverview from './pages/teacher/LectureOverview';
+import CourseAnalytics from './pages/teacher/CourseAnalytics';
 import AttendanceSession from './pages/teacher/AttendanceSession';
 import TeacherProfile from './pages/teacher/TeacherProfile';
 import MarksDashboard from './pages/teacher/MarksDashboard';
 import EditMarks from './pages/teacher/EditMarks';
-import SyllabusPage from './pages/teacher/SyllabusPage';
-import LearningResourcesPage from './pages/teacher/LearningResourcesPage';
-import TimetablePage from './pages/teacher/TimetablePage';
-import NoticePage from './pages/teacher/NoticePage';
-import EventPage from './pages/teacher/EventPage';
-import AboutUsPage from './pages/teacher/AboutUsPage';
-import AnswerEvaluator from './pages/teacher/AnswerEvaluator';
-import RubricGenerator from './pages/teacher/RubricGenerator';
-import COAttainment from './pages/teacher/COAttainment';
 import StudentRiskAnalytics from './pages/teacher/StudentRiskAnalytics';
-import LabManualGenerator from './pages/teacher/LabManualGenerator';
-import AssignmentHub from './pages/teacher/AssignmentHub';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import TimetableGenerator from './pages/admin/TimetableGenerator';
-import NoticeGenerator from './pages/admin/NoticeGenerator';
-import AccreditationHub from './pages/admin/AccreditationHub';
 import AdminDashboardSkeleton from './components/skeletons/AdminDashboardSkeleton';
 import HodDashboard from './pages/hod/HodDashboard';
-import CourseMapping from './pages/hod/CourseMapping';
-import FeedbackAnalytics from './pages/hod/FeedbackAnalytics';
-import MeetingMinutes from './pages/hod/MeetingMinutes';
 import RegistrarDashboard from './pages/registrar/RegistrarDashboard';
 import SetupInstitutionPage from './pages/setup/SetupInstitutionPage';
 import VelaarAdminDashboard from './pages/admin/VelaarAdminDashboard';
 import ExamControllerDashboard from './pages/examcontroller/ExamControllerDashboard';
+import PrincipalDashboard from './pages/principal/PrincipalDashboard';
 import ParentPortal from './pages/parent/ParentPortal';
 import ProgressTimeline from './pages/parent/ProgressTimeline';
 import StudentDashboard from './pages/student/StudentDashboard';
-import StudyMaterialGenerator from './pages/student/StudyMaterialGenerator';
-import FlashcardViewer from './pages/student/FlashcardViewer';
-import FeedbackForm from './pages/student/FeedbackForm';
-import AssignmentSubmission from './pages/student/AssignmentSubmission';
 import AttendanceScanner from './pages/student/AttendanceScanner';
-import ExamPage from './pages/student/ExamPage';
 import PendingPage from './pages/auth/PendingPage';
 import PendingPageSkeleton from './components/skeletons/PendingPageSkeleton';
 import StudentDashboardSkeleton from './components/skeletons/StudentDashboardSkeleton';
@@ -158,6 +140,7 @@ function App() {
     if (userRole === 'setup')           return <Navigate to="/setup"           replace />;
     if (userRole === 'velaarAdmin')     return <Navigate to="/velaar-admin"    replace />;
     if (userRole === 'examController')  return <Navigate to="/exam-controller" replace />;
+    if (userRole === 'principal')       return <Navigate to="/principal"       replace />;
     if (userRole === 'parent')          return <Navigate to="/parent"          replace />;
     if (userRole === 'teacher')         return <Navigate to="/teacher"         replace />;
     if (userRole === 'pending')         return <Navigate to="/pending"         replace />;
@@ -184,10 +167,7 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<AdminDashboard />} />
-                  <Route path="timetable-generator" element={<TimetableGenerator />} />
-                  <Route path="notice-generator" element={<NoticeGenerator />} />
-                  <Route path="accreditation" element={<AccreditationHub />} />
-                </Route>
+                  </Route>
 
                 {/* HOD nested routes */}
                 <Route path="/hod" element={
@@ -196,11 +176,7 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<HodDashboard />} />
-                  <Route path="mapping" element={<CourseMapping />} />
-                  <Route path="feedback-analytics" element={<FeedbackAnalytics />} />
-                  <Route path="meeting-minutes" element={<MeetingMinutes />} />
-                  <Route path="timetable-generator" element={<TimetableGenerator />} />
-                </Route>
+                  </Route>
 
                 {/* Student nested routes */}
                 <Route path="/student" element={
@@ -209,13 +185,8 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<StudentDashboard />} />
-                  <Route path="study-material" element={<StudyMaterialGenerator />} />
-                  <Route path="flashcards" element={<FlashcardViewer />} />
-                  <Route path="assignments" element={<AssignmentSubmission />} />
-                  <Route path="feedback" element={<FeedbackForm />} />
                   <Route path="attendance" element={<AttendanceScanner />} />
-                  <Route path="exam" element={<ExamPage />} />
-                </Route>
+                  </Route>
 
                 {/* Parent nested routes */}
                 <Route path="/parent" element={
@@ -225,6 +196,15 @@ function App() {
                 }>
                   <Route index element={<ParentPortal />} />
                   <Route path="progress" element={<ProgressTimeline />} />
+                </Route>
+
+                {/* Principal nested routes */}
+                <Route path="/principal" element={
+                  <ProtectedRoute allowedRoles={['principal']}>
+                    <PrincipalLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<PrincipalDashboard />} />
                 </Route>
 
                 <Route path="/registrar" element={
@@ -240,26 +220,18 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<TeacherHome />} />
-                  <Route path="questionbank" element={<QuestionBankPage />} />
                   <Route path="lesson-plan" element={<LessonPlanPage />} />
-                  <Route path="examination" element={<ExaminationPage />} />
-                  <Route path="examination/:examId" element={<ExaminationEditor />} />
                   <Route path="attendance" element={<AttendanceSession />} />
+                  <Route path="question-bank" element={<QuestionBankPage />} />
+                  <Route path="examination" element={<ExaminationPage />} />
+                  <Route path="examination/editor" element={<ExaminationEditor />} />
+                  <Route path="lecture-overview" element={<LectureOverview />} />
+                  <Route path="lecture-overview/:lectureId" element={<LectureOverview />} />
+                  <Route path="course-analytics" element={<CourseAnalytics />} />
                   <Route path="profile" element={<TeacherProfile />} />
                   <Route path="marks" element={<MarksDashboard />} />
                   <Route path="marks/edit/:examId" element={<EditMarks />} />
-                  <Route path="answer-evaluator" element={<AnswerEvaluator />} />
-                  <Route path="rubric-generator" element={<RubricGenerator />} />
-                  <Route path="co-attainment" element={<COAttainment />} />
                   <Route path="student-risk" element={<StudentRiskAnalytics />} />
-                  <Route path="lab-manual" element={<LabManualGenerator />} />
-                  <Route path="assignment-hub" element={<AssignmentHub />} />
-                  <Route path="syllabus" element={<SyllabusPage />} />
-                  <Route path="learning-resources" element={<LearningResourcesPage />} />
-                  <Route path="timetable" element={<TimetablePage />} />
-                  <Route path="notice" element={<NoticePage />} />
-                  <Route path="event" element={<EventPage />} />
-                  <Route path="about" element={<AboutUsPage />} />
                   <Route path="create-course" element={<CourseGeneratorPage />} />
                 </Route>
 

@@ -139,6 +139,24 @@ export const generateLessonPlan = async (subjectName, modules, options = {}) => 
   }
 };
 
+export const generateLectureOverview = async (payload) => {
+  try {
+    return await aiPost('generate-lecture-overview', payload);
+  } catch (error) {
+    console.error("Lecture Overview Error", error);
+    return { error: 'Failed to generate lecture overview.' };
+  }
+};
+
+export const generateLecturePresentation = async (payload) => {
+  try {
+    return await aiPost('generate-lecture-presentation', payload);
+  } catch (error) {
+    console.error("Lecture Presentation Error", error);
+    return { error: 'Failed to generate lecture presentation.' };
+  }
+};
+
 export const generateSpecificField = async (type, subjectName, modules) => {
   try {
     return await aiPost('generate-specific-field', { type, subjectName, modules });

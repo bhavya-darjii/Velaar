@@ -10,7 +10,8 @@ import {
   generateDayWiseEnrichment,
   generateCoPoMapping,
   copilotChat,
-  classifyCopilotIntent
+  classifyCopilotIntent,
+  generateLecturePresentation,
 } from '../controllers/aiController.js';
 import {
   generateRubric,
@@ -36,5 +37,6 @@ router.post('/evaluate-answer-script', evaluateAnswerScript);
 router.post('/generate-study-material', generateStudyMaterial);
 router.post('/generate-lab-manual', generateLabManual);
 router.post('/intent', classifyCopilotIntent);
+router.post('/generate-lecture-presentation', generateLecturePresentation);
 
 export default router;

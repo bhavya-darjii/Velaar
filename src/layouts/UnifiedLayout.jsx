@@ -45,20 +45,64 @@ const UnifiedLayout = ({
         </div>
         
         <ul className="sidebar-links">
-          {navItems.map((item) => (
-            <li
-              key={item.path}
-              className={`${isActive(item.path) ? 'active' : ''}`}
-              onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-            >
-              {item.label}
-            </li>
-          ))}
+          {(() => {
+            const hasCategories = navItems.some(item => item.category);
+            const normalItems = navItems.filter(item => !item.highlight);
+            const highlightItems = navItems.filter(item => item.highlight);
+            
+            if (!hasCategories) {
+              return navItems.map((item) => (
+                <li
+                  key={item.path}
+                  className={`${isActive(item.path) ? 'active' : ''} ${item.highlight ? 'highlight-item' : ''}`}
+                  onClick={() => { navigate(item.path); setSidebarOpen(false); }}
+                >
+                  {item.label}
+                </li>
+              ));
+            }
+
+            const grouped = normalItems.reduce((acc, item) => {
+              const cat = item.category || 'Other';
+              if (!acc[cat]) acc[cat] = [];
+              acc[cat].push(item);
+              return acc;
+            }, {});
+
+            return (
+              <>
+                {Object.entries(grouped).map(([category, items]) => (
+                  <div key={category} className="nav-group">
+                    <span className="nav-group-label">{category}</span>
+                    {items.map((item) => (
+                      <li
+                        key={item.path}
+                        className={`${isActive(item.path) ? 'active' : ''}`}
+                        onClick={() => { navigate(item.path); setSidebarOpen(false); }}
+                      >
+                        {item.label}
+                      </li>
+                    ))}
+                  </div>
+                ))}
+                
+                {highlightItems.map((item) => (
+                  <li
+                    key={item.path}
+                    className={`highlight-item ${isActive(item.path) ? 'active' : ''}`}
+                    onClick={() => { navigate(item.path); setSidebarOpen(false); }}
+                  >
+                    {item.label}
+                  </li>
+                ))}
+              </>
+            );
+          })()}
           {showSignOut && (
             <li
               className="sign-out-item"
               onClick={handleSignOut}
-              style={{ marginTop: 'auto', color: '#ef4444' }}
+              style={{ marginTop: !navItems.some(item => item.category) ? 'auto' : '0', color: '#ef4444' }}
             >
               Sign Out
             </li>

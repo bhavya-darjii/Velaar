@@ -68,7 +68,7 @@
 
 .sidebar-links {
   list-style: none;
-  padding: 0;
+  padding: 24px 0 0 0;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -365,4 +365,218 @@
   -webkit-backdrop-filter: blur(20px);
   pointer-events: none;
 }
+.hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(1.08) !important;
+}
 
+.hamburger-btn:focus,
+.hamburger-btn:active,
+.close-btn:focus,
+.close-btn:active {
+  outline: none;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+
+.dash-header h1 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.subtitle {
+  color: #ffffff;
+  font-size: 1.2rem;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-badge {
+  background: rgba(10, 10, 15, 0.35);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: #ffffff;
+}
+
+.outlet-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+@media screen and (min-width: 1024px) {
+  .hamburger-btn { display: flex; }
+  .close-btn { display: block; }
+  .main-content {
+    margin: 0 auto;
+    max-width: 1600px;
+  }
+}
+
+.liquid-title {
+  font-size: 4.5rem;
+  font-weight: 900;
+  margin: 0 auto;
+  text-align: center;
+  color: #ffffff;
+  letter-spacing: -2px;
+}
+
+@media screen and (max-width: 768px) {
+  .unified-layout { padding: 0 !important; overflow-x: hidden; }
+
+  /* Heavier font weight in sidebar — mobile only */
+  .sidebar-links li {
+    font-weight: 600 !important;
+  }
+
+  .sidebar-links li.active {
+    font-weight: 800 !important;
+  }
+
+  .main-content {
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .outlet-container {
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .dash-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding: 20px 16px 16px !important;
+    margin-bottom: 0;
+    gap: 0;
+  }
+
+  .header-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .hamburger-btn {
+    position: static !important;
+    margin: 0 !important;
+    margin-top: 10px !important; /* Align optically with 1.8rem text */
+    margin-right: 15px !important;
+    flex-shrink: 0;
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .hamburger-btn svg {
+    width: 14px;
+    height: 11px;
+  }
+
+  .dash-header h1 {
+    font-size: 1.8rem;
+    white-space: normal;
+    word-wrap: break-word;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .subtitle { 
+    font-size: 1.05rem; 
+    margin-top: 4px; 
+    margin-bottom: 0; 
+  }
+
+  .header-actions { display: none; }
+  .progress-badge { display: none; }
+}
+
+/* Edge-to-edge Status Bar Protector */
+.ios-status-bar-blur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 9999;
+  background-color: transparent; /* fully transparent at top */
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  pointer-events: none;
+}
+
+.ios-status-bar-blur.scrolled {
+  background-color: rgba(9, 9, 11, 0.4); /* Dark translucent to match app */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  /* No border so it doesn't create a white line */
+}
+
+.ios-home-bar-blur {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: min(env(safe-area-inset-bottom, 0px), 40px);
+  z-index: 9999;
+  background-color: rgba(9, 9, 11, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  pointer-events: none;
+}
+
+.nav-group {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.nav-group:first-child {
+  margin-top: 0;
+}
+
+.nav-group-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding-left: 24px;
+}

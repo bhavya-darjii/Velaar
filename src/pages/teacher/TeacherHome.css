@@ -8,7 +8,6 @@
 
 .teacher-ai-prompt-slot {
   margin-top: 16px;
-  /* Override the wrapper's max-width so it fills the sidebar column */
   width: 100%;
 }
 
@@ -18,6 +17,124 @@
 
 .teacher-ai-prompt-slot .velaar-ai-wrapper.focused {
   max-width: 100%;
+}
+
+/* ── PPT Card ─────────────────────────────────────────────────────────────── */
+.ppt-card {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.ppt-card__header {
+  margin-bottom: 14px;
+}
+
+.ppt-card__header h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ppt-card__header p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+.ppt-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ppt-card__select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #f1f5f9);
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.ppt-card__select:focus {
+  border-color: var(--primary-accent, #2dd4bf);
+}
+
+.ppt-card__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 12px;
+}
+
+
+.ppt-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.ppt-card__btn--done {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border-color: #16a34a !important;
+  cursor: default;
+}
+
+.ppt-card__error {
+  font-size: 0.78rem;
+  color: #fca5a5;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ppt-card__message {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.ppt-card__message.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.ppt-card__message.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.ppt-card__empty {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #94a3b8);
+  text-align: center;
+  margin: 0;
 }
 
 @media screen and (max-width: 768px) {

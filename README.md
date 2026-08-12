@@ -4,11 +4,12 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-blue.svg)
 ![Express](https://img.shields.io/badge/Express-5.2.1-lightgrey.svg)
-![Firebase](https://img.shields.io/badge/Firebase-12.8.0-orange.svg)
+![Supabase](https://img.shields.io/badge/Supabase-2.x-green.svg)
+![Gemini](https://img.shields.io/badge/Gemini-3.5--flash-orange.svg)
 
-**Velaar** is a massive, advanced, AI-powered educational management platform designed to modernize the academic workflow from the ground up. By leveraging bleeding-edge Generative AI and OCR technologies, Velaar empowers educational institutions with an ecosystem of specialized tools for teachers, students, administrators, and parents.
+**Velaar** is a massive, advanced, AI-powered educational management platform designed to modernize the academic workflow from the ground up. By leveraging cutting-edge Generative AI and OCR technologies, Velaar empowers educational institutions with an ecosystem of specialized tools for teachers, students, administrators, and parents.
 
-Built with extreme performance and user experience in mind, Velaar features a premium glassmorphic UI, ultra-fast optimized loading, a robust Node.js/Express backend, and a dedicated Python engine for heavy document parsing and AI inference.
+Built with extreme performance and user experience in mind, Velaar features a premium glassmorphic UI, ultra-fast optimized loading, and a robust Node.js/Express backend powered by Google Gemini.
 
 ---
 
@@ -24,110 +25,108 @@ Velaar provides a massive suite of specialized dashboards tailored to every stak
 
 - **👨‍🏫 Teacher Portal:** A complete suite for educators featuring:
   - Automated Lesson Plan & Question Bank Generation
-  - Advanced Examination Editor & Answer Evaluator
-  - Automated Rubric Generator & CO Attainment tracking
-  - Predictive Student Risk Analytics
-  - Lab Manual Generator & Assignment Hub
+  - Advanced Examination Editor & AI-powered Question Paper Generator
+  - Lecture Overview & PowerPoint Presentation Generator
+  - Marks Dashboard & Student Risk Analytics
+  - CO Attainment Tracking & Rubric Generator
+  - Lab Manual Generator
 - **🎓 Student Portal:** A personalized hub featuring:
   - Real-time Study Material & Flashcard generation
-  - Seamless Assignment Submissions & Exam taking
-  - Direct Feedback forms and performance analytics
-- **👔 HOD (Head of Department) Portal:** Strategic overview including Course Mapping, Feedback Analytics, and Meeting Minutes documentation.
-- **👑 Admin & VelaarAdmin Portals:** Institutional setup, AI-powered Timetable Generation, Notice Generation, and an Accreditation Hub for compliance.
-- **👨‍👩‍👧 Parent Portal:** A real-time Progress Timeline and dashboard to keep parents continuously informed of student performance.
-- **🏛️ Exam Controller & Registrar Portals:** Specialized dashboards designed specifically for secure academic administration and record-keeping.
+  - Seamless Exam-taking interface
+  - Attendance scanning via QR code
+- **👔 HOD (Head of Department) Portal:** Strategic overview including CO Mapping, Feedback Analytics, and meeting documentation.
+- **👑 Admin & VelaarAdmin Portals:** Institutional setup, AI-powered Timetable & Notice Generation, and an Accreditation Hub.
+- **👨‍👩‍👧 Parent Portal:** A real-time Progress Timeline to keep parents informed of student performance.
+- **🏛️ Exam Controller & Registrar Portals:** Specialized dashboards for secure academic administration.
+- **🏫 Principal Portal:** Institutional oversight dashboard.
 
 ---
 
 ## 📅 Smart Attendance System
 
 Say goodbye to manual roll calls. Velaar introduces a lightning-fast, secure attendance ecosystem:
-- **Teacher Attendance Session:** Teachers can initialize live attendance sessions directly from their dashboard with a single click.
-- **Student Attendance Scanner:** Students simply use their mobile devices and the built-in scanner to securely mark themselves present in real-time, feeding data directly into the institutional analytics engine.
+- **Teacher Attendance Session:** Teachers initialize live attendance sessions from their dashboard with a single click.
+- **Student Attendance Scanner:** Students use their mobile devices and the built-in QR scanner to mark themselves present in real-time.
 
 ---
 
 ## ✨ Core Features & AI Capabilities
 
-- **🧠 Deep AI Content Generation:** Automatically synthesize detailed lesson plans, intelligent question banks, course materials, and study resources using deep Google GenAI integration.
-- **📄 Smart Document Processing:** Upload raw syllabi, PDFs, or images. Velaar's built-in Python parsing engine and OCR (Tesseract.js) flawlessly extract text, diagrams, and structures for automated generation.
+- **🧠 Deep AI Content Generation:** Automatically synthesize detailed lesson plans, intelligent question banks, course materials, lecture presentations (PPT), and study resources using Google Gemini 3.5 Flash.
+- **📄 Smart Document Processing:** Upload raw syllabi, PDFs, or images. Velaar's built-in OCR (Tesseract.js) and PDF.js engine extract text for automated generation.
 - **📝 Advanced Academic Editors:** Rich, interactive interfaces to create, edit, and fine-tune exam papers, lab manuals, and syllabi.
-- **📤 Effortless Exporting:** Export your finalized exams and lesson plans seamlessly to DOCX and PDF formats, maintaining perfect pixel-fidelity and styling.
-- **🎨 Premium UI/UX & Ultra-Fast Loading:** A beautiful, responsive interface featuring dynamic visuals, deep glassmorphism aesthetics, and native Dark/Light mode support. Optimized initial payloads using WebP imagery and Low-Quality Image Placeholders (LQIP) embedded via Base64 CSS gradients guarantee an instant, flash-free render.
-- **🔐 Secure Authentication:** Enterprise-grade security and role-based access control powered by Firebase.
+- **📤 Effortless Exporting:** Export finalized exams, lesson plans, and presentations to DOCX, PDF, and PPTX formats.
+- **🎨 Premium UI/UX:** A beautiful, responsive interface featuring dynamic glassmorphism aesthetics, smooth animations, and categorized navigation sidebars.
+- **🔐 Secure Authentication:** Enterprise-grade security and role-based access control powered by Supabase Auth.
 
 ---
 
 ## 🛠️ Technology Stack
 
-Velaar is built using a modern, scalable, and highly performant tech stack.
-
 ### Frontend
-- **Framework:** React 19 + Vite (Rolldown)
+- **Framework:** React 19 + Vite
 - **Routing:** React Router DOM v7
 - **Graphics/Animation:** OGL (WebGL)
 - **Styling:** Custom CSS with CSS Variables & Glassmorphic Utilities
+- **Charts:** Recharts
+- **QR:** html5-qrcode, qrcode.react
 
 ### Backend & AI Engine
 - **Server:** Node.js + Express 5
-- **AI Integration:** Google GenAI SDK (`@google/genai`)
-- **Database & Auth:** Firebase
-- **Document Processing:** PDF.js, PDF-Parse, DocxTemplater, PizZip
+- **AI Model:** Google Gemini 3.5 Flash (via REST API)
+- **Database & Auth:** Supabase (PostgreSQL + Auth)
+- **Document Processing:** PDF.js, PDF-Parse, DocxTemplater, PizZip, pptxgenjs
 - **Optical Character Recognition:** Tesseract.js
-- **Heavy Processing Engine:** Python (custom scripts for specialized AI generation and complex PDF layouts)
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these instructions to set up the project locally on your machine.
-
 ### Prerequisites
-- [Node.js](https://nodejs.org/en/) (v18 or higher recommended)
-- [Python](https://www.python.org/downloads/) (v3.10+ recommended for the Python Engine)
-- A Firebase Project (for Auth/Firestore)
-- Google Gemini API Key
+- [Node.js](https://nodejs.org/en/) (v18 or higher)
+- A [Supabase](https://supabase.com/) project
+- A [Google Gemini API Key](https://aistudio.google.com/)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/velaar.git
+   git clone https://github.com/bhavya-darjii/velaar.git
    cd velaar
    ```
 
-2. **Install Node dependencies**
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
 3. **Set up Environment Variables**
-   Create a `.env` file in the root directory and add your keys:
+   Create a `.env` file in the **root directory** with all keys:
    ```env
-   VITE_FIREBASE_API_KEY=your_firebase_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-   GOOGLE_GENAI_API_KEY=your_gemini_api_key
-   # Add any other required environment variables here
+   # Gemini AI
+   GOOGLE_API_KEY=your_gemini_api_key
+
+   # Supabase (Frontend)
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+   # Supabase (Backend / Server-side)
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
 
-4. **Install Python dependencies (if applicable)**
-   Navigate to the `python_engine` directory and install required pip packages:
-   ```bash
-   cd python_engine
-   pip install -r requirements.txt
-   cd ..
-   ```
+   > ⚠️ **Note:** There is only **one `.env` file** in the root. Both the frontend and the Express backend read from it.
 
 ### Running the Application
 
-Velaar uses `concurrently` to run both the Vite frontend and Express server simultaneously.
+Velaar uses `concurrently` to run the Vite frontend and Express server simultaneously.
 
 ```bash
 npm run dev
 ```
 
-The application will start on `http://localhost:5173/`, and the server will listen on its configured port.
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:5000`
 
 ---
 
@@ -135,15 +134,20 @@ The application will start on `http://localhost:5173/`, and the server will list
 
 ```text
 velaar/
-├── server/                 # Express backend, Controllers (aiController, exportController)
-├── python_engine/          # Python scripts for specialized AI & PDF parsing
+├── server/                 # Express backend
+│   ├── controllers/        # AI, export, rubric, and analytics controllers
+│   ├── routes/             # Express route definitions
+│   └── index.js            # Server entry point
 ├── src/                    # React Frontend
 │   ├── components/         # Reusable UI components
+│   ├── config/             # Navigation & role config
 │   ├── layouts/            # Role-specific layouts (Teacher, Student, Admin, etc.)
-│   ├── pages/              # 40+ specialized application views mapped to user roles
-│   ├── App.jsx             # Main application router and role-based redirect logic
+│   ├── pages/              # 40+ specialized application views
+│   ├── services/           # Supabase & AI service wrappers
+│   ├── App.jsx             # Main application router
 │   └── index.css           # Global styles and theme variables
-├── .env.example            # Example environment variables
+├── .env                    # Single centralised environment file
+├── vercel.json             # Vercel deployment & security headers config
 ├── package.json            # Project metadata and scripts
 └── README.md               # You are here!
 ```
@@ -164,7 +168,7 @@ velaar/
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!  
-Feel free to check the [issues page](https://github.com/your-username/velaar/issues).
+Feel free to check the [issues page](https://github.com/bhavya-darjii/velaar/issues).
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)

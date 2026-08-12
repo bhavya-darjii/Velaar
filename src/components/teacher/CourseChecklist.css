@@ -121,8 +121,7 @@
 .check-item.checked .checkbox-circle {
   background: var(--accent-teal);
   border-color: var(--accent-teal);
-  color: #000000 !important;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  color: #ffffff !important;
 }
 
 /* =========================================

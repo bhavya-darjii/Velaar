@@ -5,7 +5,7 @@ import { logAiUsage } from '../utils/logAiUsage.js';
 
 const API_KEY = process.env.GOOGLE_API_KEY;
 
-// â”€â”€â”€ Helper: call Gemini and return { data, usage } â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——— Helper: call Gemini and return { data, usage } ——————————————————————
 const callGemini = async (bodyPayload) => {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
   const response = await fetch(url, {
@@ -18,11 +18,11 @@ const callGemini = async (bodyPayload) => {
 
 // â”€â”€â”€ Extract teacher context from request body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const getCtx = (req) => ({
-  teacherId:    req.body.teacherId    || 'unknown',
+  teacherId: req.body.teacherId || 'unknown',
   teacherEmail: req.body.teacherEmail || '',
-  teacherName:  req.body.teacherName  || '',
-  courseId:     req.body.courseId     || '',
-  subjectName:  req.body.subjectName  || '',
+  teacherName: req.body.teacherName || '',
+  courseId: req.body.courseId || '',
+  subjectName: req.body.subjectName || '',
 });
 
 // â”€â”€â”€ 1. Generate Lecture Roadmap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -107,7 +107,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
     ? `PRIORITY: Give strong preference to generating questions with these BT Levels: [${btPreferences.join(', ')}]. However, include a few from other levels to maintain a realistic exam balance.`
     : 'Provide a balanced mix of all BT levels.';
 
-  const numTheory    = Math.max(0, examLength - numericalCount);
+  const numTheory = Math.max(0, examLength - numericalCount);
   const numNumerical = Math.min(examLength, numericalCount);
 
   const callAI = async (promptText, systemInstructionText) => {
@@ -136,7 +136,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
       }
 
       const textResult = data.candidates[0].content.parts[0].text;
-      
+
       // Robust JSON extraction
       const match = textResult.match(/\[[\s\S]*\]/);
       if (match) {
@@ -151,7 +151,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
           return [parsed];
         }
       }
-      
+
       // Fallback
       const cleanJsonStr = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
       return JSON.parse(cleanJsonStr);
@@ -211,7 +211,7 @@ export const generateQuestionsFromTopics = async (req, res) => {
 
       ${pastNumericals && pastNumericals.length > 0 ? `
       ==== PAST GENERATED EXAMPLES TO EMULATE (STYLE/DIFFICULTY REFERENCE) ====
-      ${pastNumericals.map((q, i) => `${i+1}. ${q}`).join('\n')}
+      ${pastNumericals.map((q, i) => `${i + 1}. ${q}`).join('\n')}
       (Use these past examples strictly as a stylistic reference to maintain consistency.)
       ` : ''}
 
@@ -447,7 +447,7 @@ export const generateSupplementaryLessonPlan = async (req, res) => {
 
   if (!modules || modules.length === 0) return res.status(400).json({ error: 'No modules' });
 
-  const moduleNames = modules.map((m, i) => `Module ${i+1}: ${m.name}`).join('\\n');
+  const moduleNames = modules.map((m, i) => `Module ${i + 1}: ${m.name}`).join('\\n');
   const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\\n${m.extractedText || ''}`).join('\\n\\n');
 
   const prompt = `
@@ -514,8 +514,8 @@ export const generateDayWiseEnrichment = async (req, res) => {
 
   if (!roadmapTitles || roadmapTitles.length === 0) return res.status(400).json({ error: 'No roadmap titles' });
 
-  const topicsList = roadmapTitles.map((t, i) => `${i+1}. ${t}`).join('\\n');
-  const allBooks = [...textBooks, ...refBooks].map((b, i) => `B${i+1}: ${b}`).join('\\n');
+  const topicsList = roadmapTitles.map((t, i) => `${i + 1}. ${t}`).join('\\n');
+  const allBooks = [...textBooks, ...refBooks].map((b, i) => `B${i + 1}: ${b}`).join('\\n');
 
   const prompt = `
     Role: Senior Academic Curriculum Planner.
@@ -568,10 +568,10 @@ export const generateCoPoMapping = async (req, res) => {
   const { courseOutcomes, programOutcomes } = req.body;
   const ctx = getCtx(req);
 
-  const coText = courseOutcomes.map((co, i) => `CO${i+1}: ${co.description}`).join('\n');
+  const coText = courseOutcomes.map((co, i) => `CO${i + 1}: ${co.description}`).join('\n');
   const poText = programOutcomes.map((po, i) => {
-    const poLabel = typeof po === 'string' ? po : (po.code || `PO${i+1}`);
-    const poDesc  = typeof po === 'string' ? po : (po.title || '');
+    const poLabel = typeof po === 'string' ? po : (po.code || `PO${i + 1}`);
+    const poDesc = typeof po === 'string' ? po : (po.title || '');
     return `${poLabel}: ${poDesc}`;
   }).join('\n');
 
@@ -689,7 +689,7 @@ export const copilotChat = async (req, res) => {
     }
 
     if (!data.candidates || data.candidates.length === 0) {
-       return res.status(500).json({ error: 'Empty candidate from AI' });
+      return res.status(500).json({ error: 'Empty candidate from AI' });
     }
 
     const textResult = data.candidates[0].content.parts[0].text;
@@ -746,10 +746,10 @@ export const classifyCopilotIntent = async (req, res) => {
     });
 
     if (data.error) throw new Error(data.error.message);
-    
+
     let textResult = data.candidates[0].content.parts[0].text;
     textResult = textResult.replace(/```json/g, "").replace(/```/g, "").trim();
-    
+
     const parsed = JSON.parse(textResult);
     return res.status(200).json(parsed);
 
@@ -759,3 +759,118 @@ export const classifyCopilotIntent = async (req, res) => {
   }
 };
 
+// ─── Generate Lecture Presentation (AI-powered PPT content) ───────────────────
+export const generateLecturePresentation = async (req, res) => {
+  const { subjectName, lecture, overview, teachingStyle = 'Conceptual', course } = req.body;
+  const ctx = getCtx(req);
+
+  const lectureChecklist = (lecture?.checklist || []).join(', ');
+  const moduleName = lecture?.moduleName || '';
+  const moduleList = (course?.modules || []).map(m => m.name).join(', ');
+  const overviewContext = overview ? JSON.stringify(overview).slice(0, 3000) : '';
+  const lessonPlanContext = course?.lessonPlan ? JSON.stringify(course.lessonPlan).slice(0, 2000) : '';
+
+  const prompt = [
+    'You are a university professor writing an EXTREMELY DETAILED, HIGH-DENSITY, self-contained PowerPoint presentation that a teacher can deliver without any extra preparation.',
+    'You must OVER-DELIVER on content. Do not provide a skeletal or sparse presentation. Every slide must be packed with rich, educational value.',
+    'CRITICALLY: Balance technical depth with ACCESSIBILITY. While you must provide deep formulas and algorithms, you MUST also break things down using simple analogies, everyday language, and relatable concepts. Do not be overly academic 100% of the time — make the hard concepts easy to grasp.',
+    '',
+    'COURSE: ' + (subjectName || 'Engineering'),
+    'COURSE MODULES: ' + (moduleList || 'Not specified'),
+    'CURRENT MODULE: ' + moduleName,
+    'LECTURE NUMBER: ' + (lecture?.lectureNum || 1),
+    'LECTURE TITLE: ' + (lecture?.title || 'Introduction'),
+    'LECTURE DESCRIPTION: ' + (lecture?.description || ''),
+    'KEY TOPICS / CHECKLIST: ' + lectureChecklist,
+    'LECTURE PREPARATION NOTES: ' + overviewContext,
+    'LESSON PLAN CONTEXT: ' + lessonPlanContext,
+    '',
+    '=== YOUR GOAL ===',
+    'Write slides that contain COMPLETE, SELF-EXPLANATORY, COMPREHENSIVE content. A teacher must be able to read the slide and immediately know what to say. A student must be able to read it and understand the concept without any other resource.',
+    '',
+    'Each bullet point must be a FULL SENTENCE or FRAGMENT with MAXIMUM informational value. NEVER use short 3-word bullets.',
+    '',
+    'Bad bullet example (DO NOT DO THIS): "Agents perceive environments using specialized sensory inputs"',
+    'Good bullet example: "An intelligent agent perceives its environment through diverse sensors (e.g., cameras for vision, microphones for audio) — think of it like a human using eyes and ears to understand the room around them before acting."',
+    '',
+    '=== SLIDE GUIDELINES ===',
+    '- Generate exactly the number of slides needed to cover the topic efficiently — MINIMUM 15, MAXIMUM 25 slides.',
+    '- Keep the presentation thorough but concise. Break down complex topics if needed, but do not overgenerate.',
+    '- Bullets per slide: 4 to 7. THIS IS CRITICAL. KEEP BULLETS CONCISE BUT INFORMATIVE.',
+    '',
+    '=== REQUIRED SLIDE SECTIONS (in order) ===',
+    '1. Title slide — title and subtitle only, bullets: []',
+    '2. Why This Topic Matters — 3 real-world 2023-2025 scenarios, specific company/event names',
+    '3. Learning Objectives — 4-5 highly specific outcomes students will achieve',
+    '4-onwards: Cover the full topic in exhaustive depth using sub-topic slides. For each major concept:',
+    '   - Definition slide (highly detailed)',
+    '   - The "Simply Put" / Analogy slide (explain the concept like they are beginners)',
+    '   - Components/Types/Classification slide (with extensive sub-points)',
+    '   - Working mechanism or algorithm slide (step-by-step, thorough)',
+    '   - Mathematical or logical framework if applicable (show variables and formulas)',
+    '   - Advantages and Disadvantages or Comparison slide (side-by-side exhaustive)',
+    '   - Real-world Example 1 — specific named Indian example from 2023-2025 with statistics/impact',
+    '   - Real-world Example 2 — specific named global example from 2023-2025 with statistics/impact',
+    '   - Common Mistakes and Misconceptions (why students fail at this)',
+    '   - Worked Example with detailed step-by-step solution',
+    '   - Class Activity (think-pair-share or quick problem, 5 min)',
+    'Last 2 slides: Summary (6-8 key takeaways) and What is Next (bridge + deep references)',
+    '',
+    '=== MOTTO FOR TITLE SLIDE ===',
+    'Generate a short 5-8 word ACADEMIC MOTTO relevant to the lecture topic.',
+    'Store this in the "motto" field of the JSON (only on slide index 0).',
+    '',
+    '=== JSON OUTPUT FORMAT ===',
+    'Return ONLY valid JSON, no markdown, no code fences:',
+    '{',
+    '  "title": "lecture title",',
+    '  "subtitle": "' + (subjectName || 'Course') + ' | Lecture ' + (lecture?.lectureNum || 1) + ' | ' + moduleName + '",',
+    '  "slides": [',
+    '    {',
+    '      "title": "slide title",',
+    '      "bullets": ["long, highly detailed, complete informative sentence", "another exhaustive full sentence with deep technical context"],',
+    '      "motto": "only present on slide index 0, leave out on all other slides",',
+    '      "speakerNotes": "4-6 sentences with extensive real-world detail, specific company names, precise statistics, dates, and pedagogical tips for the teacher to say aloud"',
+    '    }',
+    '  ]',
+    '}',
+    '',
+    '=== ABSOLUTE RULES ===',
+    '- No visualSuggestion field',
+    '- No emojis anywhere',
+    '- Title slide has empty bullets array and a motto field',
+    '- All other slides have NO motto field',
+    '- Every content slide must have exactly 4 to 7 clear, concise, and informative bullets',
+    '- Sub-bullets are welcome: use format "Term: detailed description" or add them as separate bullets with indentation context',
+    '- Real-world examples must name the company, product, or event and year explicitly and include data/impact',
+    '- Indian examples: ISRO, UPI, NPCI, Zepto, PhonePe, Jio, Ola, Zomato, BHIM, Indian Railways, ONDC, Aadhar, Tata Motors',
+    '- Global examples: OpenAI, Google DeepMind, Tesla Autopilot, NVIDIA, Meta, Apple, Amazon, Microsoft, SpaceX',
+    '- Generate STRICTLY between 15 and 25 slides — find the perfect balance between depth and API safety.',
+  ].join('\n');
+
+  try {
+    const data = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    });
+
+    if (data.error) return res.status(500).json({ error: data.error.message });
+    if (!data.candidates?.[0]) return res.status(500).json({ error: 'Empty response from AI' });
+
+    const textResult = data.candidates[0].content.parts[0].text;
+    const clean = textResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    const usage = data.usageMetadata || {};
+
+    await logAiUsage({
+      action: 'generate-lecture-presentation',
+      inputTokens: usage.promptTokenCount || 0,
+      outputTokens: usage.candidatesTokenCount || 0,
+      ...ctx,
+    });
+
+    return res.status(200).json(JSON.parse(clean));
+  } catch (error) {
+    console.error('Lecture Presentation Error:', error);
+    return res.status(500).json({ error: 'Failed to generate presentation' });
+  }
+};
