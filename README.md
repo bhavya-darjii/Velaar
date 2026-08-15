@@ -6,7 +6,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 ![Express](https://img.shields.io/badge/Express-5.2.1-lightgrey.svg)
 ![Supabase](https://img.shields.io/badge/Supabase-2.x-green.svg)
-![Gemini](https://img.shields.io/badge/Gemini-1.5_Flash-orange.svg)
+![Gemini](https://img.shields.io/badge/Gemini-3.5_Flash-orange.svg)
 
 **Velaar** is a massive, advanced, AI-powered educational management platform designed to modernize the academic workflow from the ground up. By leveraging cutting-edge Generative AI and OCR technologies, Velaar empowers educational institutions with an ecosystem of specialized tools for teachers, students, administrators, and parents.
 
@@ -53,7 +53,7 @@ Say goodbye to manual roll calls. Velaar introduces a lightning-fast, secure att
 
 ## ✨ Core Features & AI Capabilities
 
-- **🧠 Deep AI Content Generation:** Automatically synthesize detailed lesson plans, intelligent question banks, course materials, lecture presentations (PPT), and study resources using Google Gemini 1.5 Flash.
+- **🧠 Deep AI Content Generation:** Automatically synthesize detailed lesson plans, intelligent question banks, course materials, lecture presentations (PPT), and study resources using Google Gemini 3.5 Flash.
 - **📄 Smart Document Processing:** Upload raw syllabi, PDFs, or images. Velaar's built-in OCR (Tesseract.js) and PDF.js engine extract text for automated generation.
 - **📝 Advanced Academic Editors:** Rich, interactive interfaces to create, edit, and fine-tune exam papers, lab manuals, and syllabi.
 - **📤 Effortless Exporting:** Export finalized exams, lesson plans, and presentations to DOCX, PDF, and PPTX formats.
@@ -74,7 +74,7 @@ Say goodbye to manual roll calls. Velaar introduces a lightning-fast, secure att
 
 ### Backend & AI Engine
 - **Server:** Node.js + Express 5 (TypeScript)
-- **AI Model:** Google Gemini 1.5 Flash (via REST API)
+- **AI Model:** Google Gemini 3.5 Flash (via REST API)
 - **Database & Auth:** Supabase (PostgreSQL + Auth)
 - **Document Processing:** PDF.js, PDF-Parse, DocxTemplater, PizZip, pptxgenjs
 - **Optical Character Recognition:** Tesseract.js
