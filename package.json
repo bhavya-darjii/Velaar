@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "npx tsx backend/index.ts",
     "dev": "concurrently \"vite --host --port 5173\" \"npx tsx backend/index.ts\"",
     "build": "vite build",
     "lint": "eslint .",
