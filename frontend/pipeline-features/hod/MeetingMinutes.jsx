@@ -1,5 +1,5 @@
 import { useState } from 'react';
-
+import { supabase } from '../../services/supabase';
 
 const MeetingMinutes = () => {
   const [notes, setNotes] = useState('');
@@ -14,9 +14,14 @@ const MeetingMinutes = () => {
       const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
       const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
       const URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/notice/meeting-minutes` : `${BASE_URL}/api/notice/meeting-minutes`;
+      
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          "Authorization": session ? `Bearer ${session.access_token}` : ""
+        },
         body: JSON.stringify({ notes, department }),
       });
       setResult(await res.json());

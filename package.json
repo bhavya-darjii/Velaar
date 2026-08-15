@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite --host --port 5173\" \"node backend/index.js\"",
+    "dev": "concurrently \"vite --host --port 5173\" \"npx tsx backend/index.ts\"",
     "build": "vite build",
     "lint": "eslint .",
+    "type-check": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.backend.json --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "file-saver": "^2.0.5",
     "helmet": "^8.3.0",
     "html5-qrcode": "^2.3.8",
+    "morgan": "^1.11.0",
     "multer": "^2.1.1",
     "ogl": "^1.0.11",
     "pdf-parse": "^2.4.5",
@@ -37,6 +39,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
@@ -46,6 +53,10 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.12",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.67.0",
     "vite": "npm:rolldown-vite@7.2.5"
   },
   "overrides": {

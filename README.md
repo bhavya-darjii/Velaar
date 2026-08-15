@@ -1,15 +1,16 @@
 # Velaar 🚀
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![React](https://img.shields.io/badge/React-19.2.0-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 ![Express](https://img.shields.io/badge/Express-5.2.1-lightgrey.svg)
 ![Supabase](https://img.shields.io/badge/Supabase-2.x-green.svg)
-![Gemini](https://img.shields.io/badge/Gemini-3.5--flash-orange.svg)
+![Gemini](https://img.shields.io/badge/Gemini-1.5_Flash-orange.svg)
 
 **Velaar** is a massive, advanced, AI-powered educational management platform designed to modernize the academic workflow from the ground up. By leveraging cutting-edge Generative AI and OCR technologies, Velaar empowers educational institutions with an ecosystem of specialized tools for teachers, students, administrators, and parents.
 
-Built with extreme performance and user experience in mind, Velaar features a premium glassmorphic UI, ultra-fast optimized loading, and a robust Node.js/Express backend powered by Google Gemini.
+Built with extreme performance and user experience in mind, Velaar features a premium glassmorphic UI, ultra-fast optimized loading, and a robust Node.js/Express backend powered by Google Gemini. The entire codebase is strictly typed with **TypeScript** for enterprise-grade scalability and maintainability.
 
 ---
 
@@ -52,19 +53,19 @@ Say goodbye to manual roll calls. Velaar introduces a lightning-fast, secure att
 
 ## ✨ Core Features & AI Capabilities
 
-- **🧠 Deep AI Content Generation:** Automatically synthesize detailed lesson plans, intelligent question banks, course materials, lecture presentations (PPT), and study resources using Google Gemini 3.5 Flash.
+- **🧠 Deep AI Content Generation:** Automatically synthesize detailed lesson plans, intelligent question banks, course materials, lecture presentations (PPT), and study resources using Google Gemini 1.5 Flash.
 - **📄 Smart Document Processing:** Upload raw syllabi, PDFs, or images. Velaar's built-in OCR (Tesseract.js) and PDF.js engine extract text for automated generation.
 - **📝 Advanced Academic Editors:** Rich, interactive interfaces to create, edit, and fine-tune exam papers, lab manuals, and syllabi.
 - **📤 Effortless Exporting:** Export finalized exams, lesson plans, and presentations to DOCX, PDF, and PPTX formats.
-- **🎨 Premium UI/UX:** A beautiful, responsive interface featuring dynamic glassmorphism aesthetics, smooth animations, and categorized navigation sidebars.
-- **🔐 Secure Authentication:** Enterprise-grade security and role-based access control powered by Supabase Auth.
+- **🎨 Premium UI/UX:** A beautiful, responsive interface featuring dynamic glassmorphism aesthetics, valid SVG noise textures for deep contrast, smooth animations, and categorized navigation sidebars.
+- **🔐 Secure Authentication:** Enterprise-grade security and role-based access control powered by Supabase Auth (integrated natively across all backend REST calls).
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-- **Framework:** React 19 + Vite
+- **Framework:** React 19 + Vite (TypeScript)
 - **Routing:** React Router DOM v7
 - **Graphics/Animation:** OGL (WebGL)
 - **Styling:** Custom CSS with CSS Variables & Glassmorphic Utilities
@@ -72,8 +73,8 @@ Say goodbye to manual roll calls. Velaar introduces a lightning-fast, secure att
 - **QR:** html5-qrcode, qrcode.react
 
 ### Backend & AI Engine
-- **Server:** Node.js + Express 5
-- **AI Model:** Google Gemini 3.5 Flash (via REST API)
+- **Server:** Node.js + Express 5 (TypeScript)
+- **AI Model:** Google Gemini 1.5 Flash (via REST API)
 - **Database & Auth:** Supabase (PostgreSQL + Auth)
 - **Document Processing:** PDF.js, PDF-Parse, DocxTemplater, PizZip, pptxgenjs
 - **Optical Character Recognition:** Tesseract.js
@@ -134,18 +135,19 @@ npm run dev
 
 ```text
 velaar/
-├── server/                 # Express backend
+├── backend/                # Express backend (TypeScript)
 │   ├── controllers/        # AI, export, rubric, and analytics controllers
 │   ├── routes/             # Express route definitions
-│   └── index.js            # Server entry point
-├── src/                    # React Frontend
+│   └── index.ts            # Server entry point
+├── frontend/               # React Frontend (TypeScript)
 │   ├── components/         # Reusable UI components
 │   ├── config/             # Navigation & role config
 │   ├── layouts/            # Role-specific layouts (Teacher, Student, Admin, etc.)
 │   ├── pages/              # 40+ specialized application views
 │   ├── services/           # Supabase & AI service wrappers
-│   ├── App.jsx             # Main application router
+│   ├── App.tsx             # Main application router
 │   └── index.css           # Global styles and theme variables
+├── docs/                   # Project documentation & guidelines
 ├── .env                    # Single centralised environment file
 ├── vercel.json             # Vercel deployment & security headers config
 ├── package.json            # Project metadata and scripts
