@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 export const TEACHER_NAV = [
   { path: '/teacher', label: 'Home', category: 'Overview' },
@@ -10,7 +10,7 @@ export const TEACHER_NAV = [
   { path: '/teacher/examination', label: 'Question Papers', category: 'Classroom' },
   { path: '/teacher/marks', label: 'Marks', category: 'Performance' },
   { path: '/teacher/course-analytics', label: 'Course Analytics', category: 'Performance' },
-  { path: '/teacher/student-risk', label: 'Student Risk Analytics', category: 'Performance' },
+  { path: '/teacher/student-analytics', label: 'Student Analytics', category: 'Performance' },
   { path: '/teacher/create-course', label: '+ New Course', highlight: true },
 ];
 
@@ -62,4 +62,3 @@ export const getNavForRole = (role) => {
   };
   return map[role] || [];
 };
-

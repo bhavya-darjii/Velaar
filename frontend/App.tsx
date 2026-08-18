@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
@@ -46,6 +46,7 @@ import AttendanceScanner from './pages/student/AttendanceScanner';
 import PendingPage from './pages/auth/PendingPage';
 import PendingPageSkeleton from './components/skeletons/PendingPageSkeleton';
 import StudentDashboardSkeleton from './components/skeletons/StudentDashboardSkeleton';
+import NotFoundPage from './pages/shared/NotFoundPage';
 
 function App() {
   const [authResolved, setAuthResolved] = useState(false);
@@ -169,7 +170,7 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<AdminDashboard />} />
-                  </Route>
+                </Route>
 
                 {/* HOD nested routes */}
                 <Route path="/hod" element={
@@ -178,7 +179,7 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<HodDashboard />} />
-                  </Route>
+                </Route>
 
                 {/* Student nested routes */}
                 <Route path="/student" element={
@@ -188,7 +189,7 @@ function App() {
                 }>
                   <Route index element={<StudentDashboard />} />
                   <Route path="attendance" element={<AttendanceScanner />} />
-                  </Route>
+                </Route>
 
                 {/* Parent nested routes */}
                 <Route path="/parent" element={
@@ -234,6 +235,7 @@ function App() {
                   <Route path="profile" element={<TeacherProfile />} />
                   <Route path="marks" element={<MarksDashboard />} />
                   <Route path="marks/edit/:examId" element={<EditMarks />} />
+                  <Route path="student-analytics" element={<StudentRiskAnalytics />} />
                   <Route path="student-risk" element={<StudentRiskAnalytics />} />
                   <Route path="create-course" element={<CourseGeneratorPage />} />
                 </Route>
@@ -261,6 +263,9 @@ function App() {
                     <PendingPage />
                   </ProtectedRoute>
                 } />
+
+                {/* Catch-all fallback for undefined routes */}
+                <Route path="*" element={initialUser ? <NotFoundPage userRole={userRole} /> : <Navigate to="/" replace />} />
               </Routes>
 
               {userRole !== 'pending' && <GlobalCopilot userRole={userRole} />}
@@ -277,4 +282,3 @@ function App() {
 }
 
 export default App;
-

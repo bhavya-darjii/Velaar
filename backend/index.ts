@@ -7,7 +7,7 @@ import aiRoutes from './routes/aiRoutes.js';
 import exportRoutes from './routes/exportRoutes.js';
 import pdfRoutes from './routes/pdfRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import analyticsRoutes from './routes/analyticsRoutes.js';
+import hierarchicalAnalyticsRoutes from './routes/hierarchicalAnalyticsRoutes.js';
 import noticeRoutes from './routes/noticeRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
@@ -86,8 +86,8 @@ app.use('/api/ai',        aiRoutes);
 app.use('/api/export',    exportRoutes);
 app.use('/api/pdf',       pdfRoutes);
 app.use('/api/admin',     adminRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/notice',    noticeRoutes);
+app.use('/api/hier-analytics', hierarchicalAnalyticsRoutes);
+app.use('/api/notice',         noticeRoutes);
 app.use('/api/timetable', timetableRoutes);
 
 // ─── Global Error Handler ────────────────────────────────────────────────────

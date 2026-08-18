@@ -51,7 +51,7 @@
    Every input, select, textarea across the ENTIRE app
    ══════════════════════════════════════════════════════════════ */
 
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input),
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input):not(.risk-search-input),
 textarea,
 select {
   background: rgba(255, 255, 255, 0.08) !important;
@@ -76,12 +76,57 @@ textarea::placeholder {
   font-weight: 400 !important;
 }
 
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input):focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not(.copilot-v2__input):not(.risk-search-input):focus,
 textarea:focus,
 select:focus {
   border-color: rgba(255, 255, 255, 0.45) !important;
   background: rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
+}
+
+.risk-search-input,
+.risk-search-input:focus {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  outline: none !important;
+  color: #ffffff !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 0.85rem !important;
+}
+
+.risk-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.risk-refresh-btn {
+  width: auto !important;
+  max-width: fit-content !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--liquid-glass-bg) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  border: 1px solid var(--liquid-glass-border) !important;
+  box-shadow: var(--liquid-glass-shadow) !important;
+  padding: 8px 18px !important;
+  border-radius: 10px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+.risk-refresh-btn:hover {
+  transform: none !important;
 }
 
 textarea {
@@ -349,7 +394,7 @@ label:not([class]) {
   justify-content: center;
   gap: 8px;
   padding: 11px 24px;
-  border-radius: var(--glass-radius-pill);
+  border-radius: 12px;
   font-weight: 700;
   font-size: 0.9rem;
   font-family: 'Inter', system-ui, sans-serif;

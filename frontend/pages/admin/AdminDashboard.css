@@ -25,7 +25,7 @@
 }
 
 /* ── Glass Card Base — matches app's --liquid-glass vars ─────── */
-.glass-card {
+.admin-root .glass-card {
   background: var(--liquid-glass-bg);
   border: 1px solid var(--liquid-glass-border);
   border-radius: 18px;

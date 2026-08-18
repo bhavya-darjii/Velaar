@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
@@ -58,7 +58,7 @@ const CourseAnalytics = () => {
       </section>
       <section className="course-analytics__actions">
         <button className="glass-card" onClick={() => navigate('/teacher/attendance')}><strong>Track attendance</strong><span>Start a live QR session or review defaulters.</span></button>
-        <button className="glass-card" onClick={() => navigate('/teacher/student-risk')}><strong>Intervene early</strong><span>Review students whose attendance or performance needs attention.</span></button>
+        <button className="glass-card" onClick={() => navigate('/teacher/student-analytics')}><strong>Student Analytics</strong><span>Review individual student performance, marks, and attendance.</span></button>
       </section>
     </div>
   );

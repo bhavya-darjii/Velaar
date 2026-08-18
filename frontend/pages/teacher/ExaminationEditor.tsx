@@ -324,8 +324,8 @@ const ExaminationEditor = () => {
         <div className="editor-container">
       <div className="editor-header-nav">
         <div className="header-title-group" style={{width: '100%', position: 'relative'}}>
-          <div className="back-arrow" onClick={() => navigate('/teacher/examination')}>
-            <span>ΓåÉ</span> Back
+          <div className="back-arrow" style={{cursor: 'pointer'}} onClick={() => navigate('/teacher/examination')}>
+            <span style={{ fontFamily: 'system-ui, sans-serif' }}>&larr;</span> Back
           </div>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '20px' }}>

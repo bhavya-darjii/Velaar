@@ -438,7 +438,7 @@ select.glass-input:focus {
 }
 
 /* BUTTONS */
-.glass-btn {
+.glass-container .glass-btn {
   width: 100%;
   padding: 16px;
   font-size: 1.1rem;
@@ -450,7 +450,7 @@ select.glass-input:focus {
   margin-top: 10px;
 }
 
-.glass-btn.primary {
+.glass-container .glass-btn.primary {
   background: #ffffff !important;
   border: none !important;
   color: #000000 !important;
@@ -476,7 +476,7 @@ select.glass-input:focus {
   box-shadow: none;
 }
 
-.glass-btn.secondary {
+.glass-container .glass-btn.secondary {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #ffffff;

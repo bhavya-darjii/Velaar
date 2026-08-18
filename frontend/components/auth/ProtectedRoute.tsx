@@ -2,6 +2,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import AuthLoadingScreen from '../shared/AuthLoadingScreen';
+import NotFoundPage from '../../pages/shared/NotFoundPage';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -94,10 +95,9 @@ const ProtectedRoute = ({ children, allowedRoles, fallback }: ProtectedRouteProp
     return <Navigate to="/" replace />;
   }
 
-  // Wrong role — redirect to the correct dashboard
+  // Wrong role — show access restricted / page not found fallback
   if (user === false) {
-    const dashboardPath = (userRole && ROLE_PATHS[userRole]) ?? '/';
-    return <Navigate to={dashboardPath} replace />;
+    return <NotFoundPage userRole={userRole} isAccessDenied={true} />;
   }
 
   return <>{children}</>;
