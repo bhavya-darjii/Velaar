@@ -1,24 +1,28 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './MarksDashboard.css';
 
 const MarksDashboard = () => {
   const navigate = useNavigate();
-  const [showEditSelection, setShowEditSelection] = React.useState(false);
+  const location = useLocation();
+
+  // Show exam selection view when on /teacher/marks/edit
+  const isEditSelection = location.pathname === '/teacher/marks/edit';
 
   return (
     <div className="marks-dashboard">
-      {!showEditSelection ? (
-        <div className="marks-grid">          {/* Edit Marks */}
+      {!isEditSelection ? (
+        <div className="marks-grid">
+          {/* Edit Marks */}
           <div className="marks-card glass">
             <h3>Edit Marks</h3>
             <div className="card-controls">
               <p className="marks-card-desc">
                 Modify marks mapped securely against your Course Outcomes according to the paper pattern structure generated in the Examination module.
               </p>
-              <button className="marks-action-btn" onClick={() => setShowEditSelection(true)}>Edit Marks</button>
+              <button className="marks-action-btn" onClick={() => navigate('/teacher/marks/edit')}>Edit Marks</button>
             </div>
           </div>
 
@@ -58,8 +62,8 @@ const MarksDashboard = () => {
         </div>
       ) : (
         <div className="edit-selection-view">
-          <div className="back-arrow" onClick={() => setShowEditSelection(false)}>
-            <span>â†</span> Back to Dashboard
+          <div className="back-glass-btn" onClick={() => navigate('/teacher/marks')}>
+            <span>{'\u2190'}</span> Back to Dashboard
           </div>
           <h2 className="selection-title">Select Examination</h2>
           <p className="selection-subtitle">Choose the examination to dynamically edit student marks based on your paper pattern.</p>
@@ -85,4 +89,3 @@ const MarksDashboard = () => {
 };
 
 export default MarksDashboard;
-

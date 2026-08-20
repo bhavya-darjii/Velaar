@@ -1,6 +1,6 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../services/supabase";
 import { generateQuestionsFromTopics, setAiContextCourse } from "../../services/aiService";
 import {
@@ -27,11 +27,12 @@ const BT_OPTIONS = [
 
 const ExamSection = ({ course }) => {
   const [examLoading, setExamLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
   const [numQuestions, setNumQuestions] = useState(10);
   const [numericalCount, setNumericalCount] = useState(0);
   const [numericalPrompt, setNumericalPrompt] = useState("");
   const [selectedBT, setSelectedBT] = useState([]);
-  
+
   const divisions = course?.divisions || ["A"];
   // Now an array to support multiple division selections!
   const [selectedDivs, setSelectedDivs] = useState([divisions[0]]);
@@ -43,11 +44,27 @@ const ExamSection = ({ course }) => {
     );
   };
 
-  // Handle Division Checkbox toggles
   const handleDivChange = (val) => {
     setSelectedDivs((prev) =>
       prev.includes(val) ? prev.filter((item) => item !== val) : [...prev, val],
     );
+  };
+
+  useEffect(() => {
+    let interval;
+    if (examLoading) {
+      interval = setInterval(() => setTimer((prev) => prev + 1), 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [examLoading]);
+
+  const formatTime = (seconds) => {
+    if (seconds < 60) return `${seconds}s`;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${s}s`;
   };
 
   // --- WORD DOCUMENT GENERATOR ---
@@ -140,6 +157,7 @@ const ExamSection = ({ course }) => {
 
   const handleGenerateExam = async () => {
     setExamLoading(true);
+    setTimer(0);
 
     let allLectures = [];
     if (course?.roadmap) {
@@ -276,7 +294,7 @@ const ExamSection = ({ course }) => {
           className="custom-number-input"
           placeholder="0 for Theory Only"
         />
-        <p style={{fontSize: '0.8rem', color: '#ffffff', opacity: 0.8, marginTop: '5px'}}>
+        <p style={{ fontSize: '0.8rem', color: '#ffffff', opacity: 0.8, marginTop: '5px' }}>
           {numericalCount > 0 ? `Velaar will generate ${numericalCount} numericals & ${numQuestions - numericalCount} theory questions.` : "Theory-only question bank will be generated."}
         </p>
       </div>
@@ -291,7 +309,7 @@ const ExamSection = ({ course }) => {
             value={numericalPrompt}
             onChange={(e) => setNumericalPrompt(e.target.value)}
           />
-          <p style={{fontSize: '0.75rem', color: '#ffffff', opacity: 0.8, marginTop: '5px'}}>
+          <p style={{ fontSize: '0.75rem', color: '#ffffff', opacity: 0.8, marginTop: '5px' }}>
             <em>*Works for any subject. Paste a topic for fresh problems, or paste a full example and the AI will rewrite it with different values.</em>
           </p>
         </div>
@@ -315,11 +333,13 @@ const ExamSection = ({ course }) => {
       </div>
 
       <button
-        className="generate-btn"
+        className={`generate-btn ${examLoading ? 'glass-btn--loading' : ''}`}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         onClick={handleGenerateExam}
         disabled={examLoading}
       >
-        {examLoading ? "Velaar AI is generating Word Doc..." : "Generate Question Bank"}
+        {examLoading && <span className="ppt-spinner" />}
+        {examLoading ? `Generating Question Bank... (${formatTime(timer)})` : "Generate Question Bank"}
       </button>
     </div>
   );

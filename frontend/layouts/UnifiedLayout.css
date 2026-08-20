@@ -365,9 +365,25 @@
   -webkit-backdrop-filter: blur(20px);
   pointer-events: none;
 }
-.hamburger-btn:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  transform: scale(1.08) !important;
+.nav-group {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.nav-group:first-child {
+  margin-top: 0;
+}
+
+.nav-group-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding-left: 24px;
 }
 
 .hamburger-btn:focus,

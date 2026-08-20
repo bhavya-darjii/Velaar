@@ -1,18 +1,7 @@
 import { Request, Response } from 'express';
 import { adminSupabase } from '../supabaseAdmin.js';
 
-// ─── Thresholds (KJ Somaiya defaults — configurable per-institution later) ───
-const THRESHOLDS = {
-  END_SEM_PASS:  60,   // out of 100
-  TT_COMBINED_PASS: 16, // out of 40 (combined TT1 + TT2)
-  ATTENDANCE:    75,   // % below which student is flagged at-risk
-  TPI_PASS_WT:   0.60, // weight of pass rate in Teacher Performance Index
-  TPI_ATT_WT:    0.40, // weight of attendance in Teacher Performance Index
-} as const;
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Course {
+export interface Course {
   id: string;
   name: string;
   subject_name: string | null;
@@ -21,9 +10,12 @@ interface Course {
   institution_id: string;
   semester: string | null;
   department: string | null;
-  tt1_marks: Record<string, Record<string, string>> | null;
-  tt2_marks: Record<string, Record<string, string>> | null;
-  ese_marks:  Record<string, Record<string, string>> | null;
+  tt1_marks: any;
+  tt2_marks: any;
+  ese_marks: any;
+  tt1_effective?: Record<string, number>;
+  tt2_effective?: Record<string, number>;
+  ese_effective?: Record<string, number>;
   exam_patterns: {
     tt1?: { headerConfig?: { maxMarks?: number }; pattern?: any[] };
     tt2?: { headerConfig?: { maxMarks?: number }; pattern?: any[] };
@@ -43,80 +35,68 @@ interface UserRow {
   semester?: string | null;
 }
 
+// ─── Threshold Configuration ──────────────────────────────────────────────────
+const getThresholds = async (institutionId: string | null) => {
+  const defaultThresholds = {
+    TT_COMBINED_PASS_PCT: 40,
+    END_SEM_PASS_PCT: 40,
+    ATTENDANCE: 75,
+    TPI_PASS_WT: 0.6,
+    TPI_ATT_WT: 0.4,
+  };
+
+  if (!institutionId || !adminSupabase) return defaultThresholds;
+
+  try {
+    const { data, error } = await adminSupabase
+      .from('institutions')
+      .select('config')
+      .eq('id', institutionId)
+      .single();
+
+    if (!error && data?.config?.thresholds) {
+      return { ...defaultThresholds, ...data.config.thresholds };
+    }
+  } catch (err) {}
+
+  return defaultThresholds;
+};
+
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
 
-/**
- * Extract a student's effective total from a marks JSONB column,
- * applying best-of-N logic derived from the course's exam_patterns.
- *
- * For each parent question Q:
- *   attemptsAllowed = floor(q.marks / maxSubMarks)
- * Take the top `attemptsAllowed` sub-question scores and sum them.
- * Falls back to a plain sum if no pattern is available.
- */
-const extractRawScore = (
-  marksMap: Record<string, Record<string, string>> | null,
-  studentId: string,
-  pattern?: Course['exam_patterns'],
-  examKey?: 'tt1' | 'tt2' | 'ese',
-): number | null => {
-  if (!marksMap) return null;
-  const sm = marksMap[studentId];
-  if (!sm || typeof sm !== 'object') return null;
-
-  // Try best-of logic if pattern is available for this exam key
-  const qs = examKey ? pattern?.[examKey]?.pattern : null;
-  if (qs && Array.isArray(qs)) {
-    let total = 0;
-    let hasAny = false;
-    for (const q of qs) {
-      const maxSubMarks = Math.max(...q.subs.map((s: any) => Number(s.marks) || 0), 1);
-      const n = Math.max(1, Math.floor(Number(q.marks) / maxSubMarks));
-      const scores = q.subs
-        .map((s: any) => {
-          const key = `q${q.id}${s.id}`;
-          const val = sm[key];
-          if (val === undefined || val === '') return null;
-          const p = parseFloat(String(val));
-          return isNaN(p) ? null : p;
-        })
-        .filter((v: number | null) => v !== null) as number[];
-      if (scores.length > 0) {
-        hasAny = true;
-        const best = scores.slice().sort((a, b) => b - a).slice(0, n);
-        total += best.reduce((s, v) => s + v, 0);
-      }
-    }
-    return hasAny ? total : null;
-  }
-
-  // Fallback: plain sum of all values
-  const total = Object.values(sm).reduce((s, v) => s + (parseFloat(String(v)) || 0), 0);
-  return total;
+const extractEffective = (effMap: any, studentId: string): number | null => {
+  if (!effMap) return null;
+  const val = effMap[studentId];
+  return (val !== undefined && val !== null) ? Number(val) : null;
 };
 
 const maxMarks = (course: Course, key: 'tt1' | 'tt2' | 'ese'): number => {
-  return course.exam_patterns?.[key]?.headerConfig?.maxMarks
-    ?? (key === 'ese' ? 100 : 20);
+  const m = course.exam_patterns?.[key]?.headerConfig?.maxMarks;
+  return m !== undefined && m !== null ? Number(m) : (key === 'ese' ? 60 : 20);
 };
-
-const normalise = (raw: number, actualMax: number, targetScale: number): number =>
-  Math.round((raw / actualMax) * targetScale);
 
 interface ExamResult {
   score: number;
   outOf: number;
   pass:  boolean | null;
+  color: string;
   hasData: true;
 }
 type MaybeExam = ExamResult | { hasData: false };
 
 const examResult = (
-  raw: number | null, actualMax: number, targetScale: number, passThreshold: number | null,
+  raw: number | null, actualMax: number, passPct: number | null,
 ): MaybeExam => {
-  if (raw === null) return { hasData: false };
-  const score = normalise(raw, actualMax, targetScale);
-  return { score, outOf: targetScale, pass: passThreshold !== null ? score >= passThreshold : null, hasData: true };
+  if (raw === null || isNaN(raw)) return { hasData: false };
+  const passThreshold = passPct !== null ? (actualMax * passPct) / 100 : null;
+  const pass = passThreshold !== null ? raw >= passThreshold : null;
+  return { 
+    score: raw, 
+    outOf: actualMax, 
+    pass, 
+    color: pass === false ? '#ef4444' : '#22c55e',
+    hasData: true 
+  };
 };
 
 // ─── LEVEL 1 — Student (own data or parent/teacher drill-down) ───────────────
@@ -135,9 +115,11 @@ export const getStudentAnalytics = async (req: Request, res: Response): Promise<
       .single();
     if (sErr || !student) { res.status(404).json({ error: 'Student not found' }); return; }
 
+    const thresholds = await getThresholds(student.institution_id);
+
     const { data: courses } = await adminSupabase
       .from('courses')
-      .select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_marks, tt2_marks, ese_marks, exam_patterns')
+      .select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_effective, tt2_effective, ese_effective, exam_patterns')
       .eq('institution_id', student.institution_id);
 
     const allCourses = (courses ?? []).filter((c: any) => !c.semester || String(c.semester) === String(student.semester)) as Course[];
@@ -167,28 +149,44 @@ export const getStudentAnalytics = async (req: Request, res: Response): Promise<
       const attended  = logsByCourse[course.id] || 0;
       const attPct    = totalSess > 0 ? Math.round((attended / totalSess) * 100) : 100;
 
-      const tt1 = examResult(extractRawScore(course.tt1_marks, studentId, course.exam_patterns, 'tt1'), maxMarks(course, 'tt1'), 20,  null);
-      const tt2 = examResult(extractRawScore(course.tt2_marks, studentId, course.exam_patterns, 'tt2'), maxMarks(course, 'tt2'), 20,  null);
-      const ese = examResult(extractRawScore(course.ese_marks,  studentId, course.exam_patterns, 'ese'), maxMarks(course, 'ese'), 100, THRESHOLDS.END_SEM_PASS);
+      const tt1 = examResult(extractEffective(course.tt1_effective, studentId), maxMarks(course, 'tt1'), null);
+      const tt2 = examResult(extractEffective(course.tt2_effective, studentId), maxMarks(course, 'tt2'), null);
+      const ese = examResult(extractEffective(course.ese_effective, studentId), maxMarks(course, 'ese'), thresholds.END_SEM_PASS_PCT);
 
       let ttCombinedPass = true;
+      let ttCombined: MaybeExam = { hasData: false };
+      
       if (tt1.hasData && tt2.hasData) {
-        ttCombinedPass = (tt1.score + tt2.score) >= THRESHOLDS.TT_COMBINED_PASS;
+        const cScore = tt1.score + tt2.score;
+        const cMax = tt1.outOf + tt2.outOf;
+        ttCombined = examResult(cScore, cMax, thresholds.TT_COMBINED_PASS_PCT);
+        ttCombinedPass = (ttCombined as ExamResult).pass ?? true;
       }
 
-      const attAtRisk = attPct < THRESHOLDS.ATTENDANCE;
+      const attAtRisk = attPct < thresholds.ATTENDANCE;
       const atRisk    = attAtRisk
         || !ttCombinedPass
         || (ese.hasData && !(ese as ExamResult).pass);
+
+      let totalAchieved = 0, totalPossible = 0;
+      if (ese.hasData) { totalAchieved += ese.score; totalPossible += ese.outOf; }
+      if (ttCombined.hasData) { totalAchieved += ttCombined.score; totalPossible += ttCombined.outOf; }
+      else {
+        if (tt1.hasData) { totalAchieved += tt1.score; totalPossible += tt1.outOf; }
+        if (tt2.hasData) { totalAchieved += tt2.score; totalPossible += tt2.outOf; }
+      }
+      const courseAvg = totalPossible > 0 ? Math.round((totalAchieved / totalPossible) * 100) : null;
 
       return {
         courseId:   course.id,
         courseName: course.subject_name ?? course.name,
         code:       course.code,
         semester:   course.semester,
+        courseAvg,
         attendance: { attended, total: totalSess, pct: attPct, atRisk: attAtRisk },
         tt1: tt1.hasData ? tt1 : null,
         tt2: tt2.hasData ? tt2 : null,
+        ttCombined: ttCombined.hasData ? ttCombined : null,
         ese: ese.hasData ? ese : null,
         atRisk,
       };
@@ -200,14 +198,10 @@ export const getStudentAnalytics = async (req: Request, res: Response): Promise<
 
     res.status(200).json({
       student:         { id: student.id, name: student.full_name, email: student.email },
-      overallAttendance: { attended: totalAttended, total: totalSess, pct: overallAttPct, atRisk: overallAttPct < THRESHOLDS.ATTENDANCE },
+      overallAttendance: { attended: totalAttended, total: totalSess, pct: overallAttPct, atRisk: overallAttPct < thresholds.ATTENDANCE },
       courses:         courseMetrics,
       atRiskCourses:   courseMetrics.filter(m => m.atRisk).length,
-      thresholds: {
-        tt_combined: THRESHOLDS.TT_COMBINED_PASS,
-        ese:         THRESHOLDS.END_SEM_PASS,
-        attendance:  THRESHOLDS.ATTENDANCE,
-      },
+      thresholds,
     });
   } catch (err) {
     console.error('[hierarchicalAnalytics] getStudentAnalytics:', err);
@@ -226,16 +220,21 @@ export const getTeacherAnalytics = async (req: Request, res: Response): Promise<
   try {
     const { data: courses } = await adminSupabase
       .from('courses')
-      .select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_marks, tt2_marks, ese_marks, exam_patterns')
+      .select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_effective, tt2_effective, ese_effective, exam_patterns')
       .eq('teacher_id', teacherId);
 
     const allCourses = (courses ?? []) as Course[];
+    
+    // We assume the teacher belongs to one institution for the overall thresholds for now
+    const instId = allCourses[0]?.institution_id || null;
+    const thresholds = await getThresholds(instId);
+
     if (allCourses.length === 0) {
-      res.status(200).json({ teacherId, summary: null, courses: [], thresholds: THRESHOLDS });
+      res.status(200).json({ teacherId, summary: null, courses: [], thresholds });
       return;
     }
 
-    const combos = [...new Set(allCourses.map(c => `|`))];
+    const combos = [...new Set(allCourses.map(c => `${c.institution_id}|${c.semester || ''}`))];
     const studentRows = (await Promise.all(combos.map(combo => {
       const [inst, sem] = combo.split('|');
       let q = adminSupabase!.from('users')
@@ -285,25 +284,28 @@ export const getTeacherAnalytics = async (req: Request, res: Response): Promise<
       const studentBreakdown = relevant.map(s => {
         const attended = courseLogs[s.id] || 0;
         const attPct   = totalSess > 0 ? Math.round((attended / totalSess) * 100) : 100;
-        const tt1      = examResult(extractRawScore(course.tt1_marks, s.id, course.exam_patterns, 'tt1'), tt1Max, 20,  null);
-        const tt2      = examResult(extractRawScore(course.tt2_marks, s.id, course.exam_patterns, 'tt2'), tt2Max, 20,  null);
-        const ese      = examResult(extractRawScore(course.ese_marks,  s.id, course.exam_patterns, 'ese'), eseMax, 100, THRESHOLDS.END_SEM_PASS);
+        const tt1      = examResult(extractEffective(course.tt1_effective, s.id), tt1Max, null);
+        const tt2      = examResult(extractEffective(course.tt2_effective, s.id), tt2Max, null);
+        const ese      = examResult(extractEffective(course.ese_effective, s.id), eseMax, thresholds.END_SEM_PASS_PCT);
 
         if (tt1.hasData) { tt1Tot++; tt1ScoreSum += tt1.score; }
         if (tt2.hasData) { tt2Tot++; tt2ScoreSum += tt2.score; }
         
         let sTtCombinedPass = true;
+        let ttCombined: MaybeExam = { hasData: false };
         if (tt1.hasData && tt2.hasData) {
           ttCombinedTot++;
-          const combined = tt1.score + tt2.score;
-          ttCombinedScore += combined;
-          sTtCombinedPass = combined >= THRESHOLDS.TT_COMBINED_PASS;
+          const cScore = tt1.score + tt2.score;
+          const cMax = tt1.outOf + tt2.outOf;
+          ttCombinedScore += cScore;
+          ttCombined = examResult(cScore, cMax, thresholds.TT_COMBINED_PASS_PCT);
+          sTtCombinedPass = (ttCombined as ExamResult).pass ?? true;
           if (sTtCombinedPass) ttCombinedPass++;
         }
 
         if (ese.hasData) { eseTot++; eseScoreSum += ese.score; if ((ese as ExamResult).pass) esePass++; }
 
-        const isAttAtRisk = attPct < THRESHOLDS.ATTENDANCE;
+        const isAttAtRisk = attPct < thresholds.ATTENDANCE;
         const isAtRisk    = isAttAtRisk
           || !sTtCombinedPass
           || (ese.hasData && !(ese as ExamResult).pass);
@@ -311,12 +313,23 @@ export const getTeacherAnalytics = async (req: Request, res: Response): Promise<
         if (isAttAtRisk) attAtRisk++;
         if (isAtRisk)    atRisk++;
 
+        let totalAchieved = 0, totalPossible = 0;
+        if (ese.hasData) { totalAchieved += ese.score; totalPossible += ese.outOf; }
+        if (ttCombined.hasData) { totalAchieved += ttCombined.score; totalPossible += ttCombined.outOf; }
+        else {
+          if (tt1.hasData) { totalAchieved += tt1.score; totalPossible += tt1.outOf; }
+          if (tt2.hasData) { totalAchieved += tt2.score; totalPossible += tt2.outOf; }
+        }
+        const courseAvg = totalPossible > 0 ? Math.round((totalAchieved / totalPossible) * 100) : null;
+
         return {
           id:   s.id,
           name: s.full_name ?? s.email ?? 'Unknown',
+          courseAvg,
           attendance: { attended, total: totalSess, pct: attPct, atRisk: isAttAtRisk },
           tt1: tt1.hasData ? tt1 : null,
           tt2: tt2.hasData ? tt2 : null,
+          ttCombined: ttCombined.hasData ? ttCombined : null,
           ese: ese.hasData ? ese : null,
           atRisk: isAtRisk,
         };
@@ -338,7 +351,7 @@ export const getTeacherAnalytics = async (req: Request, res: Response): Promise<
       const passRates  = [ttCombinedRate, eseRate].filter(v => v !== null) as number[];
       const avgPassRate = passRates.length > 0 ? Math.round(passRates.reduce((s, v) => s + v, 0) / passRates.length) : null;
       const tpi = avgPassRate !== null && avgAtt !== null
-        ? Math.round(avgPassRate * THRESHOLDS.TPI_PASS_WT + avgAtt * THRESHOLDS.TPI_ATT_WT)
+        ? Math.round(avgPassRate * thresholds.TPI_PASS_WT + avgAtt * thresholds.TPI_ATT_WT)
         : null;
 
       return {
@@ -376,20 +389,22 @@ export const getTeacherAnalytics = async (req: Request, res: Response): Promise<
       avgTpi:              allTpis.length > 0 ? Math.round(allTpis.reduce((s, v) => s + v, 0) / allTpis.length) : null,
     };
 
-    res.status(200).json({ teacherId, summary, courses: courseAnalytics, thresholds: THRESHOLDS });
+    res.status(200).json({ teacherId, summary, courses: courseAnalytics, thresholds });
   } catch (err) {
     console.error('[hierarchicalAnalytics] getTeacherAnalytics:', err);
     res.status(500).json({ error: 'Failed to compute teacher analytics' });
   }
 };
 
-// ─── Shared: aggregate course-level stats into a teacher-level row ─────────────
+// ... hod and principal left untouched, but they use aggregateCourses which relies on old logic
+// Wait, I need to update aggregateCourses too!
 
 const aggregateCourses = (
   teacherCourses: Course[],
   students: UserRow[],
   sessByCourse: Record<string, number>,
   logsBySC: Record<string, Record<string, number>>,
+  thresholds: Awaited<ReturnType<typeof getThresholds>>
 ) => {
   const passRatesBuf: number[] = [];
   const attRatesBuf:  number[] = [];
@@ -411,50 +426,52 @@ const aggregateCourses = (
     relevant.forEach(s => {
       const attended = courseLogs[s.id] || 0;
       const attPct   = totalSess > 0 ? Math.round((attended / totalSess) * 100) : 100;
-      const tt1      = examResult(extractRawScore(course.tt1_marks, s.id, course.exam_patterns, 'tt1'), tt1Max, 20,  null);
-      const tt2      = examResult(extractRawScore(course.tt2_marks, s.id, course.exam_patterns, 'tt2'), tt2Max, 20,  null);
-      const ese      = examResult(extractRawScore(course.ese_marks,  s.id, course.exam_patterns, 'ese'), eseMax, 100, THRESHOLDS.END_SEM_PASS);
+      const tt1      = examResult(extractEffective(course.tt1_effective, s.id), tt1Max, null);
+      const tt2      = examResult(extractEffective(course.tt2_effective, s.id), tt2Max, null);
+      const ese      = examResult(extractEffective(course.ese_effective, s.id), eseMax, thresholds.END_SEM_PASS_PCT);
 
       let sTtCombinedPass = true;
       if (tt1.hasData && tt2.hasData) {
         ttCombinedTot++;
-        sTtCombinedPass = (tt1.score + tt2.score) >= THRESHOLDS.TT_COMBINED_PASS;
+        const cScore = tt1.score + tt2.score;
+        const cMax = tt1.outOf + tt2.outOf;
+        const combined = examResult(cScore, cMax, thresholds.TT_COMBINED_PASS_PCT);
+        sTtCombinedPass = (combined as ExamResult).pass ?? true;
         if (sTtCombinedPass) ttCombinedPass++;
       }
+
       if (ese.hasData) { eseTot++; if ((ese as ExamResult).pass) esePass++; }
 
-      if (attPct < THRESHOLDS.ATTENDANCE
+      const isAttAtRisk = attPct < thresholds.ATTENDANCE;
+      const isAtRisk    = isAttAtRisk
         || !sTtCombinedPass
-        || (ese.hasData && !(ese as ExamResult).pass)) { atRisk++; }
+        || (ese.hasData && !(ese as ExamResult).pass);
+
+      if (isAtRisk) atRisk++;
     });
 
-    const totalLogs   = Object.values(courseLogs).reduce((s, v) => s + v, 0);
-    const avgAtt      = relevant.length > 0 && totalSess > 0
-      ? Math.round((totalLogs / (relevant.length * totalSess)) * 100) : null;
-
-    const rates       = [
-      ttCombinedTot > 0 ? (ttCombinedPass / ttCombinedTot) * 100 : null,
-      eseTot > 0 ? (esePass / eseTot) * 100 : null,
-    ].filter(v => v !== null) as number[];
-    const avgPassRate  = rates.length > 0 ? rates.reduce((s, v) => s + v, 0) / rates.length : null;
-
-    if (avgPassRate !== null) passRatesBuf.push(avgPassRate);
-    if (avgAtt !== null)      attRatesBuf.push(avgAtt);
-    if (avgPassRate !== null && avgAtt !== null) {
-      tpisBuf.push(avgPassRate * THRESHOLDS.TPI_PASS_WT + avgAtt * THRESHOLDS.TPI_ATT_WT);
-    }
     totalAtRisk += atRisk;
+
+    const ttCombinedRate = ttCombinedTot > 0 ? Math.round((ttCombinedPass / ttCombinedTot) * 100) : null;
+    const eseRate = eseTot > 0 ? Math.round((esePass / eseTot) * 100) : null;
+    const passRates = [ttCombinedRate, eseRate].filter(v => v !== null) as number[];
+    if (passRates.length > 0) passRatesBuf.push(passRates.reduce((s, v) => s + v, 0) / passRates.length);
+
+    const totalLogs = Object.values(courseLogs).reduce((s, v) => s + v, 0);
+    const avgAtt = relevant.length > 0 && totalSess > 0 ? Math.round((totalLogs / (relevant.length * totalSess)) * 100) : null;
+    if (avgAtt !== null) attRatesBuf.push(avgAtt);
+
+    if (passRatesBuf.length > 0 && avgAtt !== null) {
+      tpisBuf.push(Math.round(passRatesBuf[passRatesBuf.length - 1] * thresholds.TPI_PASS_WT + avgAtt * thresholds.TPI_ATT_WT));
+    }
   });
 
-  const avgPassRate  = passRatesBuf.length > 0 ? Math.round(passRatesBuf.reduce((s, v) => s + v, 0) / passRatesBuf.length) : null;
-  const avgAtt       = attRatesBuf.length  > 0 ? Math.round(attRatesBuf.reduce((s, v) => s + v, 0) / attRatesBuf.length)  : null;
-  const tpi          = tpisBuf.length > 0
-    ? Math.round(tpisBuf.reduce((s, v) => s + v, 0) / tpisBuf.length) : null;
+  const avgPassRate   = passRatesBuf.length > 0 ? Math.round(passRatesBuf.reduce((s, v) => s + v, 0) / passRatesBuf.length) : null;
+  const avgAttendance = attRatesBuf.length > 0 ? Math.round(attRatesBuf.reduce((s, v) => s + v, 0) / attRatesBuf.length) : null;
+  const tpi           = tpisBuf.length > 0 ? Math.round(tpisBuf.reduce((s, v) => s + v, 0) / tpisBuf.length) : null;
 
-  return { avgPassRate, avgAttendance: avgAtt, atRiskStudents: totalAtRisk, tpi };
+  return { avgPassRate, avgAttendance, atRiskStudents: totalAtRisk, tpi };
 };
-
-// ─── LEVEL 3 — HOD ───────────────────────────────────────────────────────────
 
 export const getHodAnalytics = async (req: Request, res: Response): Promise<void> => {
   if (!adminSupabase) { res.status(500).json({ error: 'DB unavailable' }); return; }
@@ -462,80 +479,63 @@ export const getHodAnalytics = async (req: Request, res: Response): Promise<void
   if (!hodId) { res.status(401).json({ error: 'Unauthorized' }); return; }
 
   try {
-    const { data: hodUser } = await adminSupabase
-      .from('users').select('id, full_name, department, institution_id').eq('id', hodId).single();
-    if (!hodUser?.department) { res.status(400).json({ error: 'HOD department not set' }); return; }
+    const { data: hod } = await adminSupabase.from('users').select('id, full_name, department, institution_id').eq('id', hodId).single();
+    if (!hod || !hod.department) { res.status(404).json({ error: 'HOD or department not found' }); return; }
+    
+    const thresholds = await getThresholds(hod.institution_id);
 
-    const { department, institution_id: institutionId } = hodUser as { department: string; institution_id: string; id: string; full_name: string | null };
+    const { data: deptTeachers } = await adminSupabase.from('users').select('id, full_name, email').eq('department', hod.department).eq('institution_id', hod.institution_id).eq('user_type', 'teacher');
+    const teacherIds = (deptTeachers ?? []).map(t => t.id);
 
-    const { data: courses } = await adminSupabase
-      .from('courses')
-      .select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_marks, tt2_marks, ese_marks, exam_patterns')
-      .eq('department', department).eq('institution_id', institutionId);
-
+    const { data: courses } = await adminSupabase.from('courses').select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_effective, tt2_effective, ese_effective, exam_patterns').in('teacher_id', teacherIds);
     const allCourses = (courses ?? []) as Course[];
-    const teacherIds = [...new Set(allCourses.map(c => c.teacher_id).filter(Boolean))];
-    const courseIds  = allCourses.map(c => c.id);
 
-    const [{ data: teacherProfiles }, { data: allStudents }, { data: sessions }, { data: logs }] = await Promise.all([
-      teacherIds.length
-        ? adminSupabase.from('users').select('id, full_name, email').in('id', teacherIds)
-        : { data: [] },
-      adminSupabase.from('users').select('id, institution_id, semester')
-        .eq('user_type', 'student').eq('institution_id', institutionId),
-      courseIds.length
-        ? adminSupabase.from('attendance_sessions').select('id, course_id').in('course_id', courseIds)
-        : { data: [] },
-      courseIds.length
-        ? adminSupabase.from('attendance_logs').select('student_id, course_id').in('course_id', courseIds)
-        : { data: [] },
+    const combos = [...new Set(allCourses.map(c => `${c.institution_id}|${c.semester || ''}`))];
+    const studentRows = (await Promise.all(combos.map(combo => {
+      const [inst, sem] = combo.split('|');
+      let q = adminSupabase!.from('users').select('id, institution_id, semester').eq('user_type', 'student').eq('institution_id', inst);
+      if (sem) q = q.eq('semester', sem);
+      return q;
+    }))).flatMap(r => (r.data ?? []) as UserRow[]);
+    const allStudents = [...new Map(studentRows.map(s => [s.id, s])).values()];
+
+    const courseIds = allCourses.map(c => c.id);
+    const [{ data: sessions }, { data: logs }] = await Promise.all([
+      adminSupabase.from('attendance_sessions').select('id, course_id').in('course_id', courseIds),
+      adminSupabase.from('attendance_logs').select('student_id, course_id').in('course_id', courseIds),
     ]);
 
-    const teacherMap = new Map((teacherProfiles ?? []).map((t: unknown) => { const u = t as UserRow; return [u.id, u]; }));
-    const students   = (allStudents ?? []) as UserRow[];
-
     const sessByCourse: Record<string, number> = {};
-    (sessions as AttendanceSession[] ?? []).forEach(s => {
-      sessByCourse[s.course_id] = (sessByCourse[s.course_id] || 0) + 1;
-    });
+    (sessions as AttendanceSession[] ?? []).forEach(s => { sessByCourse[s.course_id] = (sessByCourse[s.course_id] || 0) + 1; });
     const logsBySC: Record<string, Record<string, number>> = {};
     (logs as AttendanceLog[] ?? []).forEach(l => {
       if (!logsBySC[l.course_id]) logsBySC[l.course_id] = {};
       logsBySC[l.course_id][l.student_id] = (logsBySC[l.course_id][l.student_id] || 0) + 1;
     });
 
-    const teacherRows = teacherIds.map(tid => {
-      const teacherCourses = allCourses.filter(c => c.teacher_id === tid);
-      const agg = aggregateCourses(teacherCourses, students, sessByCourse, logsBySC);
-      const t   = teacherMap.get(tid) as UserRow | undefined;
-      return {
-        teacherId:    tid,
-        teacherName:  t?.full_name ?? 'Unknown',
-        teacherEmail: t?.email ?? '',
-        totalCourses: teacherCourses.length,
-        ...agg,
-      };
+    const teacherAnalytics = (deptTeachers ?? []).map(t => {
+      const tCourses = allCourses.filter(c => c.teacher_id === t.id);
+      const agg = aggregateCourses(tCourses, allStudents, sessByCourse, logsBySC, thresholds);
+      return { teacherId: t.id, teacherName: t.full_name ?? 'Unknown', teacherEmail: t.email ?? '', totalCourses: tCourses.length, ...agg };
     }).sort((a, b) => (b.tpi ?? 0) - (a.tpi ?? 0));
 
-    const deptTpis      = teacherRows.map(t => t.tpi).filter(v => v !== null) as number[];
-    const deptPassRates = teacherRows.map(t => t.avgPassRate).filter(v => v !== null) as number[];
-    const deptAttRates  = teacherRows.map(t => t.avgAttendance).filter(v => v !== null) as number[];
-
-    const summary = {
-      department,
-      totalTeachers:  teacherIds.length,
-      totalCourses:   allCourses.length,
-      totalAtRisk:    teacherRows.reduce((s, t) => s + t.atRiskStudents, 0),
-      avgPassRate:    deptPassRates.length > 0 ? Math.round(deptPassRates.reduce((s, v) => s + v, 0) / deptPassRates.length) : null,
-      avgAttendance:  deptAttRates.length  > 0 ? Math.round(deptAttRates.reduce((s, v) => s + v, 0) / deptAttRates.length)  : null,
-      avgTpi:         deptTpis.length      > 0 ? Math.round(deptTpis.reduce((s, v) => s + v, 0) / deptTpis.length)          : null,
-    };
+    const activeTpis = teacherAnalytics.map(t => t.tpi).filter(v => v !== null) as number[];
+    const activePass = teacherAnalytics.map(t => t.avgPassRate).filter(v => v !== null) as number[];
+    const activeAtt  = teacherAnalytics.map(t => t.avgAttendance).filter(v => v !== null) as number[];
 
     res.status(200).json({
-      hod:        { id: hodId, name: hodUser.full_name, department },
-      summary,
-      teachers:   teacherRows,
-      thresholds: THRESHOLDS,
+      hod: { id: hod.id, name: hod.full_name, department: hod.department },
+      summary: {
+        department: hod.department,
+        totalTeachers: deptTeachers?.length ?? 0,
+        totalCourses: allCourses.length,
+        totalAtRisk: teacherAnalytics.reduce((s, t) => s + t.atRiskStudents, 0),
+        avgPassRate: activePass.length > 0 ? Math.round(activePass.reduce((s, v) => s + v, 0) / activePass.length) : null,
+        avgAttendance: activeAtt.length > 0 ? Math.round(activeAtt.reduce((s, v) => s + v, 0) / activeAtt.length) : null,
+        avgTpi: activeTpis.length > 0 ? Math.round(activeTpis.reduce((s, v) => s + v, 0) / activeTpis.length) : null,
+      },
+      teachers: teacherAnalytics,
+      thresholds,
     });
   } catch (err) {
     console.error('[hierarchicalAnalytics] getHodAnalytics:', err);
@@ -543,86 +543,64 @@ export const getHodAnalytics = async (req: Request, res: Response): Promise<void
   }
 };
 
-// ─── LEVEL 4 — Principal ─────────────────────────────────────────────────────
-
 export const getPrincipalAnalytics = async (req: Request, res: Response): Promise<void> => {
   if (!adminSupabase) { res.status(500).json({ error: 'DB unavailable' }); return; }
   const principalId = req.user?.id;
   if (!principalId) { res.status(401).json({ error: 'Unauthorized' }); return; }
 
   try {
-    const { data: principal } = await adminSupabase
-      .from('users').select('id, full_name, institution_id').eq('id', principalId).single();
-    if (!(principal as UserRow | null)?.institution_id) {
-      res.status(400).json({ error: 'Principal institution_id not set' }); return;
-    }
+    const { data: principal } = await adminSupabase.from('users').select('id, full_name, institution_id').eq('id', principalId).single();
+    if (!principal || !principal.institution_id) { res.status(404).json({ error: 'Principal or institution not found' }); return; }
 
-    const institutionId = (principal as UserRow).institution_id!;
+    const thresholds = await getThresholds(principal.institution_id);
 
-    const [{ data: courses }, { data: allStudents }] = await Promise.all([
-      adminSupabase.from('courses')
-        .select('id, name, subject_name, teacher_id, institution_id, semester, department, tt1_marks, tt2_marks, ese_marks, exam_patterns')
-        .eq('institution_id', institutionId),
-      adminSupabase.from('users').select('id, institution_id, semester, department')
-        .eq('user_type', 'student').eq('institution_id', institutionId),
-    ]);
+    const { data: allUsers } = await adminSupabase.from('users').select('id, user_type, department, semester, institution_id').eq('institution_id', principal.institution_id);
+    const teachers = (allUsers ?? []).filter(u => u.user_type === 'teacher');
+    const students = (allUsers ?? []).filter(u => u.user_type === 'student') as UserRow[];
 
-    const allCourses  = (courses ?? []) as Course[];
-    const students    = (allStudents ?? []) as UserRow[];
-    const courseIds   = allCourses.map(c => c.id);
-    const departments = [...new Set(allCourses.map(c => c.department).filter(Boolean))] as string[];
+    const { data: courses } = await adminSupabase.from('courses').select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_effective, tt2_effective, ese_effective, exam_patterns').eq('institution_id', principal.institution_id);
+    const allCourses = (courses ?? []) as Course[];
+    const courseIds = allCourses.map(c => c.id);
 
     const [{ data: sessions }, { data: logs }] = await Promise.all([
-      courseIds.length
-        ? adminSupabase.from('attendance_sessions').select('id, course_id').in('course_id', courseIds)
-        : { data: [] },
-      courseIds.length
-        ? adminSupabase.from('attendance_logs').select('student_id, course_id').in('course_id', courseIds)
-        : { data: [] },
+      adminSupabase.from('attendance_sessions').select('id, course_id').in('course_id', courseIds),
+      adminSupabase.from('attendance_logs').select('student_id, course_id').in('course_id', courseIds),
     ]);
 
     const sessByCourse: Record<string, number> = {};
-    (sessions as AttendanceSession[] ?? []).forEach(s => {
-      sessByCourse[s.course_id] = (sessByCourse[s.course_id] || 0) + 1;
-    });
+    (sessions as AttendanceSession[] ?? []).forEach(s => { sessByCourse[s.course_id] = (sessByCourse[s.course_id] || 0) + 1; });
     const logsBySC: Record<string, Record<string, number>> = {};
     (logs as AttendanceLog[] ?? []).forEach(l => {
       if (!logsBySC[l.course_id]) logsBySC[l.course_id] = {};
       logsBySC[l.course_id][l.student_id] = (logsBySC[l.course_id][l.student_id] || 0) + 1;
     });
 
-    const departmentRows = departments.map(dept => {
-      const deptCourses  = allCourses.filter(c => c.department === dept);
-      const deptTeachers = [...new Set(deptCourses.map(c => c.teacher_id).filter(Boolean))];
-      const agg = aggregateCourses(deptCourses, students, sessByCourse, logsBySC);
+    const departments = [...new Set(teachers.map(t => t.department).filter(Boolean))] as string[];
 
-      return {
-        department:    dept,
-        totalTeachers: deptTeachers.length,
-        totalCourses:  deptCourses.length,
-        ...agg,
-      };
+    const deptAnalytics = departments.map(dept => {
+      const deptTeachers = teachers.filter(t => t.department === dept);
+      const dCourses = allCourses.filter(c => deptTeachers.some(t => t.id === c.teacher_id));
+      const agg = aggregateCourses(dCourses, students, sessByCourse, logsBySC, thresholds);
+      return { department: dept, totalTeachers: deptTeachers.length, totalCourses: dCourses.length, ...agg };
     }).sort((a, b) => (b.tpi ?? 0) - (a.tpi ?? 0));
 
-    const instPassRates = departmentRows.map(d => d.avgPassRate).filter(v => v !== null) as number[];
-    const instAttRates  = departmentRows.map(d => d.avgAttendance).filter(v => v !== null) as number[];
-    const instTpis      = departmentRows.map(d => d.tpi).filter(v => v !== null) as number[];
-
-    const summary = {
-      totalDepartments: departments.length,
-      totalCourses:     allCourses.length,
-      totalStudents:    students.length,
-      totalAtRisk:      departmentRows.reduce((s, d) => s + d.atRiskStudents, 0),
-      avgPassRate:      instPassRates.length > 0 ? Math.round(instPassRates.reduce((s, v) => s + v, 0) / instPassRates.length) : null,
-      avgAttendance:    instAttRates.length  > 0 ? Math.round(instAttRates.reduce((s, v) => s + v, 0) / instAttRates.length)  : null,
-      avgTpi:           instTpis.length      > 0 ? Math.round(instTpis.reduce((s, v) => s + v, 0) / instTpis.length)          : null,
-    };
+    const activeTpis = deptAnalytics.map(d => d.tpi).filter(v => v !== null) as number[];
+    const activePass = deptAnalytics.map(d => d.avgPassRate).filter(v => v !== null) as number[];
+    const activeAtt  = deptAnalytics.map(d => d.avgAttendance).filter(v => v !== null) as number[];
 
     res.status(200).json({
-      principal:   { id: principalId, name: (principal as UserRow).full_name },
-      summary,
-      departments: departmentRows,
-      thresholds:  THRESHOLDS,
+      principal: { id: principal.id, name: principal.full_name },
+      summary: {
+        totalDepartments: departments.length,
+        totalCourses: allCourses.length,
+        totalStudents: students.length,
+        totalAtRisk: deptAnalytics.reduce((s, d) => s + d.atRiskStudents, 0),
+        avgPassRate: activePass.length > 0 ? Math.round(activePass.reduce((s, v) => s + v, 0) / activePass.length) : null,
+        avgAttendance: activeAtt.length > 0 ? Math.round(activeAtt.reduce((s, v) => s + v, 0) / activeAtt.length) : null,
+        avgTpi: activeTpis.length > 0 ? Math.round(activeTpis.reduce((s, v) => s + v, 0) / activeTpis.length) : null,
+      },
+      departments: deptAnalytics,
+      thresholds,
     });
   } catch (err) {
     console.error('[hierarchicalAnalytics] getPrincipalAnalytics:', err);

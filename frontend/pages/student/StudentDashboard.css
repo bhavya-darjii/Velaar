@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════
-   STUDENT DASHBOARD — new glass card layout
+   STUDENT DASHBOARD — analytics glass card layout
    ══════════════════════════════════════════════ */
 
 .sd-root {
@@ -10,6 +10,54 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+/* ── Header row ─────────────────────────────── */
+.sd-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sd-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.sd-page-sub {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.65);
+  font-weight: 500;
+}
+
+.sd-refresh-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  letter-spacing: 0.03em;
+}
+.sd-refresh-btn:hover { background: rgba(255,255,255,0.14); }
+
+/* ── Empty / error card ─────────────────────── */
+.sd-empty-card {
+  background: rgba(10,10,15,0.35);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 22px;
+  padding: 48px 24px;
+  text-align: center;
 }
 
 @media (min-width: 769px) {
@@ -196,7 +244,7 @@
 .sd-subjects-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .sd-subject-card {
@@ -205,10 +253,10 @@
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
-  padding: 16px 20px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   transition: transform 0.2s ease;
 }
 
@@ -219,8 +267,9 @@
   }
 }
 
-.sd-subject-card:hover {
-  transform: translateX(3px);
+
+.sd-subject-card--risk {
+  border-color: rgba(239,68,68,0.25);
 }
 
 .sd-subject-header {
@@ -229,6 +278,71 @@
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 12px;
+}
+
+/* ── Risk badge inline ──────────────────────── */
+.sd-risk-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-top: 5px;
+}
+
+/* ── Metrics grid ───────────────────────────── */
+.sd-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 18px;
+}
+
+.sd-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.sd-metric-label {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.sd-metric-value {
+  margin: 0;
+  font-weight: 800;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.sd-metric-denom {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+}
+
+.sd-metric-pct {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.75);
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.sd-metric-sub {
+  margin: 3px 0 6px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.7);
+  font-weight: 400;
+}
+
+.sd-metric--muted .sd-metric-label {
+  color: rgba(255,255,255,0.45);
 }
 
 .sd-exam-list {

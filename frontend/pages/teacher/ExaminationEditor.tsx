@@ -51,6 +51,38 @@ const DEFAULT_HEADER = ENDSEM_HEADER;
 
 const BT_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 
+const numberToWords = (num) => {
+  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+  return words[num] || String(num);
+};
+
+const syncQuestionMetadata = (q, examId) => {
+  const maxSubMarks = q.subs.length > 0 ? Math.max(...q.subs.map(s => s.marks || 0)) : 0;
+  let attemptsNeeded = maxSubMarks > 0 ? Math.floor(q.marks / maxSubMarks) : 1;
+  if (attemptsNeeded < 1) attemptsNeeded = 1;
+  if (q.subs.length > 0 && attemptsNeeded > q.subs.length) attemptsNeeded = q.subs.length;
+  
+  q.marks = attemptsNeeded * maxSubMarks;
+
+  const attemptsWord = numberToWords(attemptsNeeded);
+  const subsWord = numberToWords(q.subs.length);
+  const marksStr = maxSubMarks < 10 ? `0${maxSubMarks}` : `${maxSubMarks}`;
+  const verb = examId === 'endSem' ? 'Solve' : 'Answer';
+
+  if (q.subs.length === 0) {
+     q.title = `${verb} any ${attemptsWord} questions: (${marksStr} marks each)`;
+  } else if (attemptsNeeded === q.subs.length) {
+     if (q.subs.length === 1) {
+         q.title = `${verb} the following question: (${marksStr} marks)`;
+     } else {
+         q.title = `${verb} all ${subsWord} questions: (${marksStr} marks each)`;
+     }
+  } else {
+     q.title = `${verb} any ${attemptsWord} questions out of ${subsWord}: (${marksStr} marks each)`;
+  }
+  return q;
+};
+
 const ExaminationEditor = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
@@ -122,7 +154,7 @@ const ExaminationEditor = () => {
               delete loadedHeader.regularExam;
             }
             
-            setPattern(loadedPattern);
+            setPattern(loadedPattern.map(q => syncQuestionMetadata({...q}, examId)));
             setHeaderConfig(loadedHeader);
             setNumericalPrompt(savedPatterns[examId].numericalPrompt || "");
           } else {
@@ -137,7 +169,7 @@ const ExaminationEditor = () => {
                   return { ...s, co: defaultCo };
                })
             }));
-            setPattern(mappedDefaultPattern);
+            setPattern(mappedDefaultPattern.map(q => syncQuestionMetadata({...q}, examId)));
             setHeaderConfig(localDefaultHeader);
             setNumericalPrompt("");
           }
@@ -177,53 +209,80 @@ const ExaminationEditor = () => {
   }, [pattern, headerConfig, numericalPrompt, savePatternToDb, localLoading, layoutLoading, course]);
 
   // 3. UI Handlers for Modifying Pattern Configs
+  const updatePattern = (newPattern) => {
+    const syncedPattern = newPattern.map(q => syncQuestionMetadata({...q}, examId));
+    setPattern(syncedPattern);
+  };
+
   const handleBtChange = (qIndex, subIndex, level) => {
     if (isEditMode) return; // Prevent selection while structurally editing
     const updated = [...pattern];
     // If the same level is clicked again, unselect it (set to null or empty string)
     updated[qIndex].subs[subIndex].bt = updated[qIndex].subs[subIndex].bt === level ? "" : level;
-    setPattern(updated);
+    updatePattern(updated);
   };
 
   const handleStructuralChange = (qIndex, field, value) => {
     const updated = [...pattern];
     updated[qIndex][field] = value;
-    setPattern(updated);
+    updatePattern(updated);
   };
 
   const toggleNumerical = (qIndex, subIndex) => {
     const updated = [...pattern];
     updated[qIndex].subs[subIndex].isNumerical = !updated[qIndex].subs[subIndex].isNumerical;
-    setPattern(updated);
+    updatePattern(updated);
   };
 
   const handleSubStructuralChange = (qIndex, subIndex, field, value) => {
     const updated = [...pattern];
     updated[qIndex].subs[subIndex][field] = value;
-    setPattern(updated);
+    updatePattern(updated);
   };
 
   const addSubQuestion = (qIndex) => {
     const updated = [...pattern];
     const newId = String.fromCharCode(97 + updated[qIndex].subs.length); // a, b, c, d...
-    let defaultCo = "";
-    const maxCOs = course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6;
-    if (examId === 'tt1') defaultCo = qIndex === 0 ? "1" : qIndex === 1 ? "2" : qIndex === 2 ? "3" : "1";
-    else if (examId === 'tt2') defaultCo = qIndex === 0 ? "4" : qIndex === 1 ? "5" : qIndex === 2 ? "6" : "4";
-    else if (examId === 'endSem') defaultCo = String(Math.floor(Math.random() * maxCOs) + 1);
-    updated[qIndex].subs.push({ id: newId, marks: 5, bt: '', isNumerical: false, co: defaultCo });
-    setPattern(updated);
+    
+    let newSub;
+    if (updated[qIndex].subs.length > 0) {
+      const lastSub = updated[qIndex].subs[updated[qIndex].subs.length - 1];
+      newSub = { ...lastSub, id: newId };
+    } else {
+      let defaultCo = "";
+      const maxCOs = course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6;
+      if (examId === 'tt1') defaultCo = qIndex === 0 ? "1" : qIndex === 1 ? "2" : qIndex === 2 ? "3" : "1";
+      else if (examId === 'tt2') defaultCo = qIndex === 0 ? "4" : qIndex === 1 ? "5" : qIndex === 2 ? "6" : "4";
+      else if (examId === 'endSem') defaultCo = String(Math.floor(Math.random() * maxCOs) + 1);
+      newSub = { id: newId, marks: 5, bt: '', isNumerical: false, co: defaultCo };
+    }
+    
+    updated[qIndex].subs.push(newSub);
+    updatePattern(updated);
   };
 
   const removeSubQuestion = (qIndex, subIndex) => {
     const updated = [...pattern];
     updated[qIndex].subs.splice(subIndex, 1);
-    setPattern(updated);
+    updated[qIndex].subs.forEach((s, i) => s.id = String.fromCharCode(97 + i));
+    updatePattern(updated);
   };
 
   const addMainQuestion = () => {
-    const newId = String(pattern.length + 1);
-    setPattern([...pattern, { id: newId, title: 'New Question Block', marks: 10, subs: [] }]);
+    const updated = [...pattern];
+    const newId = String(updated.length + 1);
+    
+    if (updated.length > 0) {
+      const lastQ = updated[updated.length - 1];
+      const newQ = JSON.parse(JSON.stringify(lastQ));
+      newQ.id = newId;
+      newQ.subs.forEach((s, i) => s.id = String.fromCharCode(97 + i));
+      updated.push(newQ);
+    } else {
+      updated.push({ id: newId, title: '', marks: 10, subs: [] });
+    }
+    
+    updatePattern(updated);
   };
 
   const removeMainQuestion = (qIndex) => {
@@ -231,7 +290,7 @@ const ExaminationEditor = () => {
     updated.splice(qIndex, 1);
     // Re-index
     updated.forEach((q, i) => q.id = String(i + 1));
-    setPattern(updated);
+    updatePattern(updated);
   };
 
   // 4. Generation Validation
@@ -378,6 +437,7 @@ const ExaminationEditor = () => {
       </div>
 
       {/* Generation Mode Toggle Box */}
+      {!isEditMode && (
       <div className="question-block" style={{ marginTop: '30px', padding: '25px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
          <div style={{ paddingRight: '20px' }}>
             <h3 style={{color: '#ffffff', margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '600'}}>Use Existing Question Bank</h3>
@@ -431,20 +491,50 @@ const ExaminationEditor = () => {
             </div>
          </div>
       </div>
+      )}
 
 
       <div className="pattern-builder">
-        {pattern.map((q, qIndex) => (
+        {pattern.map((q, qIndex) => {
+          const maxSubMarks = q.subs.length > 0 ? Math.max(...q.subs.map(s => s.marks || 0)) : 0;
+          let attemptsNeeded = maxSubMarks > 0 ? Math.floor(q.marks / maxSubMarks) : 1;
+          if (attemptsNeeded < 1) attemptsNeeded = 1;
+          if (q.subs.length > 0 && attemptsNeeded > q.subs.length) attemptsNeeded = q.subs.length;
+
+          return (
           <div key={`q_${qIndex}`} className="question-block">
             
             <div className="question-header">
               {isEditMode ? (
-                <div style={{display:'flex', gap:'10px', width: '100%', alignItems: 'center'}}>
+                <div style={{display:'flex', gap:'10px', width: '100%', alignItems: 'center', flexWrap: 'wrap'}}>
                   <span style={{color: '#ffffff', fontWeight: 'bold'}}>Q.{q.id}</span>
-                  <input type="text" className="edit-input-title" value={q.title} onChange={e => handleStructuralChange(qIndex, 'title', e.target.value)} />
-                  <span style={{color: '#ffffff'}}>Max:</span>
-                  <input type="number" className="edit-input-small" style={{width: '60px', textAlign: 'center'}} value={q.marks} onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value)||0)} />
-                  <button className="btn-danger" onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
+                  
+                  {q.subs.length <= 1 ? (
+                     <span style={{color: '#ffffff'}}>{examId === 'endSem' ? 'Solve' : 'Answer'} all {q.subs.length} questions: ({(maxSubMarks).toString().padStart(2, '0')} marks each)</span>
+                  ) : (
+                     <>
+                        <span style={{color: '#ffffff'}}>{examId === 'endSem' ? 'Solve' : 'Answer'} any</span>
+                        <input 
+                           type="number"
+                           min="1"
+                           max={Math.max(1, q.subs.length)}
+                           className="edit-input-small" 
+                           style={{width: '50px', textAlign: 'center', margin: '0 5px', padding: '2px'}}
+                           value={attemptsNeeded}
+                           onChange={e => {
+                              let attempts = parseInt(e.target.value);
+                              if (isNaN(attempts) || attempts < 1) attempts = 1;
+                              if (attempts > q.subs.length) attempts = q.subs.length;
+                              handleStructuralChange(qIndex, 'marks', attempts * maxSubMarks);
+                           }}
+                        />
+                        <span style={{color: '#ffffff'}}>
+                           questions out of {q.subs.length}: ({(maxSubMarks).toString().padStart(2, '0')} marks each)
+                        </span>
+                     </>
+                  )}
+                  
+                  <button className="btn-danger" style={{marginLeft: 'auto'}} onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
                 </div>
               ) : (
                 <>
@@ -530,7 +620,8 @@ const ExaminationEditor = () => {
             </div>
             
           </div>
-        ))}
+        );
+        })}
 
         {isEditMode && (
           <button className="btn-secondary-outline" style={{width: '100%', padding: '15px', marginTop: '10px'}} onClick={addMainQuestion}>
@@ -548,7 +639,7 @@ const ExaminationEditor = () => {
              <div style={{marginTop: '10px'}}>
                <label style={{display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px'}}>Custom Instructions for Numericals</label>
                <textarea 
-                 placeholder={"Option A ΓÇö \"Make me a numerical on breadth first search\"\nOption B ΓÇö Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""} 
+                 placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""} 
                  className="edit-input-title" 
                  style={{margin: 0, minHeight: '80px', width: '100%', fontSize: '0.9rem', resize: 'vertical', padding: '10px'}} 
                  value={numericalPrompt} 

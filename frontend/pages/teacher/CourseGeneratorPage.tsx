@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -433,7 +433,7 @@ const CourseGenerator = () => {
         institution_id: resolvedCollegeId,
         department,
         program,
-        semester,
+        semester: semester !== "" ? Number(parseInt(semester, 10)) : null,
         name: subjectName,
         total_lectures: Number(totalLectures),
         divisions: divisionsList,
@@ -610,10 +610,13 @@ const CourseGenerator = () => {
                 <div>
                   <label>Semester</label>
                   <input
+                    type="number"
+                    min="1"
+                    max="8"
                     className="glass-input"
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
-                    placeholder="e.g. 5"
+                    placeholder="e.g. 4"
                   />
                 </div>
               </div>

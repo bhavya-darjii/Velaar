@@ -3,6 +3,7 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  min-height: 60vh; /* prevent layout collapse on route transitions */
 }
 
 .marks-grid {
@@ -79,15 +80,13 @@
   border: 1px solid var(--liquid-glass-border);
   box-shadow: var(--liquid-glass-shadow);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
   text-align: center;
 }
 
 .marks-exam-card:hover {
   transform: translateY(-5px);
-  background: rgba(234, 88, 12, 0.1);
-  border-color: rgba(234, 88, 12, 0.3);
-  box-shadow: 0 10px 30px rgba(234, 88, 12, 0.2);
 }
 
 .marks-exam-card h3 {
@@ -163,4 +162,23 @@
   color: #ffffff;
   margin: 0;
   font-size: 1rem;
+}
+
+/* Glass back button - matches marks-card exactly */
+.back-glass-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 16px;
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 20px;
 }

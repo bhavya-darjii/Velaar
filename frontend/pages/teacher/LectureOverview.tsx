@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { useMemo, useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
@@ -149,13 +149,13 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
         <div className="lecture-status">
           <span>{lecture.date ? `Lecture Conducted on: ${lecture.date} · ${lecture.time || 'Time TBD'}` : 'Schedule TBD'}</span>
         </div>
-        
+
         {historyList.length > 0 && (
           <div className="lecture-history-mini">
             <span className="lecture-history-mini__label">Previous Presentations</span>
             <div className="lecture-history-mini__controls">
-              <select 
-                value={selectedHistoryId} 
+              <select
+                value={selectedHistoryId}
                 onChange={(e) => setSelectedHistoryId(e.target.value)}
                 className="history-select-mini"
               >
@@ -168,9 +168,9 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
                   );
                 })}
               </select>
-              <button 
-                className="glass-btn glass-btn--ghost history-btn-mini" 
-                onClick={downloadHistoryPpt} 
+              <button
+                className="glass-btn glass-btn--ghost history-btn-mini"
+                onClick={downloadHistoryPpt}
                 disabled={downloadingHistory || !selectedHistoryId}
               >
                 {downloadingHistory ? 'Retrieving…' : 'Download'}
@@ -179,12 +179,12 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
           </div>
         )}
 
-        <button 
-          className={`glass-btn glass-btn--primary generate-btn-mini${generatingPpt ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`} 
+        <button
+          className={`glass-btn glass-btn--primary generate-btn-mini${generatingPpt ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`}
           onClick={generateNewPpt}
           disabled={generatingPpt || done}
         >
-          {generatingPpt && <span className="ppt-spinner" />}
+          {generatingPpt && <span className="ppt-spinner" style={{ marginTop: 7 }} />}
           {btnLabel}
         </button>
       </div>
@@ -195,12 +195,12 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
 const LectureOverview = () => {
   const { course, currentLecture } = useOutletContext() || {};
   const lectures = useMemo(() => collectLectures(course?.roadmap), [course?.roadmap]);
-  
+
   const divisions = useMemo(() => [...new Set(lectures.map(l => l.division || 'A'))].sort(), [lectures]);
-  
+
   const [activeDivision, setActiveDivision] = useState(currentLecture?.division || divisions[0] || 'A');
   const [globalGenerating, setGlobalGenerating] = useState(false);
-  
+
   const completedLectures = useMemo(() => {
     return lectures
       .filter(l => (l.division || 'A') === activeDivision && l.isCompleted)
@@ -225,7 +225,7 @@ const LectureOverview = () => {
         </div>
         {divisions.length > 1 && (
           <div className="lecture-overview__divisions">
-            <SegmentedToggle 
+            <SegmentedToggle
               options={divisions.map(d => ({ value: d, label: `Div ${d}` }))}
               value={activeDivision}
               onChange={setActiveDivision}
@@ -237,10 +237,10 @@ const LectureOverview = () => {
       <main className="lecture-overview__main">
         {completedLectures.length > 0 ? (
           completedLectures.map(lecture => (
-            <LectureCard 
-              key={lecture.lectureNum} 
-              course={course} 
-              lecture={lecture} 
+            <LectureCard
+              key={lecture.lectureNum}
+              course={course}
+              lecture={lecture}
               globalGenerating={globalGenerating}
               setGlobalGenerating={setGlobalGenerating}
             />

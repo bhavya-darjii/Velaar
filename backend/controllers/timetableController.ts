@@ -1,21 +1,12 @@
 import { Request, Response } from 'express';
+import { callGemini as callGeminiPool } from '../utils/gemini.js';
 
-interface GeminiResponse {
+type GeminiResponse = {
   error?: { message: string };
   candidates?: Array<{ content: { parts: Array<{ text: string }> } }>;
-}
-
-const API_KEY = process.env.GOOGLE_API_KEY ?? '';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
-const callGemini = async (bodyPayload: object): Promise<GeminiResponse> => {
-  const response = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(bodyPayload),
-  });
-  return response.json() as Promise<GeminiResponse>;
 };
+
+const callGemini = (payload: object) => callGeminiPool(payload) as Promise<GeminiResponse>;
 
 export const generateTimetable = async (req: Request, res: Response): Promise<void> => {
   const {

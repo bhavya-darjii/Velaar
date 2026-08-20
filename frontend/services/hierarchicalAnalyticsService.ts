@@ -15,11 +15,11 @@ const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
 export interface Thresholds {
-  TT_COMBINED_PASS: number; // combined out of 40
-  END_SEM_PASS:     number; // ESE out of 100
-  ATTENDANCE:       number; // % threshold
-  TPI_PASS_WT:      number;
-  TPI_ATT_WT:       number;
+  TT_COMBINED_PASS_PCT: number; // e.g. 40 for 40%
+  END_SEM_PASS_PCT:     number; // e.g. 40 for 40%
+  ATTENDANCE:           number; // % threshold
+  TPI_PASS_WT:          number;
+  TPI_ATT_WT:           number;
 }
 
 export interface AttendanceStat {
@@ -32,7 +32,8 @@ export interface AttendanceStat {
 export interface ExamStat {
   score:  number;
   outOf:  number;
-  pass:   boolean | null; // null if pass/fail doesn't apply individually (like TT1 alone)
+  pass:   boolean | null;
+  color:  string;
   hasData: true;
 }
 
@@ -43,9 +44,11 @@ export interface StudentCourseMetric {
   courseName: string;
   code:       string | null;
   semester:   string | null;
+  courseAvg:  number | null;
   attendance: AttendanceStat;
   tt1:        ExamStat | null;   // null = not entered yet
   tt2:        ExamStat | null;
+  ttCombined: ExamStat | null;
   ese:        ExamStat | null;
   atRisk:     boolean;
 }
@@ -55,7 +58,7 @@ export interface StudentAnalytics {
   overallAttendance: AttendanceStat;
   courses:           StudentCourseMetric[];
   atRiskCourses:     number;
-  thresholds:        Pick<Thresholds, 'TT_COMBINED_PASS' | 'END_SEM_PASS' | 'ATTENDANCE'>;
+  thresholds:        Pick<Thresholds, 'TT_COMBINED_PASS_PCT' | 'END_SEM_PASS_PCT' | 'ATTENDANCE'>;
 }
 
 // ─── Level 2 — Teacher ────────────────────────────────────────────────────────
@@ -63,9 +66,11 @@ export interface StudentAnalytics {
 export interface StudentRow {
   id:         string;
   name:       string;
+  courseAvg:  number | null;
   attendance: AttendanceStat;
   tt1:        ExamStat | null;
   tt2:        ExamStat | null;
+  ttCombined: ExamStat | null;
   ese:        ExamStat | null;
   atRisk:     boolean;
 }

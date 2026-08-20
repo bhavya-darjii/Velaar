@@ -29,7 +29,7 @@ import AttendanceSession from './pages/teacher/AttendanceSession';
 import TeacherProfile from './pages/teacher/TeacherProfile';
 import MarksDashboard from './pages/teacher/MarksDashboard';
 import EditMarks from './pages/teacher/EditMarks';
-import StudentRiskAnalytics from './pages/teacher/StudentRiskAnalytics';
+import StudentAnalytics from './pages/teacher/StudentAnalytics';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminDashboardSkeleton from './components/skeletons/AdminDashboardSkeleton';
@@ -234,9 +234,10 @@ function App() {
                   <Route path="course-analytics" element={<CourseAnalytics />} />
                   <Route path="profile" element={<TeacherProfile />} />
                   <Route path="marks" element={<MarksDashboard />} />
+                  <Route path="marks/edit" element={<MarksDashboard />} />
                   <Route path="marks/edit/:examId" element={<EditMarks />} />
-                  <Route path="student-analytics" element={<StudentRiskAnalytics />} />
-                  <Route path="student-risk" element={<StudentRiskAnalytics />} />
+                  <Route path="student-analytics" element={<StudentAnalytics />} />
+                  <Route path="student-risk" element={<StudentAnalytics />} />
                   <Route path="create-course" element={<CourseGeneratorPage />} />
                 </Route>
 
