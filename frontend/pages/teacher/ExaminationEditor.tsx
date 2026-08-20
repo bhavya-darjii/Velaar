@@ -534,7 +534,19 @@ const ExaminationEditor = () => {
                      </>
                   )}
                   
-                  <button className="btn-danger" style={{marginLeft: 'auto'}} onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold'}}>Max Marks:</span>
+                        <input 
+                           type="number" 
+                           className="edit-input-small" 
+                           style={{width: '60px', textAlign: 'center'}} 
+                           value={q.marks} 
+                           onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value) || 0)} 
+                        />
+                     </div>
+                     <button className="btn-danger" onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
+                  </div>
                 </div>
               ) : (
                 <>
