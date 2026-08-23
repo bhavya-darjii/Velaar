@@ -27,6 +27,9 @@ dist-ssr
 .env
 .vercel
 .env*.local
-
+*.key
+*key*
+*secret*
+API Keys
 server/serviceAccountKey.json
 docs/

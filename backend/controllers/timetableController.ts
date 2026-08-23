@@ -6,7 +6,7 @@ type GeminiResponse = {
   candidates?: Array<{ content: { parts: Array<{ text: string }> } }>;
 };
 
-const callGemini = (payload: object) => callGeminiPool(payload) as Promise<GeminiResponse>;
+const callGemini = (payload: Record<string, unknown>) => callGeminiPool(payload) as Promise<GeminiResponse>;
 
 export const generateTimetable = async (req: Request, res: Response): Promise<void> => {
   const {
