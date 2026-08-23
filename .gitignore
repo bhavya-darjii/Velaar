@@ -31,5 +31,6 @@ dist-ssr
 *key*
 *secret*
 API Keys
+.cache_ggshield
 server/serviceAccountKey.json
 docs/
