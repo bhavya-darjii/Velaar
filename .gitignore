@@ -37,3 +37,5 @@ docs/
 # TypeScript Build Info
 *.tsbuildinfo
 
+# Compiled backend output (not needed — tsx runs TS directly)
+dist-backend/
