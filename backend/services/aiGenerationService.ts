@@ -1,4 +1,4 @@
-/* eslint-disable */
+﻿/* eslint-disable */
 // @ts-nocheck
 /**
  * AI Generation Service.
@@ -9,7 +9,7 @@
 import { callGemini } from '../utils/gemini.js';
 import { logAiUsage } from '../utils/logAiUsage.js';
 import {
-  buildRoadmapPrompt,
+  buildRoadmapPrompt, roadmapSystem,
   buildTheoryQuestionsPrompt, theoryQuestionsSystem,
   buildNumericalQuestionsPrompt, numericalQuestionsSystem,
   buildSyllabusQuestionsPrompt,
@@ -22,6 +22,7 @@ import {
   buildCopilotSystemPrompt,
   copilotIntentSystem,
   buildPresentationPrompt,
+  presentationSystem,
 } from '../prompts/aiPrompts.js';
 
 /** Shared context passed from controller to service to logAiUsage */
@@ -49,13 +50,15 @@ const parseJsonArray = (text) => {
   return JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
 };
 
-// â”€â”€â”€ 1. Roadmap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Roadmap ---------------------------------------------------------
 export const generateRoadmapService = async (
   { syllabusText, totalLectures, acceptedModules }: { syllabusText?: string; totalLectures?: number; acceptedModules?: unknown },
   ctx: Ctx,
 ) => {
   const prompt = buildRoadmapPrompt(syllabusText, totalLectures, acceptedModules);
   const data = await callGemini({
+    // roadmapSystem is cached by Gemini — static rules not re-billed on repeat calls.
+    systemInstruction: { parts: [{ text: roadmapSystem }] },
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { responseMimeType: 'application/json' },
   });
@@ -68,7 +71,7 @@ export const generateRoadmapService = async (
   };
 };
 
-// â”€â”€â”€ 2. Questions from topics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Q-estions from topics ---------------------------------------------------------
 export const generateQuestionsFromTopicsService = async ({
   completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = '', pastNumericals = [],
 }: {
@@ -123,7 +126,7 @@ export const generateQuestionsFromTopicsService = async ({
   return combined;
 };
 
-// â”€â”€â”€ 3. Questions from syllabus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Q-estions from syllab-s ---------------------------------------------------------
 export const generateQuestionsFromSyllabusService = async (
   { syllabus, examLength }: { syllabus?: unknown; examLength?: number },
   ctx: Ctx,
@@ -139,7 +142,7 @@ export const generateQuestionsFromSyllabusService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// â”€â”€â”€ 4. Grade exam â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 4. Grade exam ---------------------------------------------------------
 export const gradeExamService = async (
   { syllabus, examData }: { syllabus?: unknown; examData?: unknown },
   ctx: Ctx,
@@ -156,7 +159,7 @@ export const gradeExamService = async (
   return result;
 };
 
-// â”€â”€â”€ 5. Lesson plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Lesson plan ---------------------------------------------------------
 export const generateLessonPlanService = async (
   { subjectName, modules }: { subjectName?: string; modules?: unknown[] },
   ctx: Ctx,
@@ -173,7 +176,7 @@ export const generateLessonPlanService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// â”€â”€â”€ 6. Specific field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 6. Specific field ---------------------------------------------------------
 export const generateSpecificFieldService = async (
   { type, subjectName, modules }: { type?: string; subjectName?: string; modules?: unknown[] },
   ctx: Ctx,
@@ -190,7 +193,7 @@ export const generateSpecificFieldService = async (
   return type === 'unit' ? result : result.result;
 };
 
-// â”€â”€â”€ 7. Supplementary plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 7. S-pplementary plan ---------------------------------------------------------
 export const generateSupplementaryPlanService = async (
   { subjectName, modules }: { subjectName?: string; modules?: unknown[] },
   ctx: Ctx,
@@ -207,7 +210,7 @@ export const generateSupplementaryPlanService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// â”€â”€â”€ 8. Day-wise enrichment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 8. Day-wise enrichment ---------------------------------------------------------
 export const generateDayWiseEnrichmentService = async (
   { subjectName, roadmapTitles, textBooks = [], refBooks = [] }: { subjectName?: string; roadmapTitles?: unknown[]; textBooks?: unknown[]; refBooks?: unknown[] },
   ctx: Ctx,
@@ -225,7 +228,7 @@ export const generateDayWiseEnrichmentService = async (
   return result.enrichment;
 };
 
-// â”€â”€â”€ 9. CO-PO mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 9. CO-PO mapping ---------------------------------------------------------
 export const generateCoPoMappingService = async (
   { courseOutcomes, programOutcomes }: { courseOutcomes?: unknown[]; programOutcomes?: any[] },
   ctx: Ctx,
@@ -247,7 +250,7 @@ export const generateCoPoMappingService = async (
   return result.mapping;
 };
 
-// â”€â”€â”€ 10. Copilot chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Copilot chat ---------------------------------------------------------
 export const copilotChatService = async (
   { messages, userRole = 'teacher', pagePath = '', pageLabel = '', pageContext = {} }: { messages?: any[]; userRole?: string; pagePath?: string; pageLabel?: string; pageContext?: unknown },
   ctx: Ctx,
@@ -267,7 +270,7 @@ export const copilotChatService = async (
   return { reply: data.candidates[0].content.parts[0].text };
 };
 
-// â”€â”€â”€ 11. Copilot intent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Copilot intent ---------------------------------------------------------
 export const classifyIntentService = async (
   { prompt, context }: { prompt?: string; context?: unknown },
   ctx: Ctx,
@@ -283,13 +286,16 @@ export const classifyIntentService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// â”€â”€â”€ 12. Lecture presentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Lect-re presentation ---------------------------------------------------------
 export const generatePresentationService = async (
   { subjectName, lecture, overview, course }: { subjectName?: string; lecture?: unknown; overview?: unknown; course?: unknown },
   ctx: Ctx,
 ) => {
   const prompt = buildPresentationPrompt(subjectName, lecture, overview, course);
   const data = await callGemini({
+    // presentationSystem goes into systemInstruction — Gemini implicitly caches this
+    // across repeated calls, so the large static rules are not re-charged every click.
+    systemInstruction: { parts: [{ text: presentationSystem }] },
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { responseMimeType: 'application/json' },
   });

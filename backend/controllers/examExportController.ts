@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 /**
  * Exam Paper Export Controller.
@@ -121,9 +121,10 @@ export const exportTemplatedExam = async (req, res) => {
     for (let s = 1; s <= numSets; s++) {
       let aiData = {};
 
-      if (generationMode === 'bank' && course.questionBank?.length > 0) {
+      const bankList = course.question_bank || course.questionBank || course.active_exam || [];
+      if (generationMode === 'bank' && bankList.length > 0) {
         // Bank mode — pick from bank, fall back to AI for misses
-        let availableBank = [...course.questionBank].sort(() => Math.random() - 0.5);
+        let availableBank = [...bankList].sort(() => Math.random() - 0.5);
         let localTheoryMap = {};
         let localNumericalMap = {};
         let hasLocalTheory = false;
@@ -132,14 +133,37 @@ export const exportTemplatedExam = async (req, res) => {
         pattern.forEach(q => q.subs.forEach(sub => {
           const internalId = `Q${q.id}_${sub.id}`;
           const targetCo = sub.co ? `CO${sub.co}` : '';
-          const matchIndex = availableBank.findIndex(b =>
+          
+          // 1. Try exact match (numerical flag + BT level + CO)
+          let matchIndex = availableBank.findIndex(b =>
             Boolean(b.isNumerical) === Boolean(sub.isNumerical) &&
-            (b.btLevel || '').includes(sub.bt || '') &&
+            (!sub.bt || (b.btLevel || '').includes(sub.bt || '')) &&
             (!targetCo || (b.courseOutcome || '').includes(targetCo) || targetCo === 'COAuto')
           );
+
+          // 2. If no exact match, fallback to matching just numerical flag + BT level
+          if (matchIndex === -1 && sub.bt) {
+            matchIndex = availableBank.findIndex(b =>
+              Boolean(b.isNumerical) === Boolean(sub.isNumerical) &&
+              (b.btLevel || '').includes(sub.bt)
+            );
+          }
+
+          // 3. If still no match, fallback to any question of the same type (numerical vs theory)
+          if (matchIndex === -1) {
+            matchIndex = availableBank.findIndex(b =>
+              Boolean(b.isNumerical) === Boolean(sub.isNumerical)
+            );
+          }
+
+          // 4. If still no match, pick ANY question from the bank
+          if (matchIndex === -1 && availableBank.length > 0) {
+            matchIndex = 0;
+          }
+
           if (matchIndex !== -1) {
             const selectedQ = availableBank.splice(matchIndex, 1)[0];
-            aiData[internalId] = { q: selectedQ.question, co: selectedQ.courseOutcome || 'CO1' };
+            aiData[internalId] = { q: selectedQ.question, co: selectedQ.courseOutcome || (sub.co ? `CO${sub.co}` : 'CO1') };
           } else {
             if (sub.isNumerical) { hasLocalNumerical = true; localNumericalMap[internalId] = numericalStructureMap[internalId]; }
             else { hasLocalTheory = true; localTheoryMap[internalId] = theoryStructureMap[internalId]; }

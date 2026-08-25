@@ -175,9 +175,9 @@
 }
 
 .btn-super-generate {
-  background: #ffffff;
-  color: #000000;
-  border: none;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
   padding: 16px 32px;
   border-radius: 12px;
   font-size: 1.2rem;
@@ -185,21 +185,30 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: none;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transition: none !important;
 }
-.btn-super-generate:hover:not(:disabled) {
-  background: #f0f0f0;
-  color: #000000;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+.btn-super-generate:hover,
+.btn-super-generate:active,
+.btn-super-generate:focus {
+  background: #ffffff !important;
+  color: #000000 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  filter: none !important;
 }
 .btn-super-generate:disabled {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
   cursor: not-allowed;
+  transform: none !important;
+  opacity: 0.6 !important;
 }
 
 /* Edit Mode Utilities */
@@ -264,4 +273,103 @@
 .btn-add-sub:hover {
   background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
+}
+
+/* ─── Toast Notification (Bottom Right) ─────────────────────────────────── */
+.em-toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px 14px 16px;
+  border-radius: 20px;
+  background: rgba(12, 12, 18, 0.75);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  max-width: 400px;
+  animation: em-toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.em-toast--success {
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.em-toast--error {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.em-toast__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.em-toast--success .em-toast__dot {
+  background: #4ade80;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
+}
+
+.em-toast--error .em-toast__dot {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+}
+
+.em-toast__msg {
+  flex: 1;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.em-toast__close {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: 4px;
+  transition: color 0.2s ease;
+}
+
+.em-toast__close:hover {
+  color: #ffffff;
+}
+
+@keyframes em-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Override syncing pill — dark translucent to match cards */
+.editor-container .saving-status-pill {
+  background: rgba(0, 0, 0, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }

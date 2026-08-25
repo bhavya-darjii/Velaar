@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import './ExaminationEditor.css';
@@ -97,8 +98,12 @@ const ExaminationEditor = () => {
   const [generationMode, setGenerationMode] = useState('ai');
   const [generating, setGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [validationError, setValidationError] = useState(null);
-  const [headerErrors, setHeaderErrors] = useState({});
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // 1. Initialize course data when available
   useEffect(() => {
@@ -180,8 +185,12 @@ const ExaminationEditor = () => {
   }, [examId, course]);
 
   // 2. Debounced Auto-Save
+  const lastSavedRef = React.useRef<string>('');
   const savePatternToDb = useCallback(async (currentPattern, currentHeader, currentPrompt) => {
     if (!course) return;
+    const snapshot = JSON.stringify({ currentPattern, currentHeader, currentPrompt });
+    if (snapshot === lastSavedRef.current) return; // nothing changed, skip
+    lastSavedRef.current = snapshot;
     setIsSaving(true);
     try {
       const currentPatterns = course.exam_patterns || course.examPatterns || {};
@@ -194,7 +203,7 @@ const ExaminationEditor = () => {
         } 
       };
       await supabase.from('courses').update({ exam_patterns: updatedPatterns }).eq('id', course.id);
-      setCourse({ ...course, exam_patterns: updatedPatterns });
+      setCourse(prev => ({ ...prev, exam_patterns: updatedPatterns }));
       setTimeout(() => setIsSaving(false), 800);
     } catch (err) {
       console.error(err);
@@ -206,7 +215,7 @@ const ExaminationEditor = () => {
     if (localLoading || layoutLoading || !course) return;
     const timeoutId = setTimeout(() => { savePatternToDb(pattern, headerConfig, numericalPrompt); }, 1500);
     return () => clearTimeout(timeoutId);
-  }, [pattern, headerConfig, numericalPrompt, savePatternToDb, localLoading, layoutLoading, course]);
+  }, [pattern, headerConfig, numericalPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 3. UI Handlers for Modifying Pattern Configs
   const updatePattern = (newPattern) => {
@@ -296,38 +305,56 @@ const ExaminationEditor = () => {
   // 4. Generation Validation
   const handleGenerate = async () => {
     // Validation pre-flight checks
-    const errors = {};
-    if (!headerConfig.date) errors.date = true;
-    if (!headerConfig.scheme) errors.scheme = true;
-    if (!headerConfig.academicYear) errors.academicYear = true;
-    if (!headerConfig.semester) errors.semester = true;
+    const missing = [];
+    if (!headerConfig.date) missing.push("Date");
+    if (!headerConfig.scheme) missing.push("Scheme");
+    if (!headerConfig.academicYear) missing.push("Academic Year");
+    if (!headerConfig.semester) missing.push("Semester");
 
-    if (Object.keys(errors).length > 0) {
-      setHeaderErrors(errors);
+    if (missing.length > 0) {
+      showToast(`Missing header fields: ${missing.join(', ')}`, "error");
       const headerEl = document.getElementById("exam-header-config");
       if (headerEl) {
         headerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
-    
-    setHeaderErrors({});
-    if (pattern.length === 0) {
-      return setValidationError("Your paper pattern structure is completely empty.");
-    }
 
-    let missingBt = false;
-    for (const q of pattern) {
-      for (const s of q.subs) {
-        if (!s.bt) missingBt = true;
+    if (generationMode === 'bank') {
+      const bank = course?.question_bank || course?.questionBank || course?.active_exam || [];
+      if (bank.length === 0) {
+        showToast("No Question Bank found. Please generate a question bank first or switch to AI mode.", "error");
+        return;
       }
-    }
-    if (missingBt) {
-      return setValidationError("You must select a Bloom's Taxonomy (BT) cognitive level for EVERY subquestion. Scroll up to verify none are missing.");
+    } else {
+      if (pattern.length === 0) {
+        showToast("Your paper pattern structure is completely empty.", "error");
+        return;
+      }
+
+      let missingBtQIndex = -1;
+      for (let qi = 0; qi < pattern.length; qi++) {
+        for (const s of pattern[qi].subs) {
+          if (!s.bt) {
+            missingBtQIndex = qi;
+            break;
+          }
+        }
+        if (missingBtQIndex !== -1) break;
+      }
+      if (missingBtQIndex !== -1) {
+        showToast("Please select a Bloom's Taxonomy (BT) cognitive level for every subquestion.", "error");
+        const qEl = document.getElementById(`question-block-${missingBtQIndex}`);
+        if (qEl) {
+          qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
     }
 
     if (numSets < 1 || numSets > 5) {
-      return setValidationError("Batch generations are limited to a maximum of 5 sets at once.");
+      showToast("Batch generations are limited to a maximum of 5 sets at once.", "error");
+      return;
     }
     
     setGenerating(true);
@@ -367,10 +394,10 @@ const ExaminationEditor = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-      
+      showToast("Question paper generated and downloaded successfully!", "success");
     } catch (err) {
-      console.error(err);
-      setValidationError(`Generation failed: ${err.message}`);
+      console.error("Generation failed:", err);
+      showToast(err.message || "Failed to generate question paper.", "error");
     }
     setGenerating(false);
   };
@@ -383,7 +410,11 @@ const ExaminationEditor = () => {
         <div className="editor-container">
       <div className="editor-header-nav">
         <div className="header-title-group" style={{width: '100%', position: 'relative'}}>
-          <div className="back-arrow" style={{cursor: 'pointer'}} onClick={() => navigate('/teacher/examination')}>
+          <div 
+            className="back-arrow" 
+            style={{cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.6 : 1}} 
+            onClick={() => { if (!generating) navigate('/teacher/examination'); }}
+          >
             <span style={{ fontFamily: 'system-ui, sans-serif' }}>&larr;</span> Back
           </div>
           
@@ -391,19 +422,24 @@ const ExaminationEditor = () => {
             <h2 style={{ margin: 0 }}>
               {examId === 'endSem' ? 'End Semester Exam' : `Term Test ${examId.replace('tt', '')}`} Pattern
             </h2>
-            <button 
-              className="btn-secondary-outline" 
-              onClick={() => setIsEditMode(!isEditMode)}
-            >
-              {isEditMode ? 'Done Editing' : 'Edit Paper Pattern'}
-            </button>
+            {generationMode !== 'bank' && (
+              <button 
+                className="btn-secondary-outline" 
+                disabled={generating}
+                onClick={() => setIsEditMode(!isEditMode)}
+              >
+                {isEditMode ? 'Done Editing' : 'Edit Paper Pattern'}
+              </button>
+            )}
           </div>
           
           <div style={{marginTop: '5px', display: 'flex', alignItems: 'center', minHeight: '32px'}}>
             <span>
-              {isEditMode 
-                ? "Structurally modify the paper layout. Changes autosave instantly." 
-                : "Generate from your Question Bank or draft fresh conceptual exams with AI."}
+              {generationMode === 'bank'
+                ? "Directly compile randomized question papers from your Question Bank."
+                : isEditMode 
+                  ? "Structurally modify the paper layout. Changes autosave instantly." 
+                  : "Generate from your Question Bank or draft fresh conceptual exams with AI."}
             </span>
             <div className="saving-status-pill" style={{ 
                marginLeft: '15px', 
@@ -419,37 +455,32 @@ const ExaminationEditor = () => {
       </div>
 
       {/* Editable Header Configuration Summary */}
-      <div id="exam-header-config" style={{ marginBottom: Object.keys(headerErrors).some(k => headerErrors[k]) ? '15px' : '0' }}>
-        <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: Object.keys(headerErrors).some(k => headerErrors[k]) ? '1px solid rgba(234, 88, 12, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'}}>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '130px', fontSize: '0.85rem', height: '30px', border: headerErrors.date ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.date ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.date || ''} onChange={e => {setHeaderConfig({...headerConfig, date: e.target.value}); setHeaderErrors(prev => ({...prev, date: false}));}} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '90px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" className="edit-input-title" placeholder="III" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px', border: headerErrors.scheme ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.scheme ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.scheme || ''} onChange={e => {setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, scheme: false}));}} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" className="edit-input-title" placeholder="SY" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px', border: headerErrors.academicYear ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.academicYear ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.academicYear || ''} onChange={e => {setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()}); setHeaderErrors(prev => ({...prev, academicYear: false}));}} /></div>
-           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" className="edit-input-title" placeholder="IV" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px', border: headerErrors.semester ? '2px solid #ea580c' : undefined, backgroundColor: headerErrors.semester ? 'rgba(234, 88, 12, 0.1)' : undefined}} value={headerConfig.semester || ''} onChange={e => {setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)}); setHeaderErrors(prev => ({...prev, semester: false}));}} /></div>
+      <div id="exam-header-config">
+        <div className="question-block" style={{padding: '12px 15px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)'}}>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Date:</strong> <input type="date" disabled={generating} className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '130px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.date || ''} onChange={e => setHeaderConfig({...headerConfig, date: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Marks:</strong> <input type="text" disabled={generating} className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.maxMarks || ''} onChange={e => setHeaderConfig({...headerConfig, maxMarks: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Duration:</strong> <input type="text" disabled={generating} className="edit-input-title" style={{margin: 0, padding: '4px 6px', width: '90px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.duration || ''} onChange={e => setHeaderConfig({...headerConfig, duration: e.target.value})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Scheme:</strong> <input type="text" disabled={generating} className="edit-input-title" placeholder="III" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.scheme || ''} onChange={e => setHeaderConfig({...headerConfig, scheme: toRoman(e.target.value)})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Academic Year:</strong> <input type="text" disabled={generating} className="edit-input-title" placeholder="SY" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.academicYear || ''} onChange={e => setHeaderConfig({...headerConfig, academicYear: e.target.value.toUpperCase()})} /></div>
+           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}><strong style={{color:'#ffffff', fontSize: '0.85rem'}}>Semester:</strong> <input type="text" disabled={generating} className="edit-input-title" placeholder="IV" style={{margin: 0, padding: '4px 6px', width: '60px', fontSize: '0.85rem', height: '30px'}} value={headerConfig.semester || ''} onChange={e => setHeaderConfig({...headerConfig, semester: toRoman(e.target.value)})} /></div>
         </div>
-        {Object.keys(headerErrors).some(k => headerErrors[k]) && (
-           <div style={{ color: '#ea580c', fontSize: '0.85rem', marginTop: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-              Please fill out the missing header fields highlighted above before generating the question paper.
-           </div>
-        )}
       </div>
 
       {/* Generation Mode Toggle Box */}
       {!isEditMode && (
-      <div className="question-block" style={{ marginTop: '30px', padding: '25px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+      <div className="question-block" style={{ marginTop: '20px', padding: '20px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
          <div style={{ paddingRight: '20px' }}>
-            <h3 style={{color: '#ffffff', margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '600'}}>Use Existing Question Bank</h3>
-            <p style={{color: '#ffffff', fontSize: '0.9rem', margin: 0, lineHeight: '1.5'}}>
-               {generationMode === 'ai' 
-                  ? "Currently drafting fresh conceptual exams from scratch using Velaar AI." 
-                  : "Currently generating randomized exams exclusively from your previously generated Question Bank."}
+            <h3 style={{color: '#ffffff', margin: '0 0 6px 0', fontSize: '1.15rem', fontWeight: '600'}}>Use Existing Question Bank</h3>
+            <p style={{color: '#ffffff', fontSize: '0.88rem', margin: 0, opacity: 0.85, lineHeight: '1.4'}}>
+               {generationMode === 'bank' 
+                  ? "Directly creating question papers from your previously generated Question Bank." 
+                  : "Drafting fresh conceptual exams with Velaar AI."}
             </p>
          </div>
          
          <div 
             onClick={() => {
+               if (generating) return;
                const newMode = generationMode === 'ai' ? 'bank' : 'ai';
                setGenerationMode(newMode);
                if (newMode === 'bank') setIsEditMode(false);
@@ -458,11 +489,12 @@ const ExaminationEditor = () => {
                width: '64px',
                height: '34px',
                borderRadius: '34px',
-               background: generationMode === 'bank' ? '#ea580c' : 'rgba(255, 255, 255, 0.08)',
+               background: generationMode === 'bank' ? '#22c55e' : 'rgba(255, 255, 255, 0.08)',
                position: 'relative',
-               cursor: 'pointer',
+               cursor: generating ? 'not-allowed' : 'pointer',
+               opacity: generating ? 0.6 : 1,
                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-               boxShadow: generationMode === 'bank' ? '0 0 15px rgba(234, 88, 12, 0.4), inset 0 2px 4px rgba(0,0,0,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.3)',
+               boxShadow: generationMode === 'bank' ? '0 0 15px rgba(34, 197, 94, 0.4), inset 0 2px 4px rgba(0,0,0,0.2)' : 'inset 0 2px 4px rgba(0,0,0,0.3)',
                border: '1px solid rgba(255, 255, 255, 0.1)',
                flexShrink: 0
             }}
@@ -485,7 +517,7 @@ const ExaminationEditor = () => {
                    width: '4px',
                    height: '12px',
                    borderRadius: '4px',
-                   background: generationMode === 'bank' ? '#ea580c' : '#cbd5e1',
+                   background: generationMode === 'bank' ? '#22c55e' : '#cbd5e1',
                    transition: 'background 0.4s ease'
                }} />
             </div>
@@ -494,7 +526,9 @@ const ExaminationEditor = () => {
       )}
 
 
-      <div className="pattern-builder">
+      {/* Pattern Builder — hidden when 'Use Existing Question Bank' is active */}
+      {generationMode !== 'bank' && (
+      <div className="pattern-builder" style={{ marginTop: '24px' }}>
         {pattern.map((q, qIndex) => {
           const maxSubMarks = q.subs.length > 0 ? Math.max(...q.subs.map(s => s.marks || 0)) : 0;
           let attemptsNeeded = maxSubMarks > 0 ? Math.floor(q.marks / maxSubMarks) : 1;
@@ -502,7 +536,7 @@ const ExaminationEditor = () => {
           if (q.subs.length > 0 && attemptsNeeded > q.subs.length) attemptsNeeded = q.subs.length;
 
           return (
-          <div key={`q_${qIndex}`} className="question-block">
+          <div key={`q_${qIndex}`} id={`question-block-${qIndex}`} className="question-block">
             
             <div className="question-header">
               {isEditMode ? (
@@ -516,6 +550,7 @@ const ExaminationEditor = () => {
                         <span style={{color: '#ffffff'}}>{examId === 'endSem' ? 'Solve' : 'Answer'} any</span>
                         <input 
                            type="number"
+                           disabled={generating}
                            min="1"
                            max={Math.max(1, q.subs.length)}
                            className="edit-input-small" 
@@ -539,13 +574,14 @@ const ExaminationEditor = () => {
                         <span style={{color: '#ffffff', fontSize: '0.9rem', fontWeight: 'bold'}}>Max Marks:</span>
                         <input 
                            type="number" 
+                           disabled={generating}
                            className="edit-input-small" 
                            style={{width: '60px', textAlign: 'center'}} 
                            value={q.marks} 
                            onChange={e => handleStructuralChange(qIndex, 'marks', parseInt(e.target.value) || 0)} 
                         />
                      </div>
-                     <button className="btn-danger" onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
+                     <button className="btn-danger" disabled={generating} onClick={() => removeMainQuestion(qIndex)}>Remove Block</button>
                   </div>
                 </div>
               ) : (
@@ -565,8 +601,8 @@ const ExaminationEditor = () => {
                     {isEditMode ? (
                       <div style={{display: 'flex', gap: '15px', alignItems: 'center'}}>
                          <label style={{color: 'gray'}}>Marks:</label>
-                         <input type="number" className="edit-input-small" style={{width: '60px', textAlign: 'center'}} value={sub.marks} onChange={e => handleSubStructuralChange(qIndex, subIndex, 'marks', parseInt(e.target.value)||0)} />
-                        <button className="btn-danger" style={{padding: '4px 8px'}} onClick={() => removeSubQuestion(qIndex, subIndex)}>Remove</button>
+                         <input type="number" disabled={generating} className="edit-input-small" style={{width: '60px', textAlign: 'center'}} value={sub.marks} onChange={e => handleSubStructuralChange(qIndex, subIndex, 'marks', parseInt(e.target.value)||0)} />
+                        <button className="btn-danger" disabled={generating} style={{padding: '4px 8px'}} onClick={() => removeSubQuestion(qIndex, subIndex)}>Remove</button>
                       </div>
                     ) : (
                       <span style={{color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px'}}>
@@ -574,6 +610,7 @@ const ExaminationEditor = () => {
                         <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                           CO
                           <select 
+                             disabled={generating}
                              value={sub.co || "1"} 
                              onChange={e => handleSubStructuralChange(qIndex, subIndex, 'co', e.target.value)}
                              style={{
@@ -583,7 +620,7 @@ const ExaminationEditor = () => {
                                borderRadius: '20px', 
                                padding: '2px 8px',
                                outline: 'none',
-                               cursor: 'pointer',
+                               cursor: generating ? 'not-allowed' : 'pointer',
                                fontSize: '0.9rem',
                                marginLeft: '4px',
                                textAlign: 'center'
@@ -606,7 +643,11 @@ const ExaminationEditor = () => {
                           <div 
                             key={lvl} 
                             className={`bt-pill ${sub.bt === lvl ? 'active' : ''}`}
-                            onClick={() => handleBtChange(qIndex, subIndex, lvl)}
+                            style={{ cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.7 : 1 }}
+                            onClick={() => {
+                              if (isEditMode || generating) return;
+                              handleBtChange(qIndex, subIndex, lvl);
+                            }}
                           >
                             {lvl}
                           </div>
@@ -615,7 +656,11 @@ const ExaminationEditor = () => {
 
                       <div 
                         className={`bt-pill ${sub.isNumerical ? 'active' : ''}`}
-                        onClick={() => toggleNumerical(qIndex, subIndex)}
+                        style={{ cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.7 : 1 }}
+                        onClick={() => {
+                          if (generating) return;
+                          toggleNumerical(qIndex, subIndex);
+                        }}
                       >
                         Numerical Question
                       </div>
@@ -625,7 +670,7 @@ const ExaminationEditor = () => {
               ))}
 
               {isEditMode && (
-                <button className="btn-add-sub" onClick={() => addSubQuestion(qIndex)}>
+                <button className="btn-add-sub" disabled={generating} onClick={() => addSubQuestion(qIndex)}>
                   + Add Sub-Question
                 </button>
               )}
@@ -636,21 +681,24 @@ const ExaminationEditor = () => {
         })}
 
         {isEditMode && (
-          <button className="btn-secondary-outline" style={{width: '100%', padding: '15px', marginTop: '10px'}} onClick={addMainQuestion}>
+          <button className="btn-secondary-outline" disabled={generating} style={{width: '100%', padding: '15px', marginTop: '10px'}} onClick={addMainQuestion}>
             + Block New Main Question
           </button>
         )}
       </div>
+      )}
 
 
       {!isEditMode && (
-        <div className="q-card generation-configurator" style={{ marginTop: '30px' }}>
+        <div className="q-card generation-configurator" style={{ marginTop: generationMode === 'bank' ? '20px' : '30px' }}>
           
-          {generationMode === 'ai' && (
           <div style={{display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '25px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: '10px'}}>
              <div style={{marginTop: '10px'}}>
-               <label style={{display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px'}}>Custom Instructions for Numericals</label>
+               <label style={{display: 'block', color: '#ffffff', fontWeight: 600, marginBottom: '8px'}}>
+                 Custom Instructions for Numericals <span style={{fontWeight: 'normal', opacity: 0.7}}>(Optional)</span>
+               </label>
                <textarea 
+                 disabled={generating}
                  placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""} 
                  className="edit-input-title" 
                  style={{margin: 0, minHeight: '80px', width: '100%', fontSize: '0.9rem', resize: 'vertical', padding: '10px'}} 
@@ -662,7 +710,6 @@ const ExaminationEditor = () => {
                </p>
              </div>
           </div>
-          )}
           
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
             <div>
@@ -674,6 +721,7 @@ const ExaminationEditor = () => {
               <label>Number of Sets:</label>
               <input 
                 type="number" 
+                disabled={generating}
                 min="1" 
                 max="5" 
                 className="batch-input"
@@ -684,38 +732,25 @@ const ExaminationEditor = () => {
           </div>
           
           <button 
-            className="btn-super-generate"
+            className={`btn-super-generate ${generating ? 'glass-btn--loading' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '24px' }}
             disabled={generating}
             onClick={handleGenerate}
           >
-            {generating ? 'Velaar AI is Drafting Batch...' : 'Generate Validated Question Papers'}
+            {generating && <span className="ppt-spinner" />}
+            {generating ? 'Generating Question Papers...' : 'Generate Question Papers'}
           </button>
         </div>
       )}
 
-      {/* Validation Modal Overlay */}
-      {validationError && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 15, 30, 0.7)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#1e1432', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', minWidth: '320px', maxWidth: '420px', padding: '40px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', color: 'white' }}>
-            <div style={{ color: '#ffcc00', marginBottom: '15px' }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-            </div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '8px', color: 'white', marginTop: 0 }}>Hold up!</h2>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', marginBottom: '25px', lineHeight: '1.6' }}>
-              {validationError}
-            </p>
-            <button 
-              onClick={() => setValidationError(null)}
-              style={{ width: '100%', padding: '14px', fontSize: '1rem', background: 'var(--theme-color)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}
-            >
-              I'll fix it
-            </button>
-          </div>
-        </div>
+      {/* Toast Notification — Portaled to document.body to anchor directly to the bottom-right of viewport */}
+      {toast && createPortal(
+        <div className={`em-toast em-toast--${toast.type}`}>
+          <span className="em-toast__dot" />
+          <span className="em-toast__msg">{toast.message}</span>
+          <span className="em-toast__close" onClick={() => setToast(null)}>×</span>
+        </div>,
+        document.body
       )}
 
         </div>

@@ -12,7 +12,6 @@
  *  - *build* functions contain ONLY the dynamic, per-call data (subject, topics, count).
  *    These go into `contents` and are charged every call — so they are kept lean.
  */
-
 /**
  * 1. Lecture Roadmap — SYSTEM INSTRUCTION (static, Gemini-cached across calls).
  * Contains role, all rules, and output schema. Goes into `systemInstruction`.
@@ -40,7 +39,6 @@ Output Format: Return ONLY a raw JSON array matching this schema exactly:
   }
 ]
 `;
-
 /**
  * 1. Lecture Roadmap — dynamic data only. Goes into `contents`.
  * All static rules live in roadmapSystem above (cached by Gemini).
@@ -52,9 +50,7 @@ Accepted module names (use EXACTLY as written): [${acceptedModules}]
 Syllabus Text:
 "${syllabusText.substring(0, 30000)}"
 `;
-
 // ─── THEORY QUESTIONS ──────────────────────────────────────────────────────────
-
 /**
  * 2a. Theory questions — SYSTEM INSTRUCTION (static, Gemini-cached across calls).
  * Contains all the pattern rules. Goes into `systemInstruction`, not `contents`.
@@ -89,7 +85,6 @@ Do NOT mix numerical calculations into theory questions — numerical problems
 are handled by the dedicated numerical generator.
 Do NOT use emojis anywhere in the output.
 `;
-
 /**
  * 2a. Theory questions — dynamic data only. Goes into `contents`.
  * Rules live in theoryQuestionsSystem above (cached by Gemini).
@@ -100,9 +95,7 @@ ${prefText}
 Return ONLY a raw JSON array:
 [{ "question": "...", "courseOutcome": "CO1", "btLevel": "U" }]
 `;
-
 // ─── NUMERICAL QUESTIONS ───────────────────────────────────────────────────────
-
 /**
  * 2b. Numerical questions — SYSTEM INSTRUCTION (static, Gemini-cached across calls).
  * Contains the 3-phase solution format and all rules. Goes into `systemInstruction`.
@@ -151,7 +144,6 @@ the intellectual challenge is in the calculation, not in finding the formula.
 Do NOT generate questions requiring knowledge outside the given topic.
 Do NOT use emojis anywhere in the output.
 `;
-
 /**
  * 2b. Numerical questions — dynamic data only. Goes into `contents`.
  * Rules live in numericalQuestionsSystem above (cached by Gemini).
@@ -161,16 +153,15 @@ Generate exactly ${numNumerical} numerical questions.
 
 TOPIC/GUIDANCE: "${numericalPrompt || 'General engineering / science applications'}"
 ${isFullExample
-  ? 'TEMPLATE MODE: Keep the same algorithm and concept — change all given values.'
-  : 'TOPIC MODE: Use the guidance above as the exact subject area.'}
+    ? 'TEMPLATE MODE: Keep the same algorithm and concept — change all given values.'
+    : 'TOPIC MODE: Use the guidance above as the exact subject area.'}
 ${pastNumericals && pastNumericals.length > 0
-  ? `STYLE REFERENCE (maintain this difficulty and style):\n${pastNumericals.map((q, i) => `${i + 1}. ${q}`).join('\n')}`
-  : ''}
+    ? `STYLE REFERENCE (maintain this difficulty and style):\n${pastNumericals.map((q, i) => `${i + 1}. ${q}`).join('\n')}`
+    : ''}
 
 Return ONLY a raw JSON array:
 [{ "question": "...", "courseOutcome": "CO2", "btLevel": "Ap" }]
 `;
-
 /** 3. Questions from syllabus */
 export const buildSyllabusQuestionsPrompt = (syllabus, poolSize) => `
     Context: "${syllabus}"
@@ -178,7 +169,6 @@ export const buildSyllabusQuestionsPrompt = (syllabus, poolSize) => `
     Output Format: Return ONLY a raw JSON array of strings. 
     Example: ["Question 1?", "Question 2?"]
   `;
-
 /** 4. Grade exam */
 export const buildGradeExamPrompt = (syllabus, examData) => `
     Role: You are a lenient and fair teacher grading an exam.
@@ -198,7 +188,6 @@ export const buildGradeExamPrompt = (syllabus, examData) => `
     Output Schema:
     { "score": number, "feedback": "One sentence constructive feedback." }
   `;
-
 /** 5. Lesson plan */
 export const buildLessonPlanPrompt = (subjectName, moduleNames, moduleTexts) => `
     Role: Senior Academic Curriculum Planner.
@@ -229,22 +218,23 @@ export const buildLessonPlanPrompt = (subjectName, moduleNames, moduleTexts) => 
       ]
     }
   `;
-
 /** 6. Specific field */
 export const buildSpecificFieldPrompt = (type, subjectName, modules) => {
-  if (type === 'description') {
-    return `Role: Academic Curriculum Planner. Task: Generate a strictly 1-paragraph globally-applicable "Course Description" for "${subjectName}". Return ONLY raw JSON like {"result": "The course..."}`;
-  } else if (type === 'unit') {
-    const m = modules[0];
-    return `Role: Academic Planner. Task: For Unit "${m?.name || 'Unknown'}" in "${subjectName}" with context "${m?.extractedText || ''}", generate EXACTLY 2 measurable Outcomes and 1 Bloom's Taxonomy Level (e.g., "Understand"). Return ONLY raw JSON like {"outcomes": "1. ...\\n2. ...", "btLevel": "Understand"}`;
-  } else if (type === 'textBooks') {
-    return `Role: Academic Planner. Task: Recommend 3 standard Text Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
-  } else if (type === 'referenceBooks') {
-    return `Role: Academic Planner. Task: Recommend 5 standard Reference Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
-  }
-  return '';
+    if (type === 'description') {
+        return `Role: Academic Curriculum Planner. Task: Generate a strictly 1-paragraph globally-applicable "Course Description" for "${subjectName}". Return ONLY raw JSON like {"result": "The course..."}`;
+    }
+    else if (type === 'unit') {
+        const m = modules[0];
+        return `Role: Academic Planner. Task: For Unit "${m?.name || 'Unknown'}" in "${subjectName}" with context "${m?.extractedText || ''}", generate EXACTLY 2 measurable Outcomes and 1 Bloom's Taxonomy Level (e.g., "Understand"). Return ONLY raw JSON like {"outcomes": "1. ...\\n2. ...", "btLevel": "Understand"}`;
+    }
+    else if (type === 'textBooks') {
+        return `Role: Academic Planner. Task: Recommend 3 standard Text Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
+    }
+    else if (type === 'referenceBooks') {
+        return `Role: Academic Planner. Task: Recommend 5 standard Reference Books for "${subjectName}". Return ONLY raw JSON array like {"result": ["Author, 'Title', Publisher, Year"]}`;
+    }
+    return '';
 };
-
 /** 7. Supplementary lesson plan */
 export const buildSupplementaryPlanPrompt = (subjectName, modules, moduleNames, moduleTexts) => `
     Role: Senior Academic Curriculum Planner and Accreditation (NBA/ABET) Expert.
@@ -278,7 +268,6 @@ export const buildSupplementaryPlanPrompt = (subjectName, modules, moduleNames, 
       "referenceBooks": ["Author, 'Title', Publisher, Year"]
     }
   `;
-
 /** 8. Day-wise enrichment */
 export const buildDayWiseEnrichmentPrompt = (subjectName, topicsList, allBooks, totalTopics) => `
     Role: Senior Academic Curriculum Planner.
@@ -302,7 +291,6 @@ export const buildDayWiseEnrichmentPrompt = (subjectName, topicsList, allBooks, 
       ]
     }
   `;
-
 /** 9. CO-PO mapping */
 export const buildCoPoMappingPrompt = (coText, poText) => `
     Role: Academic Curriculum Expert.
@@ -332,7 +320,6 @@ export const buildCoPoMappingPrompt = (coText, poText) => `
       }
     }
   `;
-
 /** 10. Copilot system prompt */
 export const buildCopilotSystemPrompt = (ctx, userRole, pagePath, pageLabel, pageContext) => `
     You are "Velaar", an AI academic assistant built into the Velaar ERP platform for Indian engineering colleges.
@@ -353,7 +340,6 @@ export const buildCopilotSystemPrompt = (ctx, userRole, pagePath, pageLabel, pag
     Personality: Warm, helpful, and concise. You speak naturally - not like a formal bot. If the user just says hi or chats casually, respond like a friendly AI colleague.
     CRITICAL: Keep responses concise with markdown (bolding, bullet points). No essays unless asked.
   `;
-
 /** 11. Copilot intent classifier system */
 export const copilotIntentSystem = `
       You are the AI brain behind the "Velaar Copilot", an academic assistant.
@@ -379,9 +365,7 @@ export const copilotIntentSystem = `
       }
       Do NOT include any markdown formatting like \`\`\`json
     `;
-
 // ─── LECTURE PRESENTATION ──────────────────────────────────────────────────────
-
 /**
  * 12. Lecture presentation — SYSTEM INSTRUCTION (static, Gemini-cached across calls).
  *
@@ -521,19 +505,17 @@ ABSOLUTE RULES
 - Global examples: OpenAI, Google DeepMind, Tesla Autopilot, NVIDIA, Meta, Apple, Amazon, Microsoft, SpaceX
 - Return ONLY valid JSON — no markdown, no code fences, no commentary outside the JSON
 `;
-
 /**
  * 12. Lecture presentation — dynamic data only. Goes into `contents`.
  * All static rules live in presentationSystem above (cached by Gemini).
  */
 export const buildPresentationPrompt = (subjectName, lecture, overview, course) => {
-  const lectureChecklist = (lecture?.checklist || []).join(', ');
-  const moduleName = lecture?.moduleName || '';
-  const moduleList = (course?.modules || []).map(m => m.name).join(', ');
-  const overviewContext = overview ? JSON.stringify(overview).slice(0, 2000) : '';
-  const lessonPlanContext = course?.lessonPlan ? JSON.stringify(course.lessonPlan).slice(0, 1500) : '';
-
-  return `
+    const lectureChecklist = (lecture?.checklist || []).join(', ');
+    const moduleName = lecture?.moduleName || '';
+    const moduleList = (course?.modules || []).map(m => m.name).join(', ');
+    const overviewContext = overview ? JSON.stringify(overview).slice(0, 2000) : '';
+    const lessonPlanContext = course?.lessonPlan ? JSON.stringify(course.lessonPlan).slice(0, 1500) : '';
+    return `
 COURSE: ${subjectName || 'Engineering'}
 COURSE MODULES: ${moduleList || 'Not specified'}
 CURRENT MODULE: ${moduleName}

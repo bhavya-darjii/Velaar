@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../services/supabase";
 import { generateQuestionsFromTopics, setAiContextCourse } from "../../services/aiService";
 import {
@@ -32,6 +33,12 @@ const ExamSection = ({ course }) => {
   const [numericalCount, setNumericalCount] = useState(0);
   const [numericalPrompt, setNumericalPrompt] = useState("");
   const [selectedBT, setSelectedBT] = useState([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const divisions = course?.divisions || ["A"];
   // Now an array to support multiple division selections!
@@ -184,7 +191,7 @@ const ExamSection = ({ course }) => {
     });
 
     if (completedLectures.length === 0) {
-      alert("You haven't finished any lectures in the selected divisions yet! Teach something first.");
+      showToast("You haven't finished any lectures in the selected divisions yet! Teach something first.", "error");
       setExamLoading(false);
       return;
     }
@@ -236,8 +243,10 @@ const ExamSection = ({ course }) => {
 
       // Trigger Word Download
       await exportToWord(questions);
+      showToast("Question bank generated & downloaded successfully!", "success");
     } catch (error) {
-      alert("Error generating exam: " + error.message);
+      console.error("Error generating exam:", error);
+      showToast(error.message || "Error generating question bank.", "error");
     }
 
     setExamLoading(false);
@@ -253,9 +262,10 @@ const ExamSection = ({ course }) => {
           {/* Reusing the exact same BT Chip classes here */}
           <div className="bt-chips-container">
             {divisions.map((d) => (
-              <label key={d} className="bt-chip">
+              <label key={d} className="bt-chip" style={{ cursor: examLoading ? 'not-allowed' : 'pointer', opacity: examLoading ? 0.7 : 1 }}>
                 <input
                   type="checkbox"
+                  disabled={examLoading}
                   value={d}
                   checked={selectedDivs.includes(d)}
                   onChange={() => handleDivChange(d)}
@@ -271,6 +281,7 @@ const ExamSection = ({ course }) => {
         <label className="group-title">Number of Questions</label>
         <input
           type="number"
+          disabled={examLoading}
           min="1"
           max="50"
           value={numQuestions}
@@ -287,6 +298,7 @@ const ExamSection = ({ course }) => {
         <label className="group-title">Include Numericals (Max: {numQuestions})</label>
         <input
           type="number"
+          disabled={examLoading}
           min="0"
           max={numQuestions}
           value={numericalCount}
@@ -303,6 +315,7 @@ const ExamSection = ({ course }) => {
         <div className="settings-group">
           <label className="group-title">Numerical Guidance</label>
           <textarea
+            disabled={examLoading}
             className="custom-number-input"
             style={{ width: '100%', minHeight: '100px', padding: '12px', fontSize: '0.9rem', resize: 'vertical' }}
             placeholder={"Option A — \"Make me a numerical on breadth first search\"\nOption B — Paste an actual breadth first search sum: \"Q: adj = [[1,2], [0,2]] find BFS.\""}
@@ -319,9 +332,10 @@ const ExamSection = ({ course }) => {
         <label className="group-title">Prioritize BT Levels</label>
         <div className="bt-chips-container">
           {BT_OPTIONS.map((bt) => (
-            <label key={bt.value} className="bt-chip">
+            <label key={bt.value} className="bt-chip" style={{ cursor: examLoading ? 'not-allowed' : 'pointer', opacity: examLoading ? 0.7 : 1 }}>
               <input
                 type="checkbox"
+                disabled={examLoading}
                 value={bt.value}
                 checked={selectedBT.includes(bt.value)}
                 onChange={() => handleBTChange(bt.value)}
@@ -341,6 +355,16 @@ const ExamSection = ({ course }) => {
         {examLoading && <span className="ppt-spinner" />}
         {examLoading ? `Generating Question Bank... (${formatTime(timer)})` : "Generate Question Bank"}
       </button>
+
+      {/* Toast Notification — Portaled to document.body */}
+      {toast && createPortal(
+        <div className={`em-toast em-toast--${toast.type}`}>
+          <span className="em-toast__dot" />
+          <span className="em-toast__msg">{toast.message}</span>
+          <span className="em-toast__close" onClick={() => setToast(null)}>×</span>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
