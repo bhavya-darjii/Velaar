@@ -6,6 +6,7 @@ import { getPresentationHistory, getPresentationById, savePresentationHistory } 
 import { downloadLecturePresentation, getRandomThemeId } from '../../utils/presentationExport';
 import { generateLecturePresentation } from '../../services/aiService';
 import SegmentedToggle from '../../components/shared/SegmentedToggle';
+import GlassSelect from '../../components/shared/GlassSelect';
 import './LectureOverview.css';
 
 const lectureId = (lecture) => `${lecture?.division || 'A'}-${lecture?.lectureNum || 0}`;
@@ -17,6 +18,16 @@ const collectLectures = (roadmap) => {
   );
 };
 
+const GENERATION_STEPS = [
+  { label: 'Analyzing lecture topics & checklist…', duration: 4000 },
+  { label: 'Structuring slide sequence…',            duration: 5000 },
+  { label: 'Writing concept explanations…',          duration: 7000 },
+  { label: 'Crafting analogies & examples…',         duration: 6000 },
+  { label: 'Adding real-world applications…',        duration: 5000 },
+  { label: 'Writing speaker notes…',                 duration: 6000 },
+  { label: 'Generating presentation file…',          duration: 3000 },
+];
+
 const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating }) => {
   const [historyList, setHistoryList] = useState([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState('');
@@ -25,7 +36,10 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(0);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
 
+  // Timer + before-unload guard
   useEffect(() => {
     let interval;
     const handleBeforeUnload = (e) => {
@@ -44,6 +58,41 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
     return () => {
       clearInterval(interval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [generatingPpt]);
+
+  // Advance through generation steps when generating
+  useEffect(() => {
+    if (!generatingPpt) {
+      setStepIndex(0);
+      setProgress(0);
+      return;
+    }
+
+    const totalDuration = GENERATION_STEPS.reduce((a, s) => a + s.duration, 0);
+    let elapsed = 0;
+    let currentStep = 0;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    GENERATION_STEPS.forEach((step, i) => {
+      const t = setTimeout(() => {
+        setStepIndex(i);
+      }, elapsed);
+      timers.push(t);
+      elapsed += step.duration;
+    });
+
+    // Smooth progress bar — update every 200ms
+    let progressElapsed = 0;
+    const progressInterval = setInterval(() => {
+      progressElapsed += 200;
+      // Cap at 92% — the final jump to 100% happens on completion
+      setProgress(Math.min(92, Math.round((progressElapsed / totalDuration) * 100)));
+    }, 200);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      clearInterval(progressInterval);
     };
   }, [generatingPpt]);
 
@@ -96,6 +145,8 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
         setHistoryList(updatedData);
         if (updatedData.length > 0) setSelectedHistoryId(updatedData[0].id);
 
+        setProgress(100);
+        await new Promise(r => setTimeout(r, 400)); // brief flash of 100%
         setDone(true);
         setTimeout(() => setDone(false), 3500);
       }
@@ -118,7 +169,7 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
     return `${m}m ${s}s`;
   };
 
-  const btnLabel = generatingPpt ? `GENERATING... (${formatTime(timer)})` : done ? 'DOWNLOADED' : error ? error : 'GENERATE NEW PPT';
+  const btnLabel = generatingPpt ? 'GENERATING...' : done ? 'DOWNLOADED' : error ? error : 'GENERATE NEW PPT';
 
   const downloadHistoryPpt = async () => {
     if (!selectedHistoryId) return;
@@ -138,6 +189,8 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
     setDownloadingHistory(false);
   };
 
+  const currentStep = GENERATION_STEPS[stepIndex];
+
   return (
     <section className="lecture-identity glass-card">
       <div className="lecture-identity__info">
@@ -150,24 +203,54 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
           <span>{lecture.date ? `Lecture Conducted on: ${lecture.date} · ${lecture.time || 'Time TBD'}` : 'Schedule TBD'}</span>
         </div>
 
-        {historyList.length > 0 && (
+        {generatingPpt && (
+          <div className="ppt-progress-panel">
+            <div className="ppt-progress-panel__header">
+              <span className="ppt-progress-panel__step-label">{currentStep?.label}</span>
+              <span className="ppt-progress-panel__timer">{formatTime(timer)}</span>
+            </div>
+            <div className="ppt-progress-bar-track">
+              <div
+                className="ppt-progress-bar-fill"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="ppt-progress-panel__steps">
+              {GENERATION_STEPS.map((s, i) => (
+                <span
+                  key={i}
+                  className={`ppt-step-dot${
+                    i < stepIndex ? ' ppt-step-dot--done' :
+                    i === stepIndex ? ' ppt-step-dot--active' : ''
+                  }`}
+                  title={s.label}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {historyList.length > 0 && !generatingPpt && (
           <div className="lecture-history-mini">
             <span className="lecture-history-mini__label">Previous Presentations</span>
             <div className="lecture-history-mini__controls">
-              <select
+              <GlassSelect
                 value={selectedHistoryId}
-                onChange={(e) => setSelectedHistoryId(e.target.value)}
-                className="history-select-mini"
-              >
-                {historyList.map((item, idx) => {
-                  const dateStr = new Date(item.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-                  return (
-                    <option key={item.id} value={item.id}>
-                      {dateStr} {idx === 0 ? '(Latest)' : ''}
-                    </option>
-                  );
+                onChange={setSelectedHistoryId}
+                style={{ width: '180px' }}
+                options={historyList.map((item, idx) => {
+                  const dateStr = new Date(item.created_at).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  });
+                  return {
+                    value: item.id,
+                    label: `${dateStr} ${idx === 0 ? '(Latest)' : ''}`,
+                  };
                 })}
-              </select>
+              />
               <button
                 className="glass-btn glass-btn--ghost history-btn-mini"
                 onClick={downloadHistoryPpt}

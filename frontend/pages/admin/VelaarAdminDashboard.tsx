@@ -1,8 +1,7 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 /**
  * VelaarAdminDashboard.jsx
- * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  * Super Admin control panel for the Velaar platform.
  * Accessible only to users with user_type: 'velaarAdmin'.
  */
@@ -15,9 +14,10 @@ import {
   PieChart, Pie, Legend,
 } from 'recharts';
 import AdminDashboardSkeleton from '../../components/skeletons/AdminDashboardSkeleton';
+import GlassSelect from '../../components/shared/GlassSelect';
 import './VelaarAdminDashboard.css';
 
-// â”€â”€ Role badge helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Role badge helper ──────────────────────────────────────────────
 const ROLE_LABELS = {
   teacher:        'Teacher',
   hod:            'Head of Dept',
@@ -218,7 +218,7 @@ const VelaarAdminDashboard = () => {
     setUpdating(null);
   };
 
-  // â”€â”€ Pre-Registration Invites â”€â”€
+  // ── Pre-Registration Invites ──
   const handleSingleInvite = async (e) => {
     e.preventDefault();
     if (!inviteEmails || !inviteInstId) return;
@@ -303,8 +303,7 @@ const VelaarAdminDashboard = () => {
     navigate('/');
   };
 
-  const handleInstSelect = (e) => {
-    const val = e.target.value;
+  const handleInstSelect = (val) => {
     if (val === 'create_new') {
       setShowCreateModal(true);
       setInviteInstId('');
@@ -352,17 +351,20 @@ const VelaarAdminDashboard = () => {
             </div>
             <button className="va-exit-btn" onClick={handleLogout}>Sign Out</button>
          </div>
-         <div className="va-form-group" style={{ width: '300px', margin: 0 }}>
+         <div className="va-form-group" style={{ width: '320px', margin: 0 }}>
             <label style={{ color: '#e2e8f0' }}>Select Institution to View Data</label>
-            <select className="va-glass-input" value={globalInstId} onChange={e => {
-              setGlobalInstId(e.target.value);
-              setInviteInstId(e.target.value);
-            }}>
-               <option value="">-- All Institutions --</option>
-               {institutions.map(c => (
-                 <option key={c.id} value={c.id}>{c.name}</option>
-               ))}
-            </select>
+            <GlassSelect
+              value={globalInstId}
+              onChange={(val) => {
+                setGlobalInstId(val);
+                setInviteInstId(val);
+              }}
+              placeholder="-- All Institutions --"
+              options={[
+                { value: '', label: '-- All Institutions --' },
+                ...institutions.map(c => ({ value: c.id, label: c.name })),
+              ]}
+            />
          </div>
       </div>
 
@@ -457,12 +459,15 @@ const VelaarAdminDashboard = () => {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <select className="va-role-filter" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-            <option value="all">All Roles</option>
-            {Object.entries(ROLE_LABELS).map(([val, label]) => (
-              <option key={val} value={val}>{label}</option>
-            ))}
-          </select>
+          <GlassSelect
+            style={{ width: '160px' }}
+            value={roleFilter}
+            onChange={setRoleFilter}
+            options={[
+              { value: 'all', label: 'All Roles' },
+              ...Object.entries(ROLE_LABELS).map(([val, label]) => ({ value: val, label })),
+            ]}
+          />
         </div>
       </div>
 
@@ -501,7 +506,7 @@ const VelaarAdminDashboard = () => {
                     <td>
                       {u.user_type === 'student' ? (
                         <input 
-                          type="text"
+                          type="text" 
                           value={u.semester || ''}
                           onChange={async (e) => {
                             const newSem = e.target.value;
@@ -528,30 +533,31 @@ const VelaarAdminDashboard = () => {
                     <td>
                       {canModify ? (
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <select 
-                            className="va-action-select"
+                          <GlassSelect
+                            style={{ width: '130px' }}
                             value={u.user_type || 'student'}
-                            onChange={(e) => handleRoleChange(u.uid, e.target.value)}
                             disabled={isUpdating}
-                          >
-                            <optgroup label="Change Role">
-                              {ASSIGNABLE_ROLES.map((val) => (
-                                <option key={val} value={val}>{ROLE_LABELS[val]}</option>
-                              ))}
-                            </optgroup>
-                          </select>
+                            onChange={(newRole) => handleRoleChange(u.uid, newRole)}
+                            options={ASSIGNABLE_ROLES.map((val) => ({
+                              value: val,
+                              label: ROLE_LABELS[val],
+                            }))}
+                          />
 
-                          <select 
-                            className="va-action-select"
+                          <GlassSelect
+                            style={{ width: '140px' }}
                             value=""
-                            onChange={(e) => handleInstitutionChange(u.uid, e.target.value)}
+                            placeholder="Move Org..."
                             disabled={isUpdating}
-                          >
-                            <option value="">Move Org...</option>
-                            {colleges.filter(c => c.id !== 'unassigned').map(c => (
-                              <option key={c.id} value={`${c.id}|${c.name}`}>{c.name}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => handleInstitutionChange(u.uid, val)}
+                            options={[
+                              { value: '', label: 'Move Org...' },
+                              ...colleges.filter(c => c.id !== 'unassigned').map(c => ({
+                                value: `${c.id}|${c.name}`,
+                                label: c.name,
+                              })),
+                            ]}
+                          />
                         </div>
                       ) : (
                         <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.8rem' }}>Self</span>
@@ -624,22 +630,27 @@ const VelaarAdminDashboard = () => {
             
             <div className="va-form-group">
               <label>Select Institution</label>
-              <select required className="va-glass-input" value={inviteInstId} onChange={handleInstSelect}>
-                <option value="" disabled>Select Institution...</option>
-                {institutions.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-                <option value="create_new" style={{ color: '#ffffff', fontWeight: 600 }}>+ Create New Institution...</option>
-              </select>
+              <GlassSelect
+                value={inviteInstId}
+                placeholder="Select Institution..."
+                onChange={handleInstSelect}
+                options={[
+                  ...institutions.map(c => ({ value: c.id, label: c.name })),
+                  { value: 'create_new', label: '+ Create New Institution...' },
+                ]}
+              />
             </div>
             
             <div className="va-form-group">
               <label>Assign Role</label>
-              <select className="va-glass-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
-                {ASSIGNABLE_ROLES.map((val) => (
-                  <option key={val} value={val}>{ROLE_LABELS[val]}</option>
-                ))}
-              </select>
+              <GlassSelect
+                value={inviteRole}
+                onChange={setInviteRole}
+                options={ASSIGNABLE_ROLES.map((val) => ({
+                  value: val,
+                  label: ROLE_LABELS[val],
+                }))}
+              />
             </div>
 
             {inviteRole === 'student' && (
@@ -672,22 +683,27 @@ const VelaarAdminDashboard = () => {
             
             <div className="va-form-group">
               <label>Select Institution</label>
-              <select required className="va-glass-input" value={inviteInstId} onChange={handleInstSelect}>
-                <option value="" disabled>Select Institution...</option>
-                {institutions.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-                <option value="create_new" style={{ color: '#ffffff', fontWeight: 600 }}>+ Create New Institution...</option>
-              </select>
+              <GlassSelect
+                value={inviteInstId}
+                placeholder="Select Institution..."
+                onChange={handleInstSelect}
+                options={[
+                  ...institutions.map(c => ({ value: c.id, label: c.name })),
+                  { value: 'create_new', label: '+ Create New Institution...' },
+                ]}
+              />
             </div>
 
             <div className="va-form-group">
               <label>Assign Role to All</label>
-              <select className="va-glass-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
-                {ASSIGNABLE_ROLES.map((val) => (
-                  <option key={val} value={val}>{ROLE_LABELS[val]}</option>
-                ))}
-              </select>
+              <GlassSelect
+                value={inviteRole}
+                onChange={setInviteRole}
+                options={ASSIGNABLE_ROLES.map((val) => ({
+                  value: val,
+                  label: ROLE_LABELS[val],
+                }))}
+              />
             </div>
 
             {inviteRole === 'student' && (
@@ -722,4 +738,3 @@ const VelaarAdminDashboard = () => {
 };
 
 export default VelaarAdminDashboard;
-

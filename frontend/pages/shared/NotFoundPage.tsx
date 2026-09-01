@@ -130,7 +130,7 @@ const NotFoundPage: React.FC<NotFoundPageProps> = ({ userRole, isAccessDenied = 
             color: 'rgba(255, 255, 255, 0.65)'
           }}>
             {isAccessDenied
-              ? "You don't have the required permissions to access this page with your current account role."
+              ? "You don't have the required permissions to access this page."
               : "The page you're looking for doesn't exist, has been moved, or is not accessible."}
           </p>
         </div>

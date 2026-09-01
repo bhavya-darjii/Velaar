@@ -1,12 +1,16 @@
-/* eslint-disable */
-// @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import GlassSelect from '../../components/shared/GlassSelect';
 import './MarksDashboard.css';
 
 const MarksDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [detailedClass, setDetailedClass] = useState('SY - A');
+  const [detailedTest, setDetailedTest] = useState('Term Test 1');
+  const [viewClass, setViewClass] = useState('SY - A');
+  const [deleteTest, setDeleteTest] = useState('Term Test 1');
 
   // Show exam selection view when on /teacher/marks/edit
   const isEditSelection = location.pathname === '/teacher/marks/edit';
@@ -31,9 +35,17 @@ const MarksDashboard = () => {
             <h3>Detailed View</h3>
             <div className="card-controls">
               <label>Select Class</label>
-              <select className="marks-select" defaultValue=""><option value="" disabled>Select Class</option><option>SY - A</option></select>
+              <GlassSelect
+                value={detailedClass}
+                onChange={setDetailedClass}
+                options={['SY - A', 'SY - B', 'TY - A', 'TY - B']}
+              />
               <label>Select Test</label>
-              <select className="marks-select" defaultValue=""><option value="" disabled>Select Test</option><option>Term Test 1</option></select>
+              <GlassSelect
+                value={detailedTest}
+                onChange={setDetailedTest}
+                options={['Term Test 1', 'Term Test 2', 'End Semester']}
+              />
               <button className="marks-action-btn" onClick={() => alert('Coming soon!')}>View Marks</button>
             </div>
           </div>
@@ -43,7 +55,11 @@ const MarksDashboard = () => {
             <h3>View Marks</h3>
             <div className="card-controls">
               <label>Select Class</label>
-              <select className="marks-select" defaultValue=""><option value="" disabled>Select Class</option><option>SY - A</option></select>
+              <GlassSelect
+                value={viewClass}
+                onChange={setViewClass}
+                options={['SY - A', 'SY - B', 'TY - A', 'TY - B']}
+              />
               <label>Average Conversion</label>
               <input type="text" className="marks-input" placeholder="Conversion Logic" />
               <button className="marks-action-btn" onClick={() => alert('Coming soon!')}>View Marks</button>
@@ -55,7 +71,11 @@ const MarksDashboard = () => {
             <h3>Delete Marks</h3>
             <div className="card-controls">
               <label>Select Test</label>
-              <select className="marks-select" defaultValue=""><option value="" disabled>Select test</option><option>Term Test 1</option></select>
+              <GlassSelect
+                value={deleteTest}
+                onChange={setDeleteTest}
+                options={['Term Test 1', 'Term Test 2', 'End Semester']}
+              />
               <button className="marks-action-btn marks-delete-btn" onClick={() => alert('Coming soon!')}>Delete Marks</button>
             </div>
           </div>

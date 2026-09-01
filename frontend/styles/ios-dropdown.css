@@ -1,0 +1,549 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   APPLE iOS LIQUID GLASS DROPDOWN & CONTEXT MENU SYSTEM
+   Globally available across the entire app.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* iOS Dropdown Tokens */
+  --ios-drop-bg: rgba(246, 248, 250, 0.72);
+  --ios-drop-bg-hover: rgba(0, 0, 0, 0.05);
+  --ios-drop-bg-active: rgba(0, 0, 0, 0.09);
+  --ios-drop-border: rgba(255, 255, 255, 0.85);
+  --ios-drop-border-inner: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 1px rgba(0, 0, 0, 0.03);
+  --ios-drop-shadow: 0 18px 45px -8px rgba(0, 0, 0, 0.22), 0 8px 18px -4px rgba(0, 0, 0, 0.12);
+  --ios-drop-blur: blur(32px) saturate(210%);
+  --ios-drop-radius: 20px;
+  --ios-drop-radius-item: 12px;
+  
+  --ios-drop-text: #1c1c1e;
+  --ios-drop-text-muted: rgba(60, 60, 67, 0.65);
+  --ios-drop-divider: rgba(60, 60, 67, 0.14);
+  
+  --ios-blue: #007aff;
+  --ios-blue-gradient: linear-gradient(135deg, #007aff 0%, #0062cc 100%);
+  --ios-blue-shadow: 0 4px 14px rgba(0, 122, 255, 0.42);
+  
+  /* Authentic iOS Spring Curves */
+  --ios-spring-curve: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ios-spring-snappy: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ios-spring-submenu: cubic-bezier(0.2, 0.9, 0.3, 1.18);
+  --ios-press-curve: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode overrides (automatic or explicit) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ios-drop-bg-dark: rgba(30, 32, 38, 0.78);
+    --ios-drop-border-dark: rgba(255, 255, 255, 0.18);
+  }
+}
+
+.dark, [data-theme="dark"], .theme-dark {
+  --ios-drop-bg: rgba(28, 30, 36, 0.78);
+  --ios-drop-bg-hover: rgba(255, 255, 255, 0.09);
+  --ios-drop-bg-active: rgba(255, 255, 255, 0.16);
+  --ios-drop-border: rgba(255, 255, 255, 0.18);
+  --ios-drop-border-inner: inset 0 1px 1px rgba(255, 255, 255, 0.25), inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+  --ios-drop-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.6), 0 10px 24px -5px rgba(0, 0, 0, 0.4);
+  --ios-drop-text: #f5f5f7;
+  --ios-drop-text-muted: rgba(235, 235, 245, 0.6);
+  --ios-drop-divider: rgba(255, 255, 255, 0.12);
+}
+
+/* Force light glass variant matching screenshot */
+.ios-glass-light {
+  --ios-drop-bg: rgba(246, 248, 250, 0.72) !important;
+  --ios-drop-bg-hover: rgba(0, 0, 0, 0.06) !important;
+  --ios-drop-bg-active: rgba(0, 0, 0, 0.1) !important;
+  --ios-drop-border: rgba(255, 255, 255, 0.85) !important;
+  --ios-drop-border-inner: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 1px rgba(0, 0, 0, 0.03) !important;
+  --ios-drop-shadow: 0 18px 45px -8px rgba(0, 0, 0, 0.22), 0 8px 18px -4px rgba(0, 0, 0, 0.12) !important;
+  --ios-drop-text: #1c1c1e !important;
+  --ios-drop-text-muted: rgba(60, 60, 67, 0.65) !important;
+  --ios-drop-divider: rgba(60, 60, 67, 0.14) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS (Authentic iPhone Spring Physics)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes iosSpringPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-8px);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.035) translateY(1.5px);
+    filter: blur(0px);
+  }
+  82% {
+    transform: scale(0.985) translateY(-0.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes iosSubmenuPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateX(-10px);
+    filter: blur(6px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.025) translateX(2px);
+    filter: blur(0px);
+  }
+  85% {
+    transform: scale(0.99) translateX(-0.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes iosCheckBounce {
+  0% {
+    transform: scale(0.4) rotate(-15deg);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.2) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes iosPillPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(0, 122, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 122, 255, 0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL COMPONENT & CLASS DEFINITIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Container / Anchor */
+.ios-dropdown-container,
+.ios-dropdown {
+  position: relative;
+  display: inline-block;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+}
+
+.ios-dropdown-container.is-fullwidth,
+.ios-dropdown.is-fullwidth {
+  width: 100%;
+  display: block;
+}
+
+/* Trigger Button / Pill Badge */
+.ios-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  background: var(--ios-drop-bg);
+  backdrop-filter: var(--ios-drop-blur);
+  -webkit-backdrop-filter: var(--ios-drop-blur);
+  border: 1px solid var(--ios-drop-border);
+  box-shadow: var(--ios-drop-border-inner), 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ios-drop-text);
+  outline: none;
+  transition: transform 0.15s var(--ios-press-curve), background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ios-dropdown-trigger.is-fullwidth {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: space-between;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.ios-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.dark .ios-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ios-dropdown-trigger:active,
+.ios-dropdown-trigger.is-active {
+  transform: scale(0.96);
+}
+
+.ios-dropdown-list-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.ios-dropdown-list-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ios-dropdown-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+.dark .ios-dropdown-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Circular Badge Trigger (matches top-left "12MP" badge in screenshot) */
+.ios-dropdown-badge {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  min-height: 46px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: var(--ios-drop-blur);
+  -webkit-backdrop-filter: var(--ios-drop-blur);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 16px rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c1c1e;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.18s var(--ios-press-curve), background 0.2s ease;
+}
+
+.ios-dropdown-badge:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.05);
+}
+
+.ios-dropdown-badge:active {
+  transform: scale(0.92);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAIN DROPDOWN CARD (Frosted Liquid Glass & iOS Spring Animation)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ios-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1050;
+  min-width: 195px;
+  max-width: 280px;
+  background: var(--ios-drop-bg);
+  backdrop-filter: var(--ios-drop-blur);
+  -webkit-backdrop-filter: var(--ios-drop-blur);
+  border: 1px solid var(--ios-drop-border);
+  border-radius: var(--ios-drop-radius);
+  box-shadow: var(--ios-drop-border-inner), var(--ios-drop-shadow);
+  padding: 7px;
+  transform-origin: top left;
+  animation: iosSpringPopIn 0.38s var(--ios-spring-curve) both;
+  will-change: transform, opacity, filter;
+  overflow: visible;
+}
+
+/* Align right variant */
+.ios-dropdown-menu.align-right {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
+}
+
+/* Static embedded menu (when used as an inline card) */
+.ios-dropdown-menu.is-static {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: 1;
+  display: inline-block;
+  animation: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MENU SECTIONS & HEADERS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ios-dropdown-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ios-drop-text-muted);
+  letter-spacing: -0.01em;
+  padding: 6px 12px 6px 14px;
+  margin: 0;
+  user-select: none;
+  line-height: 1.3;
+}
+
+.ios-dropdown-header.text-center {
+  text-align: center;
+  padding: 6px 8px 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MENU ITEMS & ROWS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ios-dropdown-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-radius: var(--ios-drop-radius-item);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ios-drop-text);
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, transform 0.12s var(--ios-press-curve), color 0.15s ease;
+}
+
+.ios-dropdown-item:hover {
+  background-color: var(--ios-drop-bg-hover);
+}
+
+.ios-dropdown-item:active {
+  transform: scale(0.96);
+  background-color: var(--ios-drop-bg-active);
+}
+
+/* Active / Tinted state (e.g. Resolution row when submenu is open) */
+.ios-dropdown-item.is-active-row,
+.ios-dropdown-item.has-submenu:hover,
+.ios-dropdown-item.submenu-active {
+  background-color: rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+}
+
+.dark .ios-dropdown-item.is-active-row,
+.dark .ios-dropdown-item.has-submenu:hover,
+.dark .ios-dropdown-item.submenu-active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Label text flex container */
+.ios-dropdown-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Checkmark slot */
+.ios-dropdown-check-slot {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ios-drop-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ios-dropdown-check-slot svg {
+  animation: iosCheckBounce 0.28s var(--ios-spring-snappy) both;
+}
+
+/* Icon container */
+.ios-dropdown-icon {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  opacity: 0.85;
+}
+
+/* Chevron Right indicator */
+.ios-dropdown-chevron {
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ios-drop-text-muted);
+  margin-left: auto;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.ios-dropdown-item:hover .ios-dropdown-chevron,
+.ios-dropdown-item.submenu-active .ios-dropdown-chevron {
+  color: var(--ios-drop-text);
+  transform: translateX(2px);
+}
+
+/* Divider Line */
+.ios-dropdown-divider {
+  height: 1px;
+  background-color: var(--ios-drop-divider);
+  margin: 6px 8px;
+  border: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUBMENU / FLYOUT CARD (Resolution -> Standard 12MP)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ios-dropdown-submenu-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.ios-dropdown-submenu {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 8px);
+  z-index: 1060;
+  min-width: 140px;
+  max-width: 220px;
+  background: var(--ios-drop-bg);
+  backdrop-filter: var(--ios-drop-blur);
+  -webkit-backdrop-filter: var(--ios-drop-blur);
+  border: 1px solid var(--ios-drop-border);
+  border-radius: calc(var(--ios-drop-radius) - 2px);
+  box-shadow: var(--ios-drop-border-inner), var(--ios-drop-shadow);
+  padding: 6px;
+  transform-origin: top left;
+  animation: iosSubmenuPopIn 0.32s var(--ios-spring-submenu) both;
+  will-change: transform, opacity;
+}
+
+/* Flip submenu to the left if overflowing */
+.ios-dropdown-submenu.flip-left {
+  left: auto;
+  right: calc(100% + 8px);
+  transform-origin: top right;
+}
+
+/* Bottom aligned submenu (as shown in the exact screenshot bottom-right corner) */
+.ios-dropdown-submenu.align-bottom {
+  top: auto;
+  bottom: 0;
+  transform-origin: bottom left;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VIBRANT iOS BLUE PILL BUTTON (e.g. "✓ 12MP")
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ios-dropdown-pill-blue,
+.ios-dropdown-item.is-pill-blue {
+  background: var(--ios-blue) !important;
+  background-image: var(--ios-blue-gradient) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  padding: 8px 14px !important;
+  box-shadow: var(--ios-blue-shadow) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: transform 0.14s var(--ios-press-curve), filter 0.15s ease, box-shadow 0.2s ease !important;
+}
+
+.ios-dropdown-pill-blue:hover,
+.ios-dropdown-item.is-pill-blue:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 18px rgba(0, 122, 255, 0.55) !important;
+}
+
+.ios-dropdown-pill-blue:active,
+.ios-dropdown-item.is-pill-blue:active {
+  transform: scale(0.94) !important;
+  filter: brightness(0.95);
+}
+
+.ios-dropdown-pill-blue .ios-dropdown-check-slot {
+  color: #ffffff !important;
+}
+
+.ios-dropdown-pill-blue .ios-dropdown-label {
+  text-align: center;
+  flex: none;
+}
+
+/* Secondary pill (subtle active) */
+.ios-dropdown-pill-subtle {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: var(--ios-drop-text) !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+}
+
+.dark .ios-dropdown-pill-subtle {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PREVIEW CANVAS & HERO CARD (For visual showcase / demo)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ios-camera-preview-stage {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  height: 480px;
+  border-radius: 28px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 32px;
+  box-sizing: border-box;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ios-camera-inner-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

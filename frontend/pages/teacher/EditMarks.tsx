@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOutletContext, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import GlassSelect from '../../components/shared/GlassSelect';
 import './EditMarks.css';
 import '../teacher/MarksDashboard.css';
 
@@ -381,13 +382,16 @@ const EditMarks = () => {
                 {questions.map(q => (
                   <th key={`co-${q.id}`} onClick={() => setEditingCo(q.id)} style={{ cursor: 'pointer' }} title="Click to edit CO">
                     {editingCo === q.id ? (
-                      <select value={q.co} autoFocus onBlur={() => setEditingCo(null)}
-                        onChange={e => { handleCoChange(q.parentQId, q.subId, e.target.value); setEditingCo(null); }}
-                        style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '2px 8px', outline: 'none', cursor: 'pointer' }}>
-                        {Array.from({ length: course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6 }, (_, i) => (
-                          <option key={i + 1} value={String(i + 1)} style={{ background: '#1a1a1a', color: '#fff' }}>{i + 1}</option>
-                        ))}
-                      </select>
+                      <GlassSelect
+                        value={String(q.co)}
+                        style={{ width: '70px', display: 'inline-block' }}
+                        onChange={val => { handleCoChange(q.parentQId, q.subId, val); setEditingCo(null); }}
+                        options={Array.from({ length: course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6 }, (_, i) => ({
+                          value: String(i + 1),
+                          label: String(i + 1),
+                          title: `Course Outcome ${i + 1}`,
+                        }))}
+                      />
                     ) : `CO ${q.co}`}
                   </th>
                 ))}

@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import pptxgen from 'pptxgenjs';
 
@@ -123,13 +123,6 @@ export const downloadLecturePresentation = async (presentation, { subjectName, l
       slide.addText(presentation.subtitle || subjectName || '', {
         x: 0.8, y: 4.3, w: 10, h: 0.5,
         fontFace: 'Aptos', fontSize: 20, color: theme.textMuted, margin: 0,
-      });
-
-      const motto = content.motto || 'Knowledge is the foundation of every great lecture.';
-      slide.addText(motto, {
-        x: 0.8, y: 6.2, w: 10, h: 0.5,
-        fontFace: 'Aptos', fontSize: 14, italic: true,
-        color: theme.accent2, margin: 0,
       });
     } else {
       // Content Slide Design - Background shapes first!

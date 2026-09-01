@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabase";
 import { extractTextFromPDF } from "../../services/pdfService";
 import { generateLectureRoadmap, setAiContextCourse } from "../../services/aiService";
+import GlassSelect from "../../components/shared/GlassSelect";
 import "./CourseGeneratorPage.css";
 
 // Global queue to ensure sequential PDF OCR extraction across all modules smoothly
@@ -853,43 +854,33 @@ const CourseGenerator = () => {
 
               <div className="time-adder">
                 <span className="current-day-label">{activeDay}:</span>
-
-                <select
-                  className="glass-input time-select"
+                <GlassSelect
+                  className="time-select-glass"
                   value={hour}
-                  onChange={(e) => setHour(e.target.value)}
-                  style={{ width: "60px", padding: "8px" }}
-                >
-                  {[...Array(12).keys()].map((n) => (
-                    <option key={n} value={String(n + 1).padStart(2, "0")}>
-                      {n + 1}
-                    </option>
-                  ))}
-                </select>
-                <span style={{ color: "white" }}>:</span>
+                  onChange={setHour}
+                  style={{ width: "75px" }}
+                  options={[...Array(12).keys()].map((n) => ({
+                    value: String(n + 1).padStart(2, "0"),
+                    label: String(n + 1).padStart(2, "0"),
+                  }))}
+                />
+                <span style={{ color: "white", fontWeight: "bold" }}>:</span>
 
-                <select
-                  className="glass-input time-select"
+                <GlassSelect
+                  className="time-select-glass"
                   value={minute}
-                  onChange={(e) => setMinute(e.target.value)}
-                  style={{ width: "60px", padding: "8px" }}
-                >
-                  <option value="00">00</option>
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="30">30</option>
-                  <option value="40">40</option>
-                </select>
+                  onChange={setMinute}
+                  style={{ width: "75px" }}
+                  options={["00", "10", "20", "30", "40", "50"]}
+                />
 
-                <select
-                  className="glass-input time-select"
+                <GlassSelect
+                  className="time-select-glass"
                   value={ampm}
-                  onChange={(e) => setAmpm(e.target.value)}
-                  style={{ width: "60px", padding: "8px" }}
-                >
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
-                </select>
+                  onChange={setAmpm}
+                  style={{ width: "80px" }}
+                  options={["AM", "PM"]}
+                />
 
                 <button className="add-time-btn" onClick={addTimeSlot}>
                   + Add

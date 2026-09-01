@@ -712,3 +712,182 @@ label:not([class]) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   GLASS DROPDOWN — Reusable dark-glass select replacement
+   Classes: .glass-dropdown, .glass-dropdown__trigger,
+            .glass-dropdown__menu, .glass-dropdown__item, 
+            .glass-dropdown__item--selected
+   Usage: wrap in .glass-dropdown, toggle .is-open to show menu.
+   ══════════════════════════════════════════════════════════════ */
+
+.glass-dropdown {
+  position: relative;
+  width: 100%;
+  min-width: 0; /* Crucial: prevents text from stretching grid columns */
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Trigger button (Matches global input/select exactly) ── */
+.glass-dropdown__trigger {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important; /* Prevents stretching */
+  box-sizing: border-box !important;
+  padding: 0 12px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: #ffffff !important; /* Pure white text as requested */
+  cursor: pointer !important;
+  outline: none !important;
+  text-align: left !important;
+  transition: border-color 0.2s ease, background 0.2s ease !important;
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0 !important;
+  line-height: normal !important;
+}
+
+.glass-dropdown__trigger:hover,
+.glass-dropdown__trigger:focus {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.glass-dropdown.is-open .glass-dropdown__trigger {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Chevron arrow */
+.glass-dropdown__trigger svg {
+  flex-shrink: 0 !important;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+  color: #ffffff;
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+}
+
+.glass-dropdown.is-open .glass-dropdown__trigger svg {
+  transform: rotate(180deg) !important;
+}
+
+/* Trigger label text */
+.glass-dropdown__trigger-label {
+  flex: 1 1 auto !important;
+  min-width: 0 !important; /* Critical to allow truncation inside flex container */
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: left !important;
+  display: block !important;
+  line-height: normal !important;
+  font-size: 0.85rem !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+}
+
+/* ── Menu panel ── */
+.glass-dropdown__menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  background: rgba(8, 9, 14, 0.95); /* Extremely dark, almost solid */
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.75);
+  padding: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Upward opening (Default) */
+.glass-dropdown--up .glass-dropdown__menu {
+  top: auto !important;
+  bottom: calc(100% + 6px) !important;
+}
+
+/* Downward opening */
+.glass-dropdown:not(.glass-dropdown--up) .glass-dropdown__menu {
+  top: calc(100% + 6px) !important;
+  bottom: auto !important;
+}
+
+.glass-dropdown__menu::-webkit-scrollbar {
+  width: 4px;
+}
+.glass-dropdown__menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+
+.glass-dropdown.is-open .glass-dropdown__menu {
+  display: block;
+  animation: none; /* No animation as requested */
+}
+
+/* ── Items ── */
+.glass-dropdown__item {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 12px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  letter-spacing: 0;
+  cursor: pointer !important;
+  text-align: left !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s ease !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.glass-dropdown__item:hover,
+.glass-dropdown__item:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.glass-dropdown__item:active {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Selected / active item */
+.glass-dropdown__item--selected {
+  font-weight: 700 !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+

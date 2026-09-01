@@ -8,6 +8,7 @@ import {
   PieChart, Pie, Cell,
 } from 'recharts';
 import './AdminDashboard.css';
+import GlassSelect from '../../components/shared/GlassSelect';
 import AdminDashboardSkeleton from '../../components/skeletons/AdminDashboardSkeleton';
 
 const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
@@ -423,50 +424,45 @@ export default function AdminDashboard() {
           {isVelaarAdmin && (
             <div className="filter-group">
               <label className="filter-label">Institution</label>
-              <select
+              <GlassSelect
                 id="admin-institution-filter"
-                className="admin-select"
                 value={selectedInstitutionId}
-                onChange={e => handleInstitutionSelect(e.target.value)}
-              >
-                <option value="">ΓÇö Select Institution ΓÇö</option>
-                {institutions.map(inst => (
-                  <option key={inst.id} value={inst.id}>{inst.name}</option>
-                ))}
-              </select>
+                onChange={handleInstitutionSelect}
+                placeholder="— Select Institution —"
+                options={[
+                  { value: '', label: '— Select Institution —' },
+                  ...institutions.map(inst => ({ value: inst.id, label: inst.name })),
+                ]}
+              />
             </div>
           )}
           <div className="filter-group">
             <label className="filter-label">Month</label>
-            <select
+            <GlassSelect
               id="admin-month-filter"
-              className="admin-select"
               value={selectedMonth}
-              onChange={e => setSelectedMonth(e.target.value)}
-            >
-              <option value="all">All Time</option>
-              {availableMonths.map(m => (
-                <option key={m} value={m}>{monthLabel(m)}</option>
-              ))}
-            </select>
+              onChange={setSelectedMonth}
+              options={[
+                { value: 'all', label: 'All Time' },
+                ...availableMonths.map(m => ({ value: m, label: monthLabel(m) })),
+              ]}
+            />
           </div>
           <div className="filter-group">
             <label className="filter-label">Action</label>
-            <select
+            <GlassSelect
               id="admin-action-filter"
-              className="admin-select"
               value={actionFilter}
-              onChange={e => setActionFilter(e.target.value)}
-            >
-              <option value="all">All Actions</option>
-              {uniqueActions.map(([a, label]) => (
-                <option key={a} value={a}>{label}</option>
-              ))}
-            </select>
+              onChange={setActionFilter}
+              options={[
+                { value: 'all', label: 'All Actions' },
+                ...uniqueActions.map(([a, label]) => ({ value: a, label })),
+              ]}
+            />
           </div>
         </div>
 
-        {/* ΓöÇΓöÇ PRE-REGISTRATION INVITES ΓöÇΓöÇ */}
+        {/* ── PRE-REGISTRATION INVITES ── */}
         {/* Show invite panel only when an institution context is available */}
         {(!isVelaarAdmin || selectedInstitutionId) && (
         <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '20px' }}>
@@ -498,13 +494,17 @@ export default function AdminDashboard() {
                 
                 <div className="va-form-group">
                   <label>Assign Role</label>
-                  <select className="va-glass-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="hod">Head of Dept</option>
-                    <option value="registrar">Registrar</option>
-                    <option value="parent">Parent</option>
-                  </select>
+                  <GlassSelect
+                    value={inviteRole}
+                    onChange={setInviteRole}
+                    options={[
+                      { value: 'student', label: 'Student' },
+                      { value: 'teacher', label: 'Teacher' },
+                      { value: 'hod', label: 'Head of Dept' },
+                      { value: 'registrar', label: 'Registrar' },
+                      { value: 'parent', label: 'Parent' },
+                    ]}
+                  />
                 </div>
 
                 {inviteRole === 'student' && (
@@ -537,13 +537,17 @@ export default function AdminDashboard() {
                 
                 <div className="va-form-group">
                   <label>Assign Role to All</label>
-                  <select className="va-glass-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="hod">Head of Dept</option>
-                    <option value="registrar">Registrar</option>
-                    <option value="parent">Parent</option>
-                  </select>
+                  <GlassSelect
+                    value={inviteRole}
+                    onChange={setInviteRole}
+                    options={[
+                      { value: 'student', label: 'Student' },
+                      { value: 'teacher', label: 'Teacher' },
+                      { value: 'hod', label: 'Head of Dept' },
+                      { value: 'registrar', label: 'Registrar' },
+                      { value: 'parent', label: 'Parent' },
+                    ]}
+                  />
                 </div>
 
                 {inviteRole === 'student' && (
@@ -857,28 +861,26 @@ export default function AdminDashboard() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
-            <select
+            <GlassSelect
               id="admin-log-month-filter"
-              className="admin-select"
+              style={{ width: '160px' }}
               value={selectedMonth}
-              onChange={e => setSelectedMonth(e.target.value)}
-            >
-              <option value="all">All Months</option>
-              {availableMonths.map(m => (
-                <option key={m} value={m}>{monthLabel(m)}</option>
-              ))}
-            </select>
-            <select
+              onChange={setSelectedMonth}
+              options={[
+                { value: 'all', label: 'All Months' },
+                ...availableMonths.map(m => ({ value: m, label: monthLabel(m) })),
+              ]}
+            />
+            <GlassSelect
               id="admin-log-action-filter"
-              className="admin-select"
+              style={{ width: '180px' }}
               value={actionFilter}
-              onChange={e => setActionFilter(e.target.value)}
-            >
-              <option value="all">All Actions</option>
-              {uniqueActions.map(([a, label]) => (
-                <option key={a} value={a}>{label}</option>
-              ))}
-            </select>
+              onChange={setActionFilter}
+              options={[
+                { value: 'all', label: 'All Actions' },
+                ...uniqueActions.map(([a, label]) => ({ value: a, label })),
+              ]}
+            />
           </div>
 
           {filteredLogs.length === 0 ? (

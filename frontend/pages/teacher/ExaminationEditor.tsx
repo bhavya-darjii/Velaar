@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import GlassSelect from '../../components/shared/GlassSelect';
 import './ExaminationEditor.css';
 
 const TT_PATTERN = [
@@ -607,29 +608,19 @@ const ExaminationEditor = () => {
                     ) : (
                       <span style={{color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px'}}>
                         [ {sub.marks} Marks | 
-                        <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                        <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
                           CO
-                          <select 
+                          <GlassSelect
                              disabled={generating}
-                             value={sub.co || "1"} 
-                             onChange={e => handleSubStructuralChange(qIndex, subIndex, 'co', e.target.value)}
-                             style={{
-                               background: 'rgba(255, 255, 255, 0.05)', 
-                               border: '1px solid rgba(255,255,255,0.1)', 
-                               color: '#ffffff', 
-                               borderRadius: '20px', 
-                               padding: '2px 8px',
-                               outline: 'none',
-                               cursor: generating ? 'not-allowed' : 'pointer',
-                               fontSize: '0.9rem',
-                               marginLeft: '4px',
-                               textAlign: 'center'
-                             }}
-                          >
-                             {Array.from({ length: course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6 }, (_, i) => (
-                               <option key={i+1} value={String(i+1)} style={{background: '#1a1a1a', color: '#fff'}}>{i+1}</option>
-                             ))}
-                          </select>
+                             value={String(sub.co || "1")}
+                             onChange={val => handleSubStructuralChange(qIndex, subIndex, 'co', val)}
+                             style={{ width: '68px', display: 'inline-block' }}
+                             options={Array.from({ length: course?.lessonPlan?.courseOutcomes?.length || course?.courseOutcomes?.length || 6 }, (_, i) => ({
+                               value: String(i + 1),
+                               label: String(i + 1),
+                               title: `Course Outcome ${i + 1}`,
+                             }))}
+                          />
                         </span>
                         ]
                       </span>
