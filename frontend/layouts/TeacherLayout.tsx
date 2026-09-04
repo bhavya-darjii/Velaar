@@ -1,10 +1,12 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { TEACHER_NAV } from '../config/navigation';
 import { useCopilotContext } from '../context/CopilotContext';
+import { extractGoogleAvatarUrl, cacheTeacherAvatar } from '../utils/avatarUtils';
+import { preloadCoursePresentationHistory } from '../utils/presentationHistoryUtils';
 import UnifiedLayout from './UnifiedLayout';
 
 const TEACHER_GREETINGS = [
@@ -34,6 +36,12 @@ const TeacherLayout = () => {
     let mounted = true;
 
     const fetchTeacherData = async (user) => {
+      // Pre-cache Google account avatar so Profile page loads instantly
+      const gAvatar = extractGoogleAvatarUrl(user);
+      if (gAvatar) {
+        cacheTeacherAvatar(gAvatar);
+      }
+
       let tName = "Teacher";
       try {
         const { data: userData } = await supabase.from('users').select('full_name').eq('id', user.id).single();
@@ -71,6 +79,8 @@ const TeacherLayout = () => {
           if (mounted) {
             setCourse(courseData);
             setPageContext({ course: courseData });
+            // Preload presentation history for instant 0ms access in Lecture Overview
+            preloadCoursePresentationHistory(courseData.id);
             
             let allLectures = [];
             if (courseData.roadmap && !Array.isArray(courseData.roadmap)) {
@@ -146,4 +156,3 @@ const TeacherLayout = () => {
 };
 
 export default TeacherLayout;
-

@@ -1,15 +1,15 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import './UnifiedLayout.css';
 
-const UnifiedLayout = ({ 
-  children, 
-  title, 
-  subtitle, 
-  navItems = [], 
+const UnifiedLayout = ({
+  children,
+  title,
+  subtitle,
+  navItems = [],
   headerActions = null,
   showSignOut = true,
   isStudent = false
@@ -25,8 +25,7 @@ const UnifiedLayout = ({
 
   const isActive = (path) => {
     if (path === location.pathname) return true;
-    
-    // For root paths like /teacher or /student, only match exactly.
+    // For root paths like /teacher, only exact match.
     // For sub-paths like /teacher/examination, allow prefix matching.
     const pathSegments = path.split('/').filter(Boolean);
     if (pathSegments.length > 1 && location.pathname.startsWith(path + '/')) {
@@ -35,43 +34,60 @@ const UnifiedLayout = ({
     return false;
   };
 
+  /**
+   * Handle nav link click.
+   * Let Ctrl/Cmd/Shift/middle-button clicks pass through natively to the <a>,
+   * so the browser can open a new tab. Only intercept plain left-clicks to
+   * keep React Router SPA navigation (no full page reload).
+   */
+  const handleNavClick = (e, path) => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    navigate(path);
+    setSidebarOpen(false);
+  };
+
+  const hasCategories = navItems.some(item => item.category);
+  const normalItems = navItems.filter(item => !item.highlight);
+  const highlightItems = navItems.filter(item => item.highlight);
+
+  const grouped = hasCategories
+    ? normalItems.reduce((acc, item) => {
+        const cat = item.category || 'Other';
+        if (!acc[cat]) acc[cat] = [];
+        acc[cat].push(item);
+        return acc;
+      }, {})
+    : {};
+
   return (
     <div className={`unified-layout ${isStudent ? 'student-layout' : ''}`}>
       {/* Sidebar Overlay for mobile */}
-      <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}></div>
-      
+      <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
+
       {/* Sidebar Navigation */}
       <nav className={`unified-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <button className="close-btn" onClick={() => setSidebarOpen(false)}>×</button>
         </div>
-        
+
         <ul className="sidebar-links">
-          {(() => {
-            const hasCategories = navItems.some(item => item.category);
-            const normalItems = navItems.filter(item => !item.highlight);
-            const highlightItems = navItems.filter(item => item.highlight);
-            
-            if (!hasCategories) {
-              return navItems.map((item) => (
+          {!hasCategories
+            ? navItems.map((item) => (
                 <li
                   key={item.path}
                   className={`${isActive(item.path) ? 'active' : ''} ${item.highlight ? 'highlight-item' : ''}`}
-                  onClick={() => { navigate(item.path); setSidebarOpen(false); }}
                 >
-                  {item.label}
+                  <a
+                    href={item.path}
+                    className="sidebar-link-anchor"
+                    onClick={(e) => handleNavClick(e, item.path)}
+                  >
+                    {item.label}
+                  </a>
                 </li>
-              ));
-            }
-
-            const grouped = normalItems.reduce((acc, item) => {
-              const cat = item.category || 'Other';
-              if (!acc[cat]) acc[cat] = [];
-              acc[cat].push(item);
-              return acc;
-            }, {});
-
-            return (
+              ))
+            : (
               <>
                 {Object.entries(grouped).map(([category, items]) => (
                   <div key={category} className="nav-group">
@@ -80,31 +96,42 @@ const UnifiedLayout = ({
                       <li
                         key={item.path}
                         className={`${isActive(item.path) ? 'active' : ''}`}
-                        onClick={() => { navigate(item.path); setSidebarOpen(false); }}
                       >
-                        {item.label}
+                        <a
+                          href={item.path}
+                          className="sidebar-link-anchor"
+                          onClick={(e) => handleNavClick(e, item.path)}
+                        >
+                          {item.label}
+                        </a>
                       </li>
                     ))}
                   </div>
                 ))}
-                
+
                 {highlightItems.map((item) => (
                   <li
                     key={item.path}
                     className={`highlight-item ${isActive(item.path) ? 'active' : ''}`}
-                    onClick={() => { navigate(item.path); setSidebarOpen(false); }}
                   >
-                    {item.label}
+                    <a
+                      href={item.path}
+                      className="sidebar-link-anchor"
+                      onClick={(e) => handleNavClick(e, item.path)}
+                    >
+                      {item.label}
+                    </a>
                   </li>
                 ))}
               </>
-            );
-          })()}
+            )
+          }
+
           {showSignOut && (
             <li
               className="sign-out-item"
               onClick={handleSignOut}
-              style={{ marginTop: !navItems.some(item => item.category) ? 'auto' : '0', color: '#ef4444' }}
+              style={{ marginTop: !hasCategories ? 'auto' : '0', color: '#ef4444' }}
             >
               Sign Out
             </li>
@@ -145,4 +172,3 @@ const UnifiedLayout = ({
 };
 
 export default UnifiedLayout;
-

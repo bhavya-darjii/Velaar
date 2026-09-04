@@ -3,6 +3,11 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { getPresentationHistory, getPresentationById, savePresentationHistory } from '../../services/dataService';
+import {
+  getCachedLecturePresentationHistory,
+  cacheLecturePresentationHistory,
+  preloadCoursePresentationHistory,
+} from '../../utils/presentationHistoryUtils';
 import { downloadLecturePresentation, getRandomThemeId } from '../../utils/presentationExport';
 import { generateLecturePresentation } from '../../services/aiService';
 import SegmentedToggle from '../../components/shared/SegmentedToggle';
@@ -29,8 +34,18 @@ const GENERATION_STEPS = [
 ];
 
 const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating }) => {
-  const [historyList, setHistoryList] = useState([]);
-  const [selectedHistoryId, setSelectedHistoryId] = useState('');
+  const lectureDiv = lecture?.division || 'A';
+  const lectureNum = lecture?.lectureNum || 0;
+
+  // 0ms instant synchronous read from cache
+  const [historyList, setHistoryList] = useState(() =>
+    getCachedLecturePresentationHistory(course?.id, lectureDiv, lectureNum)
+  );
+  const [selectedHistoryId, setSelectedHistoryId] = useState(() => {
+    const initial = getCachedLecturePresentationHistory(course?.id, lectureDiv, lectureNum);
+    return initial[0]?.id || '';
+  });
+
   const [downloadingHistory, setDownloadingHistory] = useState(false);
   const [generatingPpt, setGeneratingPpt] = useState(false);
   const [done, setDone] = useState(false);
@@ -38,6 +53,28 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
   const [timer, setTimer] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+
+  // Real-time synchronization when presentation cache updates
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      if (!course?.id || e.detail?.courseId !== course.id) return;
+      if (
+        e.detail?.all ||
+        (e.detail?.division === lectureDiv && String(e.detail?.lectureNum) === String(lectureNum))
+      ) {
+        const fresh = getCachedLecturePresentationHistory(course.id, lectureDiv, lectureNum);
+        setHistoryList(fresh);
+        if (fresh.length > 0) {
+          setSelectedHistoryId((prev) => (prev && fresh.some((item) => item.id === prev) ? prev : fresh[0].id));
+        } else {
+          setSelectedHistoryId('');
+        }
+      }
+    };
+
+    window.addEventListener('velaar_presentation_history_updated', handleUpdate);
+    return () => window.removeEventListener('velaar_presentation_history_updated', handleUpdate);
+  }, [course?.id, lectureDiv, lectureNum]);
 
   // Timer + before-unload guard
   useEffect(() => {
@@ -97,16 +134,28 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
   }, [generatingPpt]);
 
   useEffect(() => {
+    let active = true;
     const fetchHistory = async () => {
       if (!course?.id || !lecture) return;
-      const data = await getPresentationHistory(course.id, lecture.division || 'A', lecture.lectureNum);
-      setHistoryList(data);
-      if (data.length > 0) {
-        setSelectedHistoryId(data[0].id);
+      const data = await getPresentationHistory(course.id, lectureDiv, lectureNum);
+      if (active && Array.isArray(data)) {
+        cacheLecturePresentationHistory(course.id, lectureDiv, lectureNum, data);
+        setHistoryList(data);
+        if (data.length > 0) {
+          setSelectedHistoryId((prev) => (prev && data.some((item) => item.id === prev) ? prev : data[0].id));
+        }
       }
     };
-    fetchHistory();
-  }, [course?.id, lecture]);
+
+    const cached = getCachedLecturePresentationHistory(course?.id, lectureDiv, lectureNum);
+    if (!cached || cached.length === 0) {
+      fetchHistory();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [course?.id, lectureDiv, lectureNum]);
 
   const generateNewPpt = async () => {
     if (generatingPpt || done || globalGenerating) {
@@ -141,7 +190,8 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
         });
 
         await savePresentationHistory(course, lecture, response);
-        const updatedData = await getPresentationHistory(course.id, lecture.division || 'A', lecture.lectureNum);
+        const updatedData = await getPresentationHistory(course.id, lectureDiv, lectureNum);
+        cacheLecturePresentationHistory(course.id, lectureDiv, lectureNum, updatedData);
         setHistoryList(updatedData);
         if (updatedData.length > 0) setSelectedHistoryId(updatedData[0].id);
 
@@ -290,6 +340,12 @@ const LectureOverview = () => {
       .sort((a, b) => (b.lectureNum || 0) - (a.lectureNum || 0));
   }, [activeDivision, lectures]);
 
+  useEffect(() => {
+    if (course?.id) {
+      preloadCoursePresentationHistory(course.id);
+    }
+  }, [course?.id]);
+
   if (!course) {
     return (
       <div className="lecture-empty glass-card">
@@ -321,7 +377,7 @@ const LectureOverview = () => {
         {completedLectures.length > 0 ? (
           completedLectures.map(lecture => (
             <LectureCard
-              key={lecture.lectureNum}
+              key={`${lecture.division || 'A'}-${lecture.lectureNum}`}
               course={course}
               lecture={lecture}
               globalGenerating={globalGenerating}

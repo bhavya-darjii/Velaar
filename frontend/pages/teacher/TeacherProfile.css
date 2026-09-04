@@ -39,19 +39,42 @@
   align-items: center;
   overflow: hidden;
   margin-bottom: 20px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  position: relative;
+  flex-shrink: 0;
 }
 
-.profile-avatar img {
+.profile-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  transition: opacity 0.25s ease;
+}
+
+.profile-avatar-img.loading {
+  opacity: 0.9;
+}
+
+.profile-avatar-img.loaded {
+  opacity: 1;
 }
 
 .avatar-placeholder {
-  font-size: 3.5rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
   font-weight: 800;
-  color: var(--theme-color);
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(10, 143, 168, 0.45) 0%, rgba(34, 211, 238, 0.3) 100%);
   font-family: inherit;
+  user-select: none;
 }
 
 .profile-details h3 {

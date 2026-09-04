@@ -9,6 +9,7 @@ import GlobalCopilot from './components/shared/GlobalCopilot';
 import { CopilotProvider } from './context/CopilotContext';
 import FullLayoutSkeleton from './components/skeletons/FullLayoutSkeleton';
 import AuthLoadingScreen from './components/shared/AuthLoadingScreen';
+import { extractGoogleAvatarUrl, cacheTeacherAvatar } from './utils/avatarUtils';
 
 import LoginPage from './pages/auth/LoginPage';
 import TeacherLayout from './layouts/TeacherLayout';
@@ -69,6 +70,12 @@ function App() {
       
       const user = session.user;
       if (mounted) setInitialUser(user);
+
+      // Pre-cache Google account avatar so all teacher/faculty views have 0ms load time
+      const gAvatar = extractGoogleAvatarUrl(user);
+      if (gAvatar) {
+        cacheTeacherAvatar(gAvatar);
+      }
 
       try {
         const { data: userData, error } = await supabase

@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 /**
  * dataService.js — Centralized Data Layer for Velaar
@@ -402,5 +402,23 @@ export const getPresentationById = async (historyId) => {
     
   if (error) return null;
   return data;
+};
+
+/**
+ * Get all presentation history items for a whole course in one single bulk query.
+ */
+export const getAllCoursePresentationHistory = async (courseId) => {
+  if (!courseId) return [];
+  const { data, error } = await supabase
+    .from('presentation_history')
+    .select('id, created_at, lecture_title, division, lecture_num')
+    .eq('course_id', courseId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to fetch all course presentation history:', error);
+    return [];
+  }
+  return data || [];
 };
 
