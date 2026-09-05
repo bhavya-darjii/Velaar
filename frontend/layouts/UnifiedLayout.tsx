@@ -60,6 +60,44 @@ const UnifiedLayout = ({
       }, {})
     : {};
 
+  // Determine if the current route has a hierarchical back destination
+  const getBackDestination = () => {
+    const path = location.pathname;
+
+    // Student Lecture Vault: viewing specific subject -> back to /student/lecture-vault
+    if (path.startsWith('/student/lecture-vault/') && path !== '/student/lecture-vault') {
+      return '/student/lecture-vault';
+    }
+
+    // Teacher Edit Marks: editing an exam -> back to /teacher/marks/edit
+    if (path.startsWith('/teacher/marks/edit/') && path !== '/teacher/marks/edit') {
+      return '/teacher/marks/edit';
+    }
+
+    // Teacher Marks Dashboard: exam selection view -> back to /teacher/marks
+    if (path === '/teacher/marks/edit') {
+      return '/teacher/marks';
+    }
+
+    // Teacher Question Papers / Examination Editor -> back to /teacher/examination
+    if (path.startsWith('/teacher/examination/') && path !== '/teacher/examination') {
+      return '/teacher/examination';
+    }
+
+    return null;
+  };
+
+  const backDestination = getBackDestination();
+  const isBackMode = Boolean(backDestination);
+
+  const handleMenuClick = () => {
+    if (backDestination) {
+      navigate(backDestination);
+    } else {
+      setSidebarOpen(true);
+    }
+  };
+
   return (
     <div className={`unified-layout ${isStudent ? 'student-layout' : ''}`}>
       {/* Sidebar Overlay for mobile */}
@@ -143,12 +181,22 @@ const UnifiedLayout = ({
       <div className="main-content velaar-page-shell">
         <header className="dash-header">
           <div className="header-left">
-            <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
-              <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="0" width="18" height="2" rx="1" fill="currentColor"/>
-                <rect x="0" y="6" width="18" height="2" rx="1" fill="currentColor"/>
-                <rect x="0" y="12" width="18" height="2" rx="1" fill="currentColor"/>
-              </svg>
+            <button 
+              className={`hamburger-btn ${isBackMode ? 'hamburger-btn--back' : ''}`} 
+              onClick={handleMenuClick} 
+              aria-label={isBackMode ? "Go back" : "Open menu"}
+            >
+              {isBackMode ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+              ) : (
+                <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="0" y="0" width="18" height="2" rx="1" fill="currentColor"/>
+                  <rect x="0" y="6" width="18" height="2" rx="1" fill="currentColor"/>
+                  <rect x="0" y="12" width="18" height="2" rx="1" fill="currentColor"/>
+                </svg>
+              )}
             </button>
             <div className="header-text-block">
               {title && <h1>{title}</h1>}

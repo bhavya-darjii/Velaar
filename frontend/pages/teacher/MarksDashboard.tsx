@@ -82,9 +82,6 @@ const MarksDashboard = () => {
         </div>
       ) : (
         <div className="edit-selection-view">
-          <div className="back-glass-btn" onClick={() => navigate('/teacher/marks')}>
-            <span>{'\u2190'}</span> Back to Dashboard
-          </div>
           <h2 className="selection-title">Select Examination</h2>
           <p className="selection-subtitle">Choose the examination to dynamically edit student marks based on your paper pattern.</p>
           

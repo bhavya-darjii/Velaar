@@ -324,10 +324,6 @@ const EditMarks = () => {
         </div>
       )}
 
-      <div className="back-glass-btn" onClick={() => navigate('/teacher/marks/edit')}>
-        <span>{'←'}</span> Back to Examination Selection
-      </div>
-
       <div className="edit-marks-header glass-card">
         <div>
           <h2 style={{ margin: 0 }}>Edit Marks: {examTitle}</h2>

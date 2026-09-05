@@ -44,6 +44,7 @@ import ParentPortal from './pages/parent/ParentPortal';
 import ProgressTimeline from './pages/parent/ProgressTimeline';
 import StudentDashboard from './pages/student/StudentDashboard';
 import AttendanceScanner from './pages/student/AttendanceScanner';
+import LectureVault from './pages/student/LectureVault';
 import PendingPage from './pages/auth/PendingPage';
 import PendingPageSkeleton from './components/skeletons/PendingPageSkeleton';
 import StudentDashboardSkeleton from './components/skeletons/StudentDashboardSkeleton';
@@ -101,6 +102,7 @@ function App() {
               college_name: inviteData.college_name || null,
             };
             if (inviteData.semester) updatePayload.semester = inviteData.semester;
+            if (inviteData.division) updatePayload.division = String(inviteData.division).trim().toUpperCase();
 
             await supabase.from('users').update(updatePayload).eq('id', user.id);
             await supabase.from('role_invitations').delete().eq('email', user.email.toLowerCase());
@@ -196,6 +198,8 @@ function App() {
                 }>
                   <Route index element={<StudentDashboard />} />
                   <Route path="attendance" element={<AttendanceScanner />} />
+                  <Route path="lecture-vault" element={<LectureVault />} />
+                  <Route path="lecture-vault/:subjectSlug" element={<LectureVault />} />
                 </Route>
 
                 {/* Parent nested routes */}

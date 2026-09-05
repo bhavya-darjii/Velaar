@@ -1,0 +1,254 @@
+/* ══════════════════════════════════════════════════════════════
+   LECTURE VAULT — Student Subject Selection & Back Nav styles
+   (Lecture Overview view relies directly on LectureOverview.css)
+   ══════════════════════════════════════════════════════════════ */
+
+.lv-container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  color: #f8fafc;
+  padding: 8px 0 48px;
+}
+
+/* ── Main Header (Subject Cards View) ────────────────────────── */
+
+.lv-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  gap: 16px;
+  width: 100%;
+}
+
+.lv-main-header__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.lv-main-header__content h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.lv-main-header__content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  width: 100%;
+  max-width: 100%;
+}
+
+.lv-header-badge {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Subjects Cards Grid ─────────────────────────────────────── */
+
+.lv-subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.lv-subject-card {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 190px;
+  box-sizing: border-box;
+  outline: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease,
+              box-shadow 0.22s ease,
+              background 0.22s ease;
+}
+
+.lv-subject-card:hover,
+.lv-subject-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(15, 23, 42, 0.62);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+
+.lv-subject-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.lv-subject-card__tag {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.lv-subject-card__ppt-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 8px;
+}
+
+.lv-subject-card__title {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.lv-subject-card__desc {
+  margin: 0 0 18px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.45;
+}
+
+.lv-subject-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lv-subject-card__meta span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.lv-subject-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.lv-subject-card:hover .lv-subject-card__action {
+  transform: translateX(3px);
+}
+
+/* ── Align Lecture Overview Header identically to Lecture Vault Main Header ── */
+
+.lv-container .lecture-overview__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px !important;
+  gap: 16px;
+  width: 100%;
+}
+
+.lv-container .lecture-overview__header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.lv-container .lecture-overview__header h2 {
+  margin: 0 0 6px !important;
+  font-size: clamp(1.8rem, 3vw, 2.4rem) !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+}
+
+.lv-container .lecture-overview__header p {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* ── Loading Skeleton ────────────────────────────────────────── */
+
+.lv-loading-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lv-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: lv-shimmer 1.5s infinite;
+  border-radius: 12px;
+}
+
+.lv-skeleton--title {
+  height: 36px;
+  width: 240px;
+}
+
+.lv-skeleton--sub {
+  height: 20px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.lv-skeleton--card {
+  height: 190px;
+  border-radius: 20px;
+}
+
+@keyframes lv-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 768px) {
+  .lv-subjects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lv-container .lecture-overview__header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+}

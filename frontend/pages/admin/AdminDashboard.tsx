@@ -147,6 +147,7 @@ export default function AdminDashboard() {
   const [inviteEmails, setInviteEmails] = useState('');
   const [inviteRole, setInviteRole] = useState('teacher');
   const [inviteSemester, setInviteSemester] = useState('');
+  const [inviteDivision, setInviteDivision] = useState('');
   const [bulkFile, setBulkFile] = useState(null);
   const [inviting, setInviting] = useState(false);
   const [inviteMsg, setInviteMsg] = useState('');
@@ -329,15 +330,21 @@ export default function AdminDashboard() {
           institution_id: currentUserData.institution_id,
           college_name: currentUserData.college_name || 'Unknown',
         };
-        if (inviteRole === 'student' && inviteSemester) {
-          inviteData.semester = inviteSemester;
+        if (inviteRole === 'student') {
+          if (inviteSemester) inviteData.semester = inviteSemester;
+          if (inviteDivision) inviteData.division = inviteDivision.trim().toUpperCase();
         }
-        await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
+        const { error: upsertErr } = await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
+        if (upsertErr && upsertErr.message?.includes('division')) {
+          delete inviteData.division;
+          await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
+        }
         count++;
       }
       setInviteMsg(`Successfully sent ${count} invitation(s).`);
       setInviteEmails('');
       setInviteSemester('');
+      setInviteDivision('');
     } catch (err) {
       console.error(err);
       setInviteMsg('Failed to invite users.');
@@ -364,19 +371,25 @@ export default function AdminDashboard() {
             institution_id: currentUserData.institution_id,
             college_name: currentUserData.college_name || 'Unknown',
           };
-          if (inviteRole === 'student' && inviteSemester) {
-            inviteData.semester = inviteSemester;
+          if (inviteRole === 'student') {
+            if (inviteSemester) inviteData.semester = inviteSemester;
+            if (inviteDivision) inviteData.division = inviteDivision.trim().toUpperCase();
           }
           inviteRows.push(inviteData);
           count++;
         }
       }
       if (inviteRows.length > 0) {
-        await supabase.from('role_invitations').upsert(inviteRows, { onConflict: 'email' });
+        const { error: upsertErr } = await supabase.from('role_invitations').upsert(inviteRows, { onConflict: 'email' });
+        if (upsertErr && upsertErr.message?.includes('division')) {
+          const fallbackRows = inviteRows.map(r => { const copy = { ...r }; delete copy.division; return copy; });
+          await supabase.from('role_invitations').upsert(fallbackRows, { onConflict: 'email' });
+        }
       }
       setInviteMsg(`Successfully invited ${count} users.`);
       setBulkFile(null);
       setInviteSemester('');
+      setInviteDivision('');
       document.getElementById('bulk-csv-admin-input').value = '';
     } catch (err) {
       console.error(err);
@@ -508,16 +521,28 @@ export default function AdminDashboard() {
                 </div>
 
                 {inviteRole === 'student' && (
-                  <div className="va-form-group">
-                    <label>Semester</label>
-                    <input 
-                      type="text" 
-                      className="va-glass-input" 
-                      placeholder="e.g. 5" 
-                      value={inviteSemester} 
-                      onChange={e => setInviteSemester(e.target.value)} 
-                    />
-                  </div>
+                  <>
+                    <div className="va-form-group">
+                      <label>Semester</label>
+                      <input 
+                        type="text" 
+                        className="va-glass-input" 
+                        placeholder="e.g. 5" 
+                        value={inviteSemester} 
+                        onChange={e => setInviteSemester(e.target.value)} 
+                      />
+                    </div>
+                    <div className="va-form-group">
+                      <label>Division</label>
+                      <input 
+                        type="text" 
+                        className="va-glass-input" 
+                        placeholder="e.g. A" 
+                        value={inviteDivision} 
+                        onChange={e => setInviteDivision(e.target.value.toUpperCase())} 
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="va-form-group" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -551,16 +576,28 @@ export default function AdminDashboard() {
                 </div>
 
                 {inviteRole === 'student' && (
-                  <div className="va-form-group">
-                    <label>Semester (Applied to all)</label>
-                    <input 
-                      type="text" 
-                      className="va-glass-input" 
-                      placeholder="e.g. 5" 
-                      value={inviteSemester} 
-                      onChange={e => setInviteSemester(e.target.value)} 
-                    />
-                  </div>
+                  <>
+                    <div className="va-form-group">
+                      <label>Semester (Applied to all)</label>
+                      <input 
+                        type="text" 
+                        className="va-glass-input" 
+                        placeholder="e.g. 5" 
+                        value={inviteSemester} 
+                        onChange={e => setInviteSemester(e.target.value)} 
+                      />
+                    </div>
+                    <div className="va-form-group">
+                      <label>Division (Applied to all)</label>
+                      <input 
+                        type="text" 
+                        className="va-glass-input" 
+                        placeholder="e.g. A" 
+                        value={inviteDivision} 
+                        onChange={e => setInviteDivision(e.target.value.toUpperCase())} 
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="va-form-group">
@@ -598,6 +635,7 @@ export default function AdminDashboard() {
                   <th>User</th>
                   <th>Role</th>
                   <th>Semester</th>
+                  <th>Division</th>
                   <th>Joined Date</th>
                 </tr>
               </thead>
@@ -610,8 +648,8 @@ export default function AdminDashboard() {
                         <div className="teacher-name-cell">
                           <div className="teacher-avatar sm">{initials(u.full_name || u.email)}</div>
                           <div>
-                            <span className="teacher-name sm">{u.full_name || 'ΓÇö'}</span>
-                            <span className="teacher-email">{u.email || 'ΓÇö'}</span>
+                            <span className="teacher-name sm">{u.full_name || '—'}</span>
+                            <span className="teacher-email">{u.email || '—'}</span>
                           </div>
                         </div>
                       </td>
@@ -641,12 +679,37 @@ export default function AdminDashboard() {
                             placeholder="-"
                           />
                         ) : (
-                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>ΓÇö</span>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
+                        )}
+                      </td>
+                      <td>
+                        {u.user_type === 'student' ? (
+                          <input 
+                            type="text"
+                            value={u.division || ''}
+                            onChange={(e) => {
+                              const newDiv = e.target.value.toUpperCase();
+                              setUsers(prev => prev.map(user => user.uid === u.uid ? { ...user, division: newDiv } : user));
+                            }}
+                            onBlur={async (e) => {
+                              const cleanDiv = e.target.value.trim().toUpperCase();
+                              try {
+                                await supabase.from('users').update({ division: cleanDiv }).eq('id', u.id || u.uid);
+                              } catch (err) {
+                                console.error('Failed to update division', err);
+                              }
+                            }}
+                            className="va-glass-input"
+                            style={{ width: '60px', padding: '4px 8px', fontSize: '0.85rem' }}
+                            placeholder="-"
+                          />
+                        ) : (
+                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
                         )}
                       </td>
                       <td>
                         <span className="teacher-email">
-                          {joinedDate ? joinedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'ΓÇö'}
+                          {joinedDate ? joinedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                         </span>
                       </td>
                     </tr>

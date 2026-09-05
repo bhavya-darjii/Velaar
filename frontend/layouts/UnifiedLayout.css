@@ -204,8 +204,12 @@
 }
 
 .hamburger-btn:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  transform: scale(1.08) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.hamburger-btn--back svg {
+  display: block;
 }
 
 .hamburger-btn:focus,

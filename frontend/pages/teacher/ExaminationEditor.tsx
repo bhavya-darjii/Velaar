@@ -411,15 +411,7 @@ const ExaminationEditor = () => {
         <div className="editor-container">
       <div className="editor-header-nav">
         <div className="header-title-group" style={{width: '100%', position: 'relative'}}>
-          <div 
-            className="back-arrow" 
-            style={{cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.6 : 1}} 
-            onClick={() => { if (!generating) navigate('/teacher/examination'); }}
-          >
-            <span style={{ fontFamily: 'system-ui, sans-serif' }}>&larr;</span> Back
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 0 }}>
             <h2 style={{ margin: 0 }}>
               {examId === 'endSem' ? 'End Semester Exam' : `Term Test ${examId.replace('tt', '')}`} Pattern
             </h2>

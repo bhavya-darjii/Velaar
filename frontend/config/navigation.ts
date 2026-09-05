@@ -25,6 +25,7 @@ export const HOD_NAV = [
 export const STUDENT_NAV = [
   { path: '/student', label: 'Dashboard' },
   { path: '/student/attendance', label: 'Attendance' },
+  { path: '/student/lecture-vault', label: 'Lecture Vault' },
 ];
 
 export const PARENT_NAV = [
