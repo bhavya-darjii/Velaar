@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 // Wrapper service to connect to our secure Node.js backend.
 // Every request now includes teacher context so the server can log AI usage accurately.
@@ -347,4 +347,11 @@ export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel
   }
 };
 
-
+export const parseSyllabusFromText = async (rawText: string) => {
+  try {
+    return await aiPost('parse-syllabus', { rawText });
+  } catch (error) {
+    console.error("Syllabus Parse Error:", error);
+    return { error: error.message || "Failed to parse syllabus." };
+  }
+};

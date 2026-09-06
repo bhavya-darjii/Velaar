@@ -34,6 +34,7 @@ Output Format: Return ONLY a raw JSON array matching this schema exactly:
   {
     "lectureNum": 1,
     "moduleName": "Exactly matching the accepted module name string",
+    "coMapped": "e.g. CO1 or null if none",
     "title": "Topic Name",
     "description": "Brief 1-2 sentence summary of what this lecture covers.",
     "checklist": ["Teaching point 1", "Teaching point 2", "Teaching point 3"]
@@ -511,3 +512,72 @@ Return ONLY valid JSON in this exact shape:
 }
   `;
 };
+
+// ─── SYLLABUS PARSER ───────────────────────────────────────────────────────────
+
+/**
+ * Syllabus Parser — SYSTEM INSTRUCTION (static, Gemini-cached across calls).
+ * Pure extraction — no hallucination, no generation.
+ */
+export const syllabusParserSystem = `
+You are an academic document parser. Your ONLY job is to extract structured data verbatim from raw syllabus text.
+
+CRITICAL RULES:
+1. EXTRACT — do NOT invent, summarize excessively, or paraphrase beyond minor cleanup.
+2. Every syllabusText field must contain ALL sub-topic lines for that module, exactly as written.
+3. CO numbers like CO1, CO2 etc. must be extracted exactly as they appear.
+4. If a field is absent from the text, use null (not an empty string, not a guess).
+5. totalHoursTheory is the grand "Total Hours" number at the bottom of the module table.
+6. credits object: extract theory (TH), practical (PR), tutorial (TUT) as integers.
+7. modules array: include ONLY genuine teachable content modules (Module 1, Module 2, Unit I, Unit II, etc.) that have lecture hours and actual course topics. 
+   DO NOT include as modules: Prerequisites, Course Outline, Course Overview, Introduction to the Course, Course Conclusion, Summary, References, Bibliography, Recommended Books, Appendix, or any administrative/preamble/closing sections. These belong in their respective fields (prerequisites, conclusion, textBooks, etc.).
+   A valid module MUST have: a module number/label, a topic name, and lecture hours (hoursPerModule > 0).
+8. For each module, hoursPerModule is the "Total Hrs/Module" column value as an integer.
+9. prerequisitesHours: the hours value listed alongside the prerequisites/introduction section, if any. Use 0 if absent.
+10. conclusion: if the syllabus has a closing/summary/course conclusion section with its own hours, extract it as { name, syllabusText, hoursPerModule }. Use null if absent.
+11. usefulLinks: extract only actual URLs.
+12. Return ONLY raw JSON — no markdown fences, no commentary.
+
+Output Schema:
+{
+  "courseCode": "string",
+  "subjectName": "string",
+  "credits": { "theory": number, "practical": number, "tutorial": number },
+  "prerequisites": ["string"],
+  "prerequisitesHours": number,
+  "courseObjectives": ["string"],
+  "courseOutcomes": [
+    { "co": "CO1", "description": "string" }
+  ],
+  "totalHoursTheory": number,
+  "modules": [
+    {
+      "moduleLabel": "string",
+      "name": "string",
+      "coMapped": "string or null",
+      "hoursPerModule": number,
+      "syllabusText": "string"
+    }
+  ],
+  "conclusion": {
+    "name": "string",
+    "syllabusText": "string",
+    "hoursPerModule": number
+  },
+  "textBooks": ["string"],
+  "referenceBooks": ["string"],
+  "usefulLinks": ["string"]
+}
+`;
+
+/**
+ * Syllabus Parser — dynamic data only (charged per call).
+ */
+export const buildSyllabusParserPrompt = (rawText: string) => `
+Extract all structured fields from the following raw syllabus text. Return ONLY the JSON object.
+
+Raw Syllabus Text:
+"""
+${rawText.substring(0, 40000)}
+"""
+`;

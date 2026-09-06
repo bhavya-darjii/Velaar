@@ -21,6 +21,7 @@ import {
   copilotChatService,
   classifyIntentService,
   generatePresentationService,
+  parseSyllabusService,
 } from '../services/aiGenerationService.js';
 
 interface TeacherCtx {
@@ -208,5 +209,21 @@ export const generateLecturePresentation = async (req: Request, res: Response): 
   } catch (err) {
     console.error('[aiController] generateLecturePresentation error:', err);
     res.status(500).json({ error: 'Failed to generate presentation', details: err instanceof Error ? err.message : String(err) });
+  }
+};
+
+// ─── 13. Parse Syllabus ───────────────────────────────────────────────────────
+export const parseSyllabus = async (req: Request, res: Response): Promise<void> => {
+  const { rawText } = req.body as { rawText?: string };
+  if (!rawText || rawText.trim().length < 50) {
+    res.status(400).json({ error: 'Syllabus text is empty or too short' });
+    return;
+  }
+  try {
+    const result = await parseSyllabusService({ rawText }, getCtx(req));
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('[aiController] parseSyllabus error:', err);
+    res.status(500).json({ error: 'Failed to parse syllabus', details: err instanceof Error ? err.message : String(err) });
   }
 };

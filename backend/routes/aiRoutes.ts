@@ -12,6 +12,7 @@ import {
   copilotChat,
   classifyCopilotIntent,
   generateLecturePresentation,
+  parseSyllabus,
 } from '../controllers/aiController.js';
 import {
   generateRubric,
@@ -44,5 +45,6 @@ router.post('/generate-study-material',     generateStudyMaterial);
 router.post('/generate-lab-manual',         generateLabManual);
 router.post('/intent',                      classifyCopilotIntent);
 router.post('/generate-lecture-presentation', generateLecturePresentation);
+router.post('/parse-syllabus',               parseSyllabus);
 
 export default router;

@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 /**
  * AI Generation Service.
@@ -23,16 +23,61 @@ import {
   copilotIntentSystem,
   buildPresentationPrompt,
   presentationSystem,
+  buildSyllabusParserPrompt,
+  syllabusParserSystem,
 } from '../prompts/aiPrompts.js';
 
 /** Shared context passed from controller to service to logAiUsage */
 type Ctx = { teacherId: string; teacherEmail: string; teacherName: string; courseId: string; subjectName: string; [key: string]: unknown; };
 
+/** Shared: parse JSON from Gemini text response robustly */
+const parseJson = (text: string) => {
+  const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+  try {
+    return JSON.parse(clean);
+  } catch (err: any) {
+    // 1. If error provides exact position of unexpected character after JSON, slice up to that position
+    const posMatch = err?.message?.match(/at position (\d+)/);
+    if (posMatch) {
+      try {
+        return JSON.parse(clean.slice(0, parseInt(posMatch[1], 10)).trim());
+      } catch (_) { /* continue to next strategy */ }
+    }
 
-/** Shared: parse JSON from Gemini text response */
-const parseJson = (text) => {
-  const clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
-  return JSON.parse(clean);
+    // 2. Bracket counting: find the balanced root { ... } object
+    const start = clean.indexOf('{');
+    if (start !== -1) {
+      let depth = 0;
+      let inStr = false;
+      let esc = false;
+      for (let i = start; i < clean.length; i++) {
+        const c = clean[i];
+        if (esc) { esc = false; continue; }
+        if (c === '\\') { esc = true; continue; }
+        if (c === '"') { inStr = !inStr; continue; }
+        if (!inStr) {
+          if (c === '{') depth++;
+          else if (c === '}') {
+            depth--;
+            if (depth === 0) {
+              try {
+                return JSON.parse(clean.slice(start, i + 1));
+              } catch (_) { break; }
+            }
+          }
+        }
+      }
+    }
+
+    // 3. Fallback regex
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch (_) { /* throw original err */ }
+    }
+    throw err;
+  }
 };
 
 /** Shared: parse JSON array robustly (handles wrapped objects) */
@@ -71,7 +116,7 @@ export const generateRoadmapService = async (
   };
 };
 
-// --- Q-estions from topics ---------------------------------------------------------
+// --- Questions from topics ---------------------------------------------------------
 export const generateQuestionsFromTopicsService = async ({
   completedTopics, examLength, btPreferences = [], numericalCount = 0, numericalPrompt = '', pastNumericals = [],
 }: {
@@ -126,7 +171,7 @@ export const generateQuestionsFromTopicsService = async ({
   return combined;
 };
 
-// --- Q-estions from syllab-s ---------------------------------------------------------
+// --- Questions from syllabus ---------------------------------------------------------
 export const generateQuestionsFromSyllabusService = async (
   { syllabus, examLength }: { syllabus?: unknown; examLength?: number },
   ctx: Ctx,
@@ -142,7 +187,7 @@ export const generateQuestionsFromSyllabusService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// --- 4. Grade exam ---------------------------------------------------------
+// --- Grade exam ---------------------------------------------------------
 export const gradeExamService = async (
   { syllabus, examData }: { syllabus?: unknown; examData?: unknown },
   ctx: Ctx,
@@ -176,7 +221,7 @@ export const generateLessonPlanService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// --- 6. Specific field ---------------------------------------------------------
+// --- Specific field ---------------------------------------------------------
 export const generateSpecificFieldService = async (
   { type, subjectName, modules }: { type?: string; subjectName?: string; modules?: unknown[] },
   ctx: Ctx,
@@ -193,7 +238,7 @@ export const generateSpecificFieldService = async (
   return type === 'unit' ? result : result.result;
 };
 
-// --- 7. S-pplementary plan ---------------------------------------------------------
+// --- Supplementary plan ---------------------------------------------------------
 export const generateSupplementaryPlanService = async (
   { subjectName, modules }: { subjectName?: string; modules?: unknown[] },
   ctx: Ctx,
@@ -210,7 +255,7 @@ export const generateSupplementaryPlanService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// --- 8. Day-wise enrichment ---------------------------------------------------------
+// --- Day-wise enrichment ---------------------------------------------------------
 export const generateDayWiseEnrichmentService = async (
   { subjectName, roadmapTitles, textBooks = [], refBooks = [] }: { subjectName?: string; roadmapTitles?: unknown[]; textBooks?: unknown[]; refBooks?: unknown[] },
   ctx: Ctx,
@@ -228,7 +273,7 @@ export const generateDayWiseEnrichmentService = async (
   return result.enrichment;
 };
 
-// --- 9. CO-PO mapping ---------------------------------------------------------
+// --- CO-PO mapping ---------------------------------------------------------
 export const generateCoPoMappingService = async (
   { courseOutcomes, programOutcomes }: { courseOutcomes?: unknown[]; programOutcomes?: any[] },
   ctx: Ctx,
@@ -286,15 +331,13 @@ export const classifyIntentService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
-// --- Lect-re presentation ---------------------------------------------------------
+// --- Lecture presentation ---------------------------------------------------------
 export const generatePresentationService = async (
   { subjectName, lecture, overview, course }: { subjectName?: string; lecture?: unknown; overview?: unknown; course?: unknown },
   ctx: Ctx,
 ) => {
   const prompt = buildPresentationPrompt(subjectName, lecture, overview, course);
   const data = await callGemini({
-    // presentationSystem goes into systemInstruction — Gemini implicitly caches this
-    // across repeated calls, so the large static rules are not re-charged every click.
     systemInstruction: { parts: [{ text: presentationSystem }] },
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { responseMimeType: 'application/json' },
@@ -308,3 +351,61 @@ export const generatePresentationService = async (
   return parseJson(data.candidates[0].content.parts[0].text);
 };
 
+// --- Syllabus Parser ---------------------------------------------------------
+
+/** Patterns that identify non-teachable administrative sections mistakenly parsed as modules */
+const NON_MODULE_PATTERNS = [
+  /prerequisite/i,
+  /course\s+outline/i,
+  /course\s+overview/i,
+  /course\s+introduction/i,
+  /introduction\s+to\s+(the\s+)?course/i,
+  /course\s+conclusion/i,
+  /conclusion\s+&?\s*summary/i,
+  /^conclusion$/i,
+  /^summary$/i,
+  /reference(s)?$/i,
+  /bibliography/i,
+  /recommended\s+book/i,
+  /text\s*book/i,
+  /appendix/i,
+  /preamble/i,
+  /general\s+info/i,
+];
+
+const filterModules = (modules: any[]): any[] => {
+  if (!Array.isArray(modules)) return modules;
+  return modules.filter((m) => {
+    const name = (m.name || '').trim();
+    // Must have a non-zero hour count (or hours not specified — keep it)
+    if (typeof m.hoursPerModule === 'number' && m.hoursPerModule === 0) return false;
+    // Must not match any administrative section pattern
+    if (NON_MODULE_PATTERNS.some((re) => re.test(name))) return false;
+    return true;
+  });
+};
+
+export const parseSyllabusService = async (
+  { rawText }: { rawText: string },
+  ctx: Ctx,
+) => {
+  if (!rawText || rawText.trim().length < 50) throw new Error('Syllabus text too short');
+  const prompt = buildSyllabusParserPrompt(rawText);
+  const data = await callGemini({
+    systemInstruction: { parts: [{ text: syllabusParserSystem }] },
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { responseMimeType: 'application/json' },
+  });
+  if (data.error || !data.candidates?.[0]) throw new Error('Syllabus parsing failed');
+  const usage = data.usageMetadata || {};
+  await logAiUsage({ action: 'parse-syllabus', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
+  const parsed = parseJson(data.candidates[0].content.parts[0].text);
+  // Post-process: strip any administrative sections mistakenly returned as modules
+  if (parsed?.modules) {
+    parsed.modules = filterModules(parsed.modules);
+  }
+  return {
+    parsed,
+    usage: { input: usage.promptTokenCount, output: usage.candidatesTokenCount },
+  };
+};
