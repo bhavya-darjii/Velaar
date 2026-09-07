@@ -9,7 +9,10 @@
     "build": "vite build",
     "lint": "eslint .",
     "type-check": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.backend.json --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "set-demo-passwords": "npx tsx backend/scripts/set-demo-passwords.ts",
+    "remove-demo-passwords": "npx tsx backend/scripts/remove-demo-passwords.ts",
+    "fetch-schema": "npx tsx backend/scripts/fetch-schema.ts"
   },
   "dependencies": {
     "@google/genai": "^1.52.0",

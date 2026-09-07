@@ -70,7 +70,6 @@ function App() {
       }
       
       const user = session.user;
-      if (mounted) setInitialUser(user);
 
       // Pre-cache Google account avatar so all teacher/faculty views have 0ms load time
       const gAvatar = extractGoogleAvatarUrl(user);
@@ -113,6 +112,7 @@ function App() {
         }
 
         if (mounted) {
+          setInitialUser(user);
           setUserRole(role);
           localStorage.setItem('cachedUserRole', role);
         }
@@ -120,6 +120,7 @@ function App() {
         console.error('Offline or error fetching role', e);
         if (mounted) {
           const cachedRole = localStorage.getItem('cachedUserRole') || 'teacher';
+          setInitialUser(user);
           setUserRole(cachedRole);
         }
       }
@@ -145,6 +146,7 @@ function App() {
 
   const RootRedirect = () => {
     if (!initialUser) return <LoginPage />;
+    if (!userRole) return <AuthLoadingScreen />;
     if (userRole === 'admin')           return <Navigate to="/admin"           replace />;
     if (userRole === 'student')         return <Navigate to="/student"         replace />;
     if (userRole === 'hod')             return <Navigate to="/hod"             replace />;
@@ -171,6 +173,7 @@ function App() {
             <div className="content-layer">
               <Routes>
                 <Route path="/" element={<RootRedirect />} />
+                <Route path="/login" element={<RootRedirect />} />
 
                 {/* Admin nested routes */}
                 <Route path="/admin" element={

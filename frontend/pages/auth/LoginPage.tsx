@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
@@ -54,15 +54,20 @@ const LoginPage = () => {
     return () => { mounted = false; };
   }, [navigate]);
 
-  // â”€â”€ SSO Handler (Google or Microsoft) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── SSO Handler (Google or Microsoft) ────────────────────────────────────
   const handleSSO = async (providerName) => {
     setLoading(true);
     setAuthError('');
     try {
+      // Always redirect back to wherever the user currently is (localhost OR production).
+      // Supabase will honour this ONLY if the URL is in the project's Redirect Allow List
+      // (Authentication → URL Configuration → Redirect URLs).
+      // Make sure http://localhost:5173/** and https://localhost:5173/** are added there.
+      const redirectTo = window.location.origin + '/';
       const { error } = await supabase.auth.signInWithOAuth({ 
         provider: providerName.toLowerCase() === 'microsoft' ? 'azure' : 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo,
         },
       });
       if (error) throw error;
@@ -85,18 +90,33 @@ const LoginPage = () => {
     setLoading(true);
     setAuthError('');
     try {
-      let authError;
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
-        authError = error;
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (data?.user) {
+          const { data: userDoc } = await supabase
+            .from('users')
+            .select('user_type')
+            .eq('id', data.user.id)
+            .single();
+          const role = userDoc?.user_type || 'pending';
+          localStorage.setItem('cachedUserRole', role);
+          redirectByRole(role, navigate);
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        authError = error;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (data?.user) {
+          const { data: userDoc } = await supabase
+            .from('users')
+            .select('user_type')
+            .eq('id', data.user.id)
+            .single();
+          const role = userDoc?.user_type || 'pending';
+          localStorage.setItem('cachedUserRole', role);
+          redirectByRole(role, navigate);
+        }
       }
-      
-      if (authError) throw authError;
-
-      // On success, App.jsx's onAuthStateChange will handle the redirect.
     } catch (error) {
       console.error('Email Auth Error:', error);
       setAuthError(error.message);

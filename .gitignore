@@ -32,7 +32,11 @@ dist-ssr
 *secret*
 API Keys
 server/serviceAccountKey.json
-docs/
+backend/scripts/*
+!backend/scripts/fetch-schema.ts
+docs/*
+!docs/DATABASE_SCHEMA.md
+!docs/database_schema.json
 
 # TypeScript Build Info
 *.tsbuildinfo

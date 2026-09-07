@@ -1,5 +1,5 @@
 import { useState, useEffect, ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import AuthLoadingScreen from '../shared/AuthLoadingScreen';
 import NotFoundPage from '../../pages/shared/NotFoundPage';
@@ -24,6 +24,7 @@ const ROLE_PATHS: Record<string, string> = {
 };
 
 const ProtectedRoute = ({ children, allowedRoles, fallback }: ProtectedRouteProps) => {
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   // null = not authenticated, false = wrong role, User object = authenticated & authorized
   const [user, setUser] = useState<object | null | false>(undefined as unknown as null);
@@ -97,6 +98,9 @@ const ProtectedRoute = ({ children, allowedRoles, fallback }: ProtectedRouteProp
 
   // Wrong role — show access restricted / page not found fallback
   if (user === false) {
+    if (userRole && userRole !== 'pending' && ROLE_PATHS[userRole] && (location.pathname === '/pending' || location.pathname.startsWith('/pending/'))) {
+      return <Navigate to={ROLE_PATHS[userRole]} replace />;
+    }
     return <NotFoundPage userRole={userRole} isAccessDenied={true} />;
   }
 
