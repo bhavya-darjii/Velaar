@@ -326,9 +326,16 @@ export const classifyCopilotIntent = async (prompt, context, options = {}) => {
 export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel, pageContext, options = {}) => {
   try {
     const ctx = await getTeacherContext();
+    // The Copilot endpoint is protected by the same requireAuth middleware as
+    // the other AI endpoints, so include the current Supabase access token.
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
     const res = await fetch(`${API_URL}/copilot-chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         messages,
         userRole,
