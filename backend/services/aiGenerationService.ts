@@ -8,6 +8,7 @@
 
 import { callGemini } from '../utils/gemini.js';
 import { logAiUsage } from '../utils/logAiUsage.js';
+import { retrieveContext } from './ragService.js';
 import {
   buildRoadmapPrompt, roadmapSystem,
   buildTheoryQuestionsPrompt, theoryQuestionsSystem,
@@ -100,7 +101,15 @@ export const generateRoadmapService = async (
   { syllabusText, totalLectures, acceptedModules }: { syllabusText?: string; totalLectures?: number; acceptedModules?: unknown },
   ctx: Ctx,
 ) => {
-  const prompt = buildRoadmapPrompt(syllabusText, totalLectures, acceptedModules);
+  // Retrieve relevant passages from uploaded documents to augment the roadmap
+  const ragContext = await retrieveContext({
+    query: `syllabus modules topics ${ctx.subjectName || ''}`,
+    courseId:  ctx.courseId  || undefined,
+    teacherId: ctx.teacherId || undefined,
+    topK: 6,
+  });
+
+  const prompt = buildRoadmapPrompt(syllabusText, totalLectures, acceptedModules, ragContext);
   const data = await callGemini({
     // roadmapSystem is cached by Gemini — static rules not re-billed on repeat calls.
     systemInstruction: { parts: [{ text: roadmapSystem }] },
@@ -152,12 +161,26 @@ export const generateQuestionsFromTopicsService = async ({
   let numericalQuestions = [];
 
   if (numTheory > 0) {
-    theoryQuestions = await callAI(buildTheoryQuestionsPrompt(syllabusTopicsStr, numTheory, prefText), theoryQuestionsSystem);
+    // Retrieve relevant passages from uploaded documents for theory question context
+    const ragContext = await retrieveContext({
+      query: syllabusTopicsStr,
+      courseId:  ctx.courseId  || undefined,
+      teacherId: ctx.teacherId || undefined,
+      topK: 5,
+    });
+    theoryQuestions = await callAI(buildTheoryQuestionsPrompt(syllabusTopicsStr, numTheory, prefText, ragContext), theoryQuestionsSystem);
   }
 
   if (numNumerical > 0) {
     const isFullExample = numericalPrompt && (numericalPrompt.includes('?') || numericalPrompt.length > 50 || numericalPrompt.includes('=') || numericalPrompt.includes('[') || /\d/.test(numericalPrompt));
-    const fetched = await callAI(buildNumericalQuestionsPrompt(numNumerical, numericalPrompt, isFullExample, pastNumericals), numericalQuestionsSystem);
+    // Retrieve relevant passages for numerical question context
+    const ragContextNum = await retrieveContext({
+      query: numericalPrompt || syllabusTopicsStr,
+      courseId:  ctx.courseId  || undefined,
+      teacherId: ctx.teacherId || undefined,
+      topK: 4,
+    });
+    const fetched = await callAI(buildNumericalQuestionsPrompt(numNumerical, numericalPrompt, isFullExample, pastNumericals, ragContextNum), numericalQuestionsSystem);
     if (Array.isArray(fetched)) numericalQuestions = fetched.map(q => ({ ...q, isNumerical: true }));
   }
 
@@ -211,8 +234,17 @@ export const generateLessonPlanService = async (
 ) => {
   const moduleNames = modules.map(m => m.name || `Unit ${m.id}`).join(', ');
   const moduleTexts = modules.map(m => `Unit ${m.id}: ${m.name}\n${m.extractedText || ''}`).join('\n\n');
+
+  // Retrieve relevant passages from uploaded documents for lesson plan context
+  const ragContext = await retrieveContext({
+    query: `lesson plan outcomes ${moduleNames} ${subjectName || ''}`,
+    courseId:  ctx.courseId  || undefined,
+    teacherId: ctx.teacherId || undefined,
+    topK: 5,
+  });
+
   const data = await callGemini({
-    contents: [{ parts: [{ text: buildLessonPlanPrompt(subjectName, moduleNames, moduleTexts) }] }],
+    contents: [{ parts: [{ text: buildLessonPlanPrompt(subjectName, moduleNames, moduleTexts, ragContext) }] }],
     generationConfig: { responseMimeType: 'application/json' },
   });
   const usage = data.usageMetadata || {};
@@ -300,7 +332,22 @@ export const copilotChatService = async (
   { messages, userRole = 'teacher', pagePath = '', pageLabel = '', pageContext = {} }: { messages?: any[]; userRole?: string; pagePath?: string; pageLabel?: string; pageContext?: unknown },
   ctx: Ctx,
 ) => {
-  const systemPrompt = buildCopilotSystemPrompt(ctx, userRole, pagePath, pageLabel, pageContext);
+  // Extract the latest user message as the RAG query
+  const lastUserMsg = [...(messages || [])]
+    .reverse()
+    .find(m => m.role === 'user')?.content || '';
+
+  // Retrieve relevant passages from uploaded documents
+  const ragContext = lastUserMsg.trim().length >= 3
+    ? await retrieveContext({
+        query:     lastUserMsg,
+        courseId:  ctx.courseId  || undefined,
+        teacherId: ctx.teacherId || undefined,
+        topK: 5,
+      })
+    : '';
+
+  const systemPrompt = buildCopilotSystemPrompt(ctx, userRole, pagePath, pageLabel, pageContext, ragContext);
   const formattedContents = messages.map(msg => ({
     role: msg.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: msg.content }],
@@ -336,7 +383,22 @@ export const generatePresentationService = async (
   { subjectName, lecture, overview, course }: { subjectName?: string; lecture?: unknown; overview?: unknown; course?: unknown },
   ctx: Ctx,
 ) => {
-  const prompt = buildPresentationPrompt(subjectName, lecture, overview, course);
+  // Retrieve passages from uploaded textbooks/notes for this specific lecture
+  const lectureQuery = [
+    (lecture as any)?.title || '',
+    (lecture as any)?.description || '',
+    ((lecture as any)?.checklist || []).join(' '),
+    subjectName || '',
+  ].filter(Boolean).join(' ');
+
+  const ragContext = await retrieveContext({
+    query:     lectureQuery,
+    courseId:  ctx.courseId  || undefined,
+    teacherId: ctx.teacherId || undefined,
+    topK: 6,
+  });
+
+  const prompt = buildPresentationPrompt(subjectName, lecture, overview, course, ragContext);
   const data = await callGemini({
     systemInstruction: { parts: [{ text: presentationSystem }] },
     contents: [{ parts: [{ text: prompt }] }],

@@ -1,0 +1,4267 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "",
+    "title": "standard public schema",
+    "version": "14.5"
+  },
+  "host": "lnxkmdulkhbfyxchjjdl.supabase.co:443",
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "produces": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "produces": [
+          "application/openapi+json",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "OpenAPI description (this document)",
+        "tags": [
+          "Introspection"
+        ]
+      }
+    },
+    "/attendance_sessions": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.session_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.qr_token"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.expires_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/attendance_sessions"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "attendance_sessions"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.attendance_sessions"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "attendance_sessions"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.session_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.qr_token"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.expires_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "attendance_sessions"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.session_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.qr_token"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.expires_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_sessions.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.attendance_sessions"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "attendance_sessions"
+        ]
+      }
+    },
+    "/syllabus": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.content"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.updated_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/syllabus"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "syllabus"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.syllabus"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "syllabus"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.content"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.updated_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "syllabus"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.content"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.syllabus.updated_at"
+          },
+          {
+            "$ref": "#/parameters/body.syllabus"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "syllabus"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.users.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.user_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.college_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.division"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/users"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.users"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.users.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.user_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.college_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.division"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.users.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.user_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.college_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.users.division"
+          },
+          {
+            "$ref": "#/parameters/body.users"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/presentation_history": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.division"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.lecture_num"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.lecture_title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.presentation_json"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/presentation_history"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "presentation_history"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.presentation_history"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "presentation_history"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.division"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.lecture_num"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.lecture_title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.presentation_json"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "presentation_history"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.division"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.lecture_num"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.lecture_title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.presentation_json"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.presentation_history.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.presentation_history"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "presentation_history"
+        ]
+      }
+    },
+    "/courses": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.courses.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.code"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.subject_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.total_lectures"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.divisions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.weekly_schedule"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.start_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.end_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.modules"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.exam_templates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.taught_by"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.past_numericals"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.exam_patterns"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.lesson_plan"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.roadmap"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.question_bank"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.active_exam"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.last_exam_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt1_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt2_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.ese_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt1_effective"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt2_effective"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.ese_effective"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/courses"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.courses"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.courses.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.code"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.subject_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.total_lectures"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.divisions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.weekly_schedule"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.start_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.end_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.modules"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.exam_templates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.taught_by"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.past_numericals"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.exam_patterns"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.lesson_plan"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.roadmap"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.question_bank"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.active_exam"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.last_exam_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt1_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt2_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.ese_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt1_effective"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt2_effective"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.ese_effective"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.courses.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.code"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.subject_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.total_lectures"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.divisions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.weekly_schedule"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.start_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.end_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.modules"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.exam_templates"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.taught_by"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.past_numericals"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.exam_patterns"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.lesson_plan"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.roadmap"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.question_bank"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.active_exam"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.last_exam_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt1_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt2_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.ese_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt1_effective"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.tt2_effective"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.courses.ese_effective"
+          },
+          {
+            "$ref": "#/parameters/body.courses"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/document_chunks": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.source_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.source_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.chunk_index"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.content"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.embedding"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/document_chunks"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "document_chunks"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.document_chunks"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "document_chunks"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.source_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.source_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.chunk_index"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.content"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.embedding"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "document_chunks"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.source_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.source_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.chunk_index"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.content"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.embedding"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.document_chunks.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.document_chunks"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "document_chunks"
+        ]
+      }
+    },
+    "/timetable": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.timetable.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.schedule"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/timetable"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "timetable"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.timetable"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "timetable"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.timetable.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.schedule"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "timetable"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.timetable.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.department"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.schedule"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.timetable.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.timetable"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "timetable"
+        ]
+      }
+    },
+    "/exams": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.exams.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.total_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.exam_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.questions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/exams"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "exams"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.exams"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "exams"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.exams.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.total_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.exam_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.questions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "exams"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.exams.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.title"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.total_marks"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.exam_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.questions"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.exams.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.exams"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "exams"
+        ]
+      }
+    },
+    "/attendance_logs": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.session_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.student_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.marked_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/attendance_logs"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "attendance_logs"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.attendance_logs"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "attendance_logs"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.session_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.student_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.marked_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "attendance_logs"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.session_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.student_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.attendance_logs.marked_at"
+          },
+          {
+            "$ref": "#/parameters/body.attendance_logs"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "attendance_logs"
+        ]
+      }
+    },
+    "/role_invitations": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.user_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.college_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.division"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/role_invitations"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "role_invitations"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.role_invitations"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "role_invitations"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.user_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.college_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.division"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "role_invitations"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.user_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.institution_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.college_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.semester"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.role_invitations.division"
+          },
+          {
+            "$ref": "#/parameters/body.role_invitations"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "role_invitations"
+        ]
+      }
+    },
+    "/ai_logs": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.action"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.action_label"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.subject_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.input_tokens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.output_tokens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.cost_usd"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.cost_inr"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.month"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/ai_logs"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "ai_logs"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.ai_logs"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "ai_logs"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.action"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.action_label"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.subject_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.input_tokens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.output_tokens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.cost_usd"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.cost_inr"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.month"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "ai_logs"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.action"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.action_label"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.teacher_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.course_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.subject_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.input_tokens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.output_tokens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.cost_usd"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.cost_inr"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.month"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.ai_logs.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.ai_logs"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "ai_logs"
+        ]
+      }
+    },
+    "/institutions": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.institutions.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.code"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.address"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.slug"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.domain"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.config"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/institutions"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "institutions"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.institutions"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "institutions"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.institutions.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.code"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.address"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.slug"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.domain"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.config"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "institutions"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.institutions.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.code"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.address"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.slug"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.domain"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.institutions.config"
+          },
+          {
+            "$ref": "#/parameters/body.institutions"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "institutions"
+        ]
+      }
+    },
+    "/marks": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.marks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.exam_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.student_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.score"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.answers"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.submitted_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/marks"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "marks"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.marks"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "marks"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.marks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.exam_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.student_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.score"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.answers"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.submitted_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "marks"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.marks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.exam_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.student_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.score"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.answers"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.marks.submitted_at"
+          },
+          {
+            "$ref": "#/parameters/body.marks"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "marks"
+        ]
+      }
+    },
+    "/rpc/match_chunks": {
+      "get": {
+        "parameters": [
+          {
+            "format": "public.vector",
+            "in": "query",
+            "name": "query_embedding",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "integer",
+            "in": "query",
+            "name": "match_count",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "filter_course_id",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "filter_teacher_id",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "format": "double precision",
+            "in": "query",
+            "name": "min_similarity",
+            "required": false,
+            "type": "number"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) match_chunks"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "filter_course_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "filter_teacher_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "match_count": {
+                  "format": "integer",
+                  "type": "integer"
+                },
+                "min_similarity": {
+                  "format": "double precision",
+                  "type": "number"
+                },
+                "query_embedding": {
+                  "format": "public.vector",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "query_embedding"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) match_chunks"
+        ]
+      }
+    },
+    "/rpc/get_my_role": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) get_my_role"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "attendance_sessions": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "course_id": {
+          "description": "Note:\nThis is a Foreign Key to `courses.id`.<fk table='courses' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "teacher_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "session_date": {
+          "default": "CURRENT_DATE",
+          "format": "date",
+          "type": "string"
+        },
+        "qr_token": {
+          "format": "text",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "syllabus": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "course_id": {
+          "description": "Note:\nThis is a Foreign Key to `courses.id`.<fk table='courses' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "teacher_id": {
+          "description": "Note:\nThis is a Foreign Key to `users.id`.<fk table='users' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "content": {
+          "format": "jsonb"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "users": {
+      "required": [
+        "id",
+        "user_type"
+      ],
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "full_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "email": {
+          "format": "text",
+          "type": "string"
+        },
+        "user_type": {
+          "default": "pending",
+          "format": "text",
+          "type": "string"
+        },
+        "institution_id": {
+          "description": "Note:\nThis is a Foreign Key to `institutions.id`.<fk table='institutions' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "college_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "semester": {
+          "format": "text",
+          "type": "string"
+        },
+        "department": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "division": {
+          "format": "text",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "presentation_history": {
+      "required": [
+        "id",
+        "division",
+        "lecture_num",
+        "presentation_json"
+      ],
+      "properties": {
+        "id": {
+          "default": "extensions.uuid_generate_v4()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "course_id": {
+          "description": "Note:\nThis is a Foreign Key to `courses.id`.<fk table='courses' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "teacher_id": {
+          "description": "Note:\nThis is a Foreign Key to `users.id`.<fk table='users' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "institution_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "division": {
+          "format": "text",
+          "type": "string"
+        },
+        "lecture_num": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "lecture_title": {
+          "format": "text",
+          "type": "string"
+        },
+        "presentation_json": {
+          "format": "jsonb"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "courses": {
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "code": {
+          "format": "text",
+          "type": "string"
+        },
+        "teacher_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "institution_id": {
+          "description": "Note:\nThis is a Foreign Key to `institutions.id`.<fk table='institutions' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "semester": {
+          "format": "text",
+          "type": "string"
+        },
+        "department": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "subject_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "total_lectures": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "divisions": {
+          "format": "jsonb"
+        },
+        "weekly_schedule": {
+          "format": "jsonb"
+        },
+        "start_date": {
+          "format": "text",
+          "type": "string"
+        },
+        "end_date": {
+          "format": "text",
+          "type": "string"
+        },
+        "modules": {
+          "format": "jsonb"
+        },
+        "exam_templates": {
+          "format": "jsonb"
+        },
+        "taught_by": {
+          "format": "text",
+          "type": "string"
+        },
+        "past_numericals": {
+          "format": "jsonb"
+        },
+        "exam_patterns": {
+          "format": "jsonb"
+        },
+        "lesson_plan": {
+          "format": "jsonb"
+        },
+        "roadmap": {
+          "format": "jsonb"
+        },
+        "question_bank": {
+          "format": "jsonb"
+        },
+        "active_exam": {
+          "format": "jsonb"
+        },
+        "last_exam_date": {
+          "format": "text",
+          "type": "string"
+        },
+        "tt1_marks": {
+          "format": "jsonb"
+        },
+        "tt2_marks": {
+          "format": "jsonb"
+        },
+        "ese_marks": {
+          "format": "jsonb"
+        },
+        "tt1_effective": {
+          "format": "jsonb"
+        },
+        "tt2_effective": {
+          "format": "jsonb"
+        },
+        "ese_effective": {
+          "format": "jsonb"
+        }
+      },
+      "type": "object"
+    },
+    "document_chunks": {
+      "required": [
+        "id",
+        "teacher_id",
+        "source_type",
+        "source_name",
+        "chunk_index",
+        "content",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "institution_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "course_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "teacher_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "source_type": {
+          "default": "syllabus",
+          "format": "text",
+          "type": "string"
+        },
+        "source_name": {
+          "default": "Unnamed Document",
+          "format": "text",
+          "type": "string"
+        },
+        "chunk_index": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "content": {
+          "format": "text",
+          "type": "string"
+        },
+        "embedding": {
+          "format": "public.vector(768)",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "timetable": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "institution_id": {
+          "description": "Note:\nThis is a Foreign Key to `institutions.id`.<fk table='institutions' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "semester": {
+          "format": "text",
+          "type": "string"
+        },
+        "department": {
+          "format": "text",
+          "type": "string"
+        },
+        "schedule": {
+          "format": "jsonb"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "exams": {
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "title": {
+          "format": "text",
+          "type": "string"
+        },
+        "course_id": {
+          "description": "Note:\nThis is a Foreign Key to `courses.id`.<fk table='courses' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "teacher_id": {
+          "description": "Note:\nThis is a Foreign Key to `users.id`.<fk table='users' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "institution_id": {
+          "description": "Note:\nThis is a Foreign Key to `institutions.id`.<fk table='institutions' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "semester": {
+          "format": "text",
+          "type": "string"
+        },
+        "total_marks": {
+          "default": 100,
+          "format": "integer",
+          "type": "integer"
+        },
+        "exam_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "questions": {
+          "format": "jsonb"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "attendance_logs": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "session_id": {
+          "description": "Note:\nThis is a Foreign Key to `attendance_sessions.id`.<fk table='attendance_sessions' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "course_id": {
+          "description": "Note:\nThis is a Foreign Key to `courses.id`.<fk table='courses' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "student_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "marked_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "role_invitations": {
+      "required": [
+        "id",
+        "email",
+        "user_type"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "email": {
+          "format": "text",
+          "type": "string"
+        },
+        "user_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "institution_id": {
+          "description": "Note:\nThis is a Foreign Key to `institutions.id`.<fk table='institutions' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "college_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "semester": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "division": {
+          "format": "text",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ai_logs": {
+      "required": [
+        "id",
+        "action"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "action": {
+          "format": "text",
+          "type": "string"
+        },
+        "action_label": {
+          "format": "text",
+          "type": "string"
+        },
+        "teacher_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "teacher_email": {
+          "format": "text",
+          "type": "string"
+        },
+        "teacher_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "course_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "subject_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "input_tokens": {
+          "default": 0,
+          "format": "integer",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "default": 0,
+          "format": "integer",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "default": 0,
+          "format": "numeric",
+          "type": "number"
+        },
+        "cost_inr": {
+          "default": 0,
+          "format": "integer",
+          "type": "integer"
+        },
+        "month": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "institutions": {
+      "required": [
+        "id",
+        "name",
+        "config"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "code": {
+          "format": "text",
+          "type": "string"
+        },
+        "address": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "slug": {
+          "format": "text",
+          "type": "string"
+        },
+        "domain": {
+          "format": "text",
+          "type": "string"
+        },
+        "config": {
+          "format": "jsonb"
+        }
+      },
+      "type": "object"
+    },
+    "marks": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "exam_id": {
+          "description": "Note:\nThis is a Foreign Key to `exams.id`.<fk table='exams' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "student_id": {
+          "description": "Note:\nThis is a Foreign Key to `users.id`.<fk table='users' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "score": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "answers": {
+          "format": "jsonb"
+        },
+        "submitted_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "parameters": {
+    "preferParams": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "in": "header",
+      "type": "string"
+    },
+    "preferReturn": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferCount": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "count=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferPost": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none",
+        "resolution=ignore-duplicates",
+        "resolution=merge-duplicates"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "select": {
+      "name": "select",
+      "description": "Filtering Columns",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "on_conflict": {
+      "name": "on_conflict",
+      "description": "On Conflict",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "order": {
+      "name": "order",
+      "description": "Ordering",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "range": {
+      "name": "Range",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "header",
+      "type": "string"
+    },
+    "rangeUnit": {
+      "name": "Range-Unit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "default": "items",
+      "in": "header",
+      "type": "string"
+    },
+    "offset": {
+      "name": "offset",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "limit": {
+      "name": "limit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.attendance_sessions": {
+      "name": "attendance_sessions",
+      "description": "attendance_sessions",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/attendance_sessions"
+      }
+    },
+    "rowFilter.attendance_sessions.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_sessions.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_sessions.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_sessions.session_date": {
+      "name": "session_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_sessions.qr_token": {
+      "name": "qr_token",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_sessions.expires_at": {
+      "name": "expires_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_sessions.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.syllabus": {
+      "name": "syllabus",
+      "description": "syllabus",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/syllabus"
+      }
+    },
+    "rowFilter.syllabus.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.syllabus.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.syllabus.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.syllabus.content": {
+      "name": "content",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.syllabus.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.users": {
+      "name": "users",
+      "description": "users",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/users"
+      }
+    },
+    "rowFilter.users.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.full_name": {
+      "name": "full_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.email": {
+      "name": "email",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.user_type": {
+      "name": "user_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.college_name": {
+      "name": "college_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.semester": {
+      "name": "semester",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.department": {
+      "name": "department",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.users.division": {
+      "name": "division",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.presentation_history": {
+      "name": "presentation_history",
+      "description": "presentation_history",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/presentation_history"
+      }
+    },
+    "rowFilter.presentation_history.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.division": {
+      "name": "division",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.lecture_num": {
+      "name": "lecture_num",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.lecture_title": {
+      "name": "lecture_title",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.presentation_json": {
+      "name": "presentation_json",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.presentation_history.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.courses": {
+      "name": "courses",
+      "description": "courses",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/courses"
+      }
+    },
+    "rowFilter.courses.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.code": {
+      "name": "code",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.semester": {
+      "name": "semester",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.department": {
+      "name": "department",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.subject_name": {
+      "name": "subject_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.total_lectures": {
+      "name": "total_lectures",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.divisions": {
+      "name": "divisions",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.weekly_schedule": {
+      "name": "weekly_schedule",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.start_date": {
+      "name": "start_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.end_date": {
+      "name": "end_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.modules": {
+      "name": "modules",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.exam_templates": {
+      "name": "exam_templates",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.taught_by": {
+      "name": "taught_by",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.past_numericals": {
+      "name": "past_numericals",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.exam_patterns": {
+      "name": "exam_patterns",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.lesson_plan": {
+      "name": "lesson_plan",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.roadmap": {
+      "name": "roadmap",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.question_bank": {
+      "name": "question_bank",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.active_exam": {
+      "name": "active_exam",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.last_exam_date": {
+      "name": "last_exam_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.tt1_marks": {
+      "name": "tt1_marks",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.tt2_marks": {
+      "name": "tt2_marks",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.ese_marks": {
+      "name": "ese_marks",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.tt1_effective": {
+      "name": "tt1_effective",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.tt2_effective": {
+      "name": "tt2_effective",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.courses.ese_effective": {
+      "name": "ese_effective",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.document_chunks": {
+      "name": "document_chunks",
+      "description": "document_chunks",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/document_chunks"
+      }
+    },
+    "rowFilter.document_chunks.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.source_type": {
+      "name": "source_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.source_name": {
+      "name": "source_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.chunk_index": {
+      "name": "chunk_index",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.content": {
+      "name": "content",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.embedding": {
+      "name": "embedding",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.document_chunks.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.timetable": {
+      "name": "timetable",
+      "description": "timetable",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/timetable"
+      }
+    },
+    "rowFilter.timetable.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.timetable.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.timetable.semester": {
+      "name": "semester",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.timetable.department": {
+      "name": "department",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.timetable.schedule": {
+      "name": "schedule",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.timetable.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.exams": {
+      "name": "exams",
+      "description": "exams",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/exams"
+      }
+    },
+    "rowFilter.exams.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.title": {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.semester": {
+      "name": "semester",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.total_marks": {
+      "name": "total_marks",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.exam_type": {
+      "name": "exam_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.questions": {
+      "name": "questions",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.exams.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.attendance_logs": {
+      "name": "attendance_logs",
+      "description": "attendance_logs",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/attendance_logs"
+      }
+    },
+    "rowFilter.attendance_logs.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_logs.session_id": {
+      "name": "session_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_logs.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_logs.student_id": {
+      "name": "student_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.attendance_logs.marked_at": {
+      "name": "marked_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.role_invitations": {
+      "name": "role_invitations",
+      "description": "role_invitations",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/role_invitations"
+      }
+    },
+    "rowFilter.role_invitations.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.email": {
+      "name": "email",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.user_type": {
+      "name": "user_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.institution_id": {
+      "name": "institution_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.college_name": {
+      "name": "college_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.semester": {
+      "name": "semester",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.role_invitations.division": {
+      "name": "division",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.ai_logs": {
+      "name": "ai_logs",
+      "description": "ai_logs",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/ai_logs"
+      }
+    },
+    "rowFilter.ai_logs.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.action": {
+      "name": "action",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.action_label": {
+      "name": "action_label",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.teacher_id": {
+      "name": "teacher_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.teacher_email": {
+      "name": "teacher_email",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.teacher_name": {
+      "name": "teacher_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.course_id": {
+      "name": "course_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.subject_name": {
+      "name": "subject_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.input_tokens": {
+      "name": "input_tokens",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.output_tokens": {
+      "name": "output_tokens",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.cost_usd": {
+      "name": "cost_usd",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.cost_inr": {
+      "name": "cost_inr",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.month": {
+      "name": "month",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.ai_logs.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.institutions": {
+      "name": "institutions",
+      "description": "institutions",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/institutions"
+      }
+    },
+    "rowFilter.institutions.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.code": {
+      "name": "code",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.address": {
+      "name": "address",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.slug": {
+      "name": "slug",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.domain": {
+      "name": "domain",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.institutions.config": {
+      "name": "config",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.marks": {
+      "name": "marks",
+      "description": "marks",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/marks"
+      }
+    },
+    "rowFilter.marks.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.marks.exam_id": {
+      "name": "exam_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.marks.student_id": {
+      "name": "student_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.marks.score": {
+      "name": "score",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.marks.answers": {
+      "name": "answers",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.marks.submitted_at": {
+      "name": "submitted_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    }
+  },
+  "externalDocs": {
+    "description": "PostgREST Documentation",
+    "url": "https://postgrest.org/en/v14/references/api.html"
+  }
+}

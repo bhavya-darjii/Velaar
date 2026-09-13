@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { ingestDocument } from '../services/ragService.js';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { createRequire } = await import('module');
@@ -44,7 +45,26 @@ export const extractPDFText = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // ── Respond immediately — client doesn't wait for RAG ingest ──────────────
     res.status(200).json({ text: extractedText, pages: numPages });
+
+    // ── Fire-and-forget: auto-ingest into RAG knowledge base ──────────────────
+    // Runs asynchronously AFTER the response is sent. A failure here never
+    // affects the extraction response the client already received.
+    const teacherId = req.user?.id;
+    if (teacherId && extractedText.trim().length >= 50) {
+      const sourceName = req.file.originalname || 'Uploaded PDF';
+      const courseId   = typeof req.body?.courseId === 'string' ? req.body.courseId : undefined;
+      const sourceType = typeof req.body?.sourceType === 'string' ? req.body.sourceType : 'syllabus';
+
+      ingestDocument({ text: extractedText, teacherId, courseId, sourceName, sourceType: sourceType as any })
+        .then(({ chunksIngested }) => {
+          console.log(`[pdfController] RAG auto-ingest: ${chunksIngested} chunks stored for "${sourceName}"`);
+        })
+        .catch(err => {
+          console.warn('[pdfController] RAG auto-ingest failed (non-critical):', err instanceof Error ? err.message : err);
+        });
+    }
   } catch (err) {
     console.error('[pdfController] extractPDFText error:', err);
     res.status(500).json({ error: 'Failed to extract text from PDF.', details: err instanceof Error ? err.message : String(err) });

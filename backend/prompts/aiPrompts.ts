@@ -46,12 +46,17 @@ Output Format: Return ONLY a raw JSON array matching this schema exactly:
  * 1. Lecture Roadmap — dynamic data only. Goes into `contents`.
  * All static rules live in roadmapSystem above (cached by Gemini).
  */
-export const buildRoadmapPrompt = (syllabusText, totalLectures, acceptedModules) => `
+export const buildRoadmapPrompt = (syllabusText, totalLectures, acceptedModules, ragContext = '') => `
 Generate EXACTLY ${totalLectures} lectures from the syllabus below.
 Accepted module names (use EXACTLY as written): [${acceptedModules}]
-
+${ragContext ? `
+=== RETRIEVED KNOWLEDGE FROM COURSE DOCUMENTS ===
+Use the following retrieved passages to enrich the roadmap with precise topic details:
+${ragContext}
+=================================================
+` : ''}
 Syllabus Text:
-"${syllabusText.substring(0, 30000)}"
+"${syllabusText.substring(0, 20000)}"
 `;
 
 // ─── THEORY QUESTIONS ──────────────────────────────────────────────────────────
@@ -95,9 +100,15 @@ Do NOT use emojis anywhere in the output.
  * 2a. Theory questions — dynamic data only. Goes into `contents`.
  * Rules live in theoryQuestionsSystem above (cached by Gemini).
  */
-export const buildTheoryQuestionsPrompt = (syllabusTopicsStr, numTheory, prefText) => `
+export const buildTheoryQuestionsPrompt = (syllabusTopicsStr, numTheory, prefText, ragContext = '') => `
 Generate exactly ${numTheory} theory questions covering these topics: [${syllabusTopicsStr}]
 ${prefText}
+${ragContext ? `
+=== RETRIEVED KNOWLEDGE FROM COURSE DOCUMENTS ===
+Ground questions in the following retrieved content where relevant:
+${ragContext}
+=================================================
+` : ''}
 Return ONLY a raw JSON array:
 [{ "question": "...", "courseOutcome": "CO1", "btLevel": "U" }]
 `;
@@ -157,7 +168,7 @@ Do NOT use emojis anywhere in the output.
  * 2b. Numerical questions — dynamic data only. Goes into `contents`.
  * Rules live in numericalQuestionsSystem above (cached by Gemini).
  */
-export const buildNumericalQuestionsPrompt = (numNumerical, numericalPrompt, isFullExample, pastNumericals) => `
+export const buildNumericalQuestionsPrompt = (numNumerical, numericalPrompt, isFullExample, pastNumericals, ragContext = '') => `
 Generate exactly ${numNumerical} numerical questions.
 
 TOPIC/GUIDANCE: "${numericalPrompt || 'General engineering / science applications'}"
@@ -167,7 +178,12 @@ ${isFullExample
 ${pastNumericals && pastNumericals.length > 0
   ? `STYLE REFERENCE (maintain this difficulty and style):\n${pastNumericals.map((q, i) => `${i + 1}. ${q}`).join('\n')}`
   : ''}
-
+${ragContext ? `
+=== RETRIEVED KNOWLEDGE FROM COURSE DOCUMENTS ===
+Use these retrieved passages to inform question difficulty and topic coverage:
+${ragContext}
+=================================================
+` : ''}
 Return ONLY a raw JSON array:
 [{ "question": "...", "courseOutcome": "CO2", "btLevel": "Ap" }]
 `;
@@ -201,7 +217,7 @@ export const buildGradeExamPrompt = (syllabus, examData) => `
   `;
 
 /** 5. Lesson plan */
-export const buildLessonPlanPrompt = (subjectName, moduleNames, moduleTexts) => `
+export const buildLessonPlanPrompt = (subjectName, moduleNames, moduleTexts, ragContext = '') => `
     Role: Senior Academic Curriculum Planner.
     Task: Create a highly detailed Lesson Plan and Course Outcomes grid for the subject: "${subjectName}".
     
@@ -214,9 +230,14 @@ export const buildLessonPlanPrompt = (subjectName, moduleNames, moduleTexts) => 
     6. DO NOT use emojis anywhere in the output.
     
     Modules List: ${moduleNames}
-    
+    ${ragContext ? `
+=== RETRIEVED KNOWLEDGE FROM COURSE DOCUMENTS ===
+Use the following retrieved passages from uploaded course materials to write precise, curriculum-aligned outcomes:
+${ragContext}
+=================================================
+` : ''}
     Module Contents for Context:
-    "${moduleTexts.substring(0, 30000)}"
+    "${moduleTexts.substring(0, 20000)}"
     
     Output Format: return ONLY a raw JSON string matching exactly this schema:
     {
@@ -335,7 +356,7 @@ export const buildCoPoMappingPrompt = (coText, poText) => `
   `;
 
 /** 10. Copilot system prompt */
-export const buildCopilotSystemPrompt = (ctx, userRole, pagePath, pageLabel, pageContext) => `
+export const buildCopilotSystemPrompt = (ctx, userRole, pagePath, pageLabel, pageContext, ragContext = '') => `
     You are "Velaar", an AI academic assistant built into the Velaar ERP platform for Indian engineering colleges.
 
     User Context:
@@ -350,9 +371,17 @@ export const buildCopilotSystemPrompt = (ctx, userRole, pagePath, pageLabel, pag
     - Generate question banks and exam papers from completed lecture topics
     - Generate lesson plans / curriculum roadmaps
     - Answer anything related to academics, teaching, and the Velaar platform
+    - Search and recall content from uploaded course documents (syllabi, textbooks, notes)
 
+    ${ragContext ? `=== RETRIEVED KNOWLEDGE FROM COURSE DOCUMENTS ===
+The following passages were automatically retrieved from the teacher's uploaded course materials.
+TREAT THESE AS PRIMARY GROUND TRUTH — prefer this content over your general training knowledge when answering.
+${ragContext}
+=================================================
+` : ''}
     Personality: Warm, helpful, and concise. You speak naturally - not like a formal bot. If the user just says hi or chats casually, respond like a friendly AI colleague.
     CRITICAL: Keep responses concise with markdown (bolding, bullet points). No essays unless asked.
+    ${ragContext ? 'When your answer is grounded in the retrieved documents above, briefly mention the source name at the end (e.g., "(Source: Module 3 Notes.pdf)").' : ''}
   `;
 
 /** 11. Copilot intent classifier system */
@@ -479,7 +508,7 @@ SLIDE STRUCTURE & QUANTITY RULES
  * 12. Lecture presentation — dynamic data only. Goes into `contents`.
  * All static rules live in presentationSystem above (cached by Gemini).
  */
-export const buildPresentationPrompt = (subjectName, lecture, overview, course) => {
+export const buildPresentationPrompt = (subjectName, lecture, overview, course, ragContext = '') => {
   const lectureChecklist = (lecture?.checklist || []).join(', ');
   const moduleName = lecture?.moduleName || '';
   const moduleList = (course?.modules || []).map(m => m.name).join(', ');
@@ -496,7 +525,14 @@ LECTURE DESCRIPTION: ${lecture?.description || ''}
 KEY TOPICS TO COVER: ${lectureChecklist}
 PREPARATION NOTES: ${overviewContext}
 LESSON PLAN CONTEXT: ${lessonPlanContext}
-
+${ragContext ? `
+=== RETRIEVED KNOWLEDGE FROM COURSE DOCUMENTS ===
+The following passages were retrieved from uploaded textbooks and notes for this lecture topic.
+Use these as PRIMARY SOURCE MATERIAL to write accurate, deep, reference-backed slide content.
+Prioritise facts, formulas, definitions, and examples from these passages.
+${ragContext}
+=================================================
+` : ''}
 Return ONLY valid JSON in this exact shape:
 {
   "title": "lecture title",

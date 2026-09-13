@@ -10,6 +10,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import hierarchicalAnalyticsRoutes from './routes/hierarchicalAnalyticsRoutes.js';
 import noticeRoutes from './routes/noticeRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
+import ragRoutes from './routes/ragRoutes.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
@@ -82,13 +83,14 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
 
-app.use('/api/ai',        aiRoutes);
-app.use('/api/export',    exportRoutes);
-app.use('/api/pdf',       pdfRoutes);
-app.use('/api/admin',     adminRoutes);
+app.use('/api/ai',             aiRoutes);
+app.use('/api/export',         exportRoutes);
+app.use('/api/pdf',            pdfRoutes);
+app.use('/api/admin',          adminRoutes);
 app.use('/api/hier-analytics', hierarchicalAnalyticsRoutes);
 app.use('/api/notice',         noticeRoutes);
-app.use('/api/timetable', timetableRoutes);
+app.use('/api/timetable',      timetableRoutes);
+app.use('/api/rag',            ragRoutes);            // RAG knowledge base
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
