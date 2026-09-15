@@ -34,6 +34,7 @@ import StudentAnalytics from './pages/teacher/StudentAnalytics';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminDashboardSkeleton from './components/skeletons/AdminDashboardSkeleton';
+import TimetableGenerator from './pipeline-features/admin/TimetableGenerator';
 import HodDashboard from './pages/hod/HodDashboard';
 import RegistrarDashboard from './pages/registrar/RegistrarDashboard';
 import SetupInstitutionPage from './pages/setup/SetupInstitutionPage';
@@ -182,6 +183,7 @@ function App() {
                   </ProtectedRoute>
                 }>
                   <Route index element={<AdminDashboard />} />
+                  <Route path="timetable" element={<TimetableGenerator />} />
                 </Route>
 
                 {/* HOD nested routes */}
