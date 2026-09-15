@@ -16,7 +16,6 @@ export const TEACHER_NAV = [
 
 export const ADMIN_NAV = [
   { path: '/admin', label: 'Dashboard' },
-  { path: '/admin/timetable', label: 'Timetable Generator' },
 ];
 
 export const HOD_NAV = [
