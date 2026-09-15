@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "set-demo-passwords": "npx tsx backend/scripts/set-demo-passwords.ts",
     "remove-demo-passwords": "npx tsx backend/scripts/remove-demo-passwords.ts",
-    "fetch-schema": "npx tsx backend/scripts/fetch-schema.ts"
+    "fetch-schema": "npx tsx backend/scripts/fetch-schema.ts",
+    "test-rag": "npx tsx backend/scripts/test-rag.ts"
   },
   "dependencies": {
     "@google/genai": "^1.52.0",

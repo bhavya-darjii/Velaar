@@ -34,6 +34,7 @@ API Keys
 server/serviceAccountKey.json
 backend/scripts/*
 !backend/scripts/fetch-schema.ts
+!backend/scripts/test-rag.ts
 docs/*
 !docs/DATABASE_SCHEMA.md
 !docs/database_schema.json

@@ -19,7 +19,7 @@ import { GoogleGenAI } from '@google/genai';
 import { adminSupabase } from '../supabaseAdmin.js';
 
 // ─── Embedding Model Config ────────────────────────────────────────────────────
-const EMBEDDING_MODEL = 'text-embedding-004'; // 768 dimensions
+const EMBEDDING_MODEL = 'gemini-embedding-001'; // 768 dimensions
 const CHUNK_SIZE_WORDS = 500;
 const CHUNK_OVERLAP_WORDS = 50;
 const DEFAULT_TOP_K = 5;
@@ -51,6 +51,9 @@ export async function embedText(text: string): Promise<number[]> {
   const response = await client.models.embedContent({
     model: EMBEDDING_MODEL,
     contents: text.substring(0, 8000), // Gemini embedding context limit
+    config: {
+      outputDimensionality: 768,
+    },
   });
 
   const values = response.embeddings?.[0]?.values;
@@ -227,12 +230,12 @@ export async function clearDocuments(opts: ClearOptions): Promise<{ deleted: num
   if (courseId)  query = query.eq('course_id',  courseId);
   if (teacherId) query = query.eq('teacher_id', teacherId);
 
-  const { error, count } = await query.select('*', { count: 'exact', head: false });
+  const { data, error } = await query.select('id');
 
   if (error) {
     console.error('[ragService] clearDocuments error:', error.message);
     throw new Error(`RAG clear failed: ${error.message}`);
   }
 
-  return { deleted: count ?? 0 };
+  return { deleted: data?.length ?? 0 };
 }
