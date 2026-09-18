@@ -1,7 +1,8 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign } from "docx";
 import { logAiUsage } from '../utils/logAiUsage.js';
+import { callGemini } from '../utils/gemini.js';
 
 const hText = (text, bold = false) => new Paragraph({ 
   children: [new TextRun({ text: String(text || ""), bold, size: 24, font: "Arial" })],
@@ -497,8 +498,6 @@ export const exportTemplatedExam = async (req, res) => {
       }
     };
 
-    const AI_KEY = process.env.GOOGLE_API_KEY;
-    if (!AI_KEY) throw new Error("Server API Key missing");
 
     const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign, BorderStyle } = await import("docx");
 
@@ -627,16 +626,12 @@ export const exportTemplatedExam = async (req, res) => {
         const systemInstruction = `You are a strict Universal Academic Exam Specialist.
         YOUR ONLY JOB is to generate EXACTLY the requested JSON structure. No explanations, no markdown. Answer purely based on the context provided in the prompt.`;
         
-        const fetchResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${AI_KEY}`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            systemInstruction: { parts: [{ text: systemInstruction }] },
-            contents: [{ parts: [{ text: promptText }] }],
-            generationConfig: { responseMimeType: "application/json", temperature: 0.8 }
-          }),
+        const data = await callGemini({
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: { responseMimeType: "application/json", temperature: 0.8 },
         });
-        const data = await fetchResp.json();
-        if (data.error) throw new Error(data.error.message);
+        if (data.error) throw new Error(data.error.message || "AI generation failed");
         
         let inputT = data.usageMetadata?.promptTokenCount || 0;
         let outputT = data.usageMetadata?.candidatesTokenCount || 0;
