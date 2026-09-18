@@ -1,7 +1,7 @@
 // Uses Supabase Admin client so writes bypass Row Level Security.
 import { adminSupabase } from '../supabaseAdmin.js';
 
-// ── Gemini 2.5 Flash pricing (USD per 1M tokens, May 2026) ───────────────────
+// ── Gemini Flash pricing (USD per 1M tokens, May 2026) ───────────────────
 const INPUT_COST_PER_MILLION  = 0.10;
 const OUTPUT_COST_PER_MILLION = 0.40;
 

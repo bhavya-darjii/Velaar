@@ -84,7 +84,7 @@ The platform incorporates a unified, context-aware Copilot accessible throughout
             │ 3. Semantic Vector Search
             ▼
 ┌───────────────────────┐
-│ Gemini 2.5 Flash LLM  │ ──> Grounded Generation with Citations
+│ Gemini 3.8 Flash LLM  │ ──> Grounded Generation with Citations
 └───────────────────────┘
 ```
 
@@ -108,7 +108,7 @@ The platform incorporates a unified, context-aware Copilot accessible throughout
 | Frontend Framework | React 19, TypeScript, Vite |
 | Backend Server | Node.js, Express 5, TypeScript |
 | Database & Vectors | Supabase (PostgreSQL 15+ with `pgvector` extension) |
-| Artificial Intelligence | Google Gemini (`gemini-2.5-flash`), `text-embedding-004` |
+| Artificial Intelligence | Google Gemini (`gemini-3.8-flash`), `text-embedding-004` |
 | Document Processing | docx, docxtemplater, file-saver |
 | Security & Middleware | Express Rate Limit, CORS, Row Level Security (RLS) |
 
