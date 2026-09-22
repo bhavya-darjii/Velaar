@@ -253,32 +253,34 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
           <span>{lecture.date ? `Lecture Conducted on: ${lecture.date} · ${lecture.time || 'Time TBD'}` : 'Schedule TBD'}</span>
         </div>
 
-        {generatingPpt && (
-          <div className="ppt-progress-panel">
-            <div className="ppt-progress-panel__header">
-              <span className="ppt-progress-panel__step-label">{currentStep?.label}</span>
-              <span className="ppt-progress-panel__timer">{formatTime(timer)}</span>
-            </div>
-            <div className="ppt-progress-bar-track">
-              <div
-                className="ppt-progress-bar-fill"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <div className="ppt-progress-panel__steps">
-              {GENERATION_STEPS.map((s, i) => (
-                <span
-                  key={i}
-                  className={`ppt-step-dot${
-                    i < stepIndex ? ' ppt-step-dot--done' :
-                    i === stepIndex ? ' ppt-step-dot--active' : ''
-                  }`}
-                  title={s.label}
+        <div className={`ppt-progress-wrapper ${generatingPpt ? 'is-expanded' : ''}`}>
+          <div className="ppt-progress-inner">
+            <div className="ppt-progress-panel">
+              <div className="ppt-progress-panel__header">
+                <span className="ppt-progress-panel__step-label">{currentStep?.label}</span>
+                <span className="ppt-progress-panel__timer">{formatTime(timer)}</span>
+              </div>
+              <div className="ppt-progress-bar-track">
+                <div
+                  className="ppt-progress-bar-fill"
+                  style={{ width: `${progress}%` }}
                 />
-              ))}
+              </div>
+              <div className="ppt-progress-panel__steps">
+                {GENERATION_STEPS.map((s, i) => (
+                  <span
+                    key={i}
+                    className={`ppt-step-dot${
+                      i < stepIndex ? ' ppt-step-dot--done' :
+                      i === stepIndex ? ' ppt-step-dot--active' : ''
+                    }`}
+                    title={s.label}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        )}
+        </div>
 
         {historyList.length > 0 && !generatingPpt && (
           <div className="lecture-history-mini">
@@ -288,7 +290,7 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
                 value={selectedHistoryId}
                 onChange={setSelectedHistoryId}
                 style={{ width: '180px' }}
-                options={historyList.map((item, idx) => {
+                options={historyList.map((item) => {
                   const dateStr = new Date(item.created_at).toLocaleString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -297,7 +299,7 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
                   });
                   return {
                     value: item.id,
-                    label: `${dateStr} ${idx === 0 ? '(Latest)' : ''}`,
+                    label: dateStr,
                   };
                 })}
               />
@@ -318,7 +320,7 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
           disabled={generatingPpt || done}
         >
           {generatingPpt && <span className="ppt-spinner" />}
-          {btnLabel}
+          <span>{btnLabel}</span>
         </button>
       </div>
     </section>

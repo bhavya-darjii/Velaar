@@ -171,44 +171,49 @@ const PptCard = ({ course, currentLecture }) => {
       <div className="ppt-card__body">
         {lectures.length > 0 ? (
           <>
-            {!loading && (
-              <GlassSelect
-                direction="up"
-                value={selectedId}
-                onChange={(id) => {
-                  setSelectedId(id);
-                  setError('');
-                }}
-                options={lectures.map((l) => ({
-                  value: `${l.division || 'A'}-${l.lectureNum || 0}`,
-                  label: `Div ${l.division || 'A'} — Lecture ${l.lectureNum}: ${l.title}`,
-                }))}
-              />
-            )}
+            <div className={`ppt-select-wrapper ${loading ? 'is-collapsed' : ''}`}>
+              <div className="ppt-select-inner">
+                <GlassSelect
+                  direction="up"
+                  value={selectedId}
+                  disabled={loading}
+                  onChange={(id) => {
+                    setSelectedId(id);
+                    setError('');
+                  }}
+                  options={lectures.map((l) => ({
+                    value: `${l.division || 'A'}-${l.lectureNum || 0}`,
+                    label: `Div ${l.division || 'A'} — Lecture ${l.lectureNum}: ${l.title}`,
+                  }))}
+                />
+              </div>
+            </div>
 
-            {loading && (
-              <div className="ppt-progress-panel">
-                <div className="ppt-progress-panel__header">
-                  <span className="ppt-progress-panel__step-label">{currentStep?.label}</span>
-                  <span className="ppt-progress-panel__timer">{formatTime(timer)}</span>
-                </div>
-                <div className="ppt-progress-bar-track">
-                  <div className="ppt-progress-bar-fill" style={{ width: `${progress}%` }} />
-                </div>
-                <div className="ppt-progress-panel__steps">
-                  {GENERATION_STEPS.map((s, i) => (
-                    <span
-                      key={i}
-                      className={`ppt-step-dot${
-                        i < stepIndex ? ' ppt-step-dot--done' :
-                        i === stepIndex ? ' ppt-step-dot--active' : ''
-                      }`}
-                      title={s.label}
-                    />
-                  ))}
+            <div className={`ppt-progress-wrapper ${loading ? 'is-expanded' : ''}`}>
+              <div className="ppt-progress-inner">
+                <div className="ppt-progress-panel">
+                  <div className="ppt-progress-panel__header">
+                    <span className="ppt-progress-panel__step-label">{currentStep?.label}</span>
+                    <span className="ppt-progress-panel__timer">{formatTime(timer)}</span>
+                  </div>
+                  <div className="ppt-progress-bar-track">
+                    <div className="ppt-progress-bar-fill" style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className="ppt-progress-panel__steps">
+                    {GENERATION_STEPS.map((s, i) => (
+                      <span
+                        key={i}
+                        className={`ppt-step-dot${
+                          i < stepIndex ? ' ppt-step-dot--done' :
+                          i === stepIndex ? ' ppt-step-dot--active' : ''
+                        }`}
+                        title={s.label}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
 
             <button
               className={`glass-btn glass-btn--primary ppt-card__btn${loading ? ' glass-btn--loading' : ''}${done ? ' glass-btn--done' : ''}`}

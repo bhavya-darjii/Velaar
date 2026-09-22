@@ -59,9 +59,72 @@
 .ppt-card__body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   overflow: visible;
   min-width: 0;
+}
+
+/* Smooth collapsible wrapper for lecture selector dropdown */
+.ppt-card .ppt-select-wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+  margin-bottom: 12px;
+  transition: 
+    grid-template-rows 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-bottom 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: visible;
+}
+
+.ppt-card .ppt-select-wrapper.is-collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  margin-bottom: 0px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ppt-card .ppt-select-inner {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: visible;
+}
+
+.ppt-card .ppt-select-wrapper.is-collapsed .ppt-select-inner {
+  overflow: hidden;
+}
+
+.ppt-card .glass-dropdown {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.ppt-card .glass-dropdown__trigger {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.ppt-card .glass-dropdown__trigger-label {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .ppt-card__select {
@@ -102,6 +165,8 @@
   margin: 0 !important;
   border-radius: 12px !important;
   cursor: pointer;
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, color 0.2s ease !important;
+  will-change: transform;
 }
 
 .ppt-card__btn:hover:not(:disabled) {
@@ -170,49 +235,64 @@
 }
 
 /* ── PPT Generation Progress Panel (TeacherHome sidebar) ──── */
+.ppt-card .ppt-progress-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+  margin-bottom: 0px;
+  transition: 
+    grid-template-rows 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-bottom 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.ppt-card .ppt-progress-wrapper.is-expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  margin-bottom: 12px;
+  pointer-events: auto;
+}
+
+.ppt-card .ppt-progress-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .ppt-card .ppt-progress-panel {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(15, 23, 42, 0.4) !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  animation: ppt-panel-in 0.3s ease both;
+  gap: 10px;
   overflow: hidden;
-}
-
-@keyframes ppt-panel-in {
-  from { opacity: 0; transform: translateY(5px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ppt-card .ppt-progress-panel__header {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
-}
-
-.ppt-card .ppt-progress-panel__step-icon {
-  font-size: 0.9rem;
-  flex-shrink: 0;
-  animation: ppt-icon-pop 0.25s ease both;
-}
-
-@keyframes ppt-icon-pop {
-  from { transform: scale(0.6); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
 }
 
 .ppt-card .ppt-progress-panel__step-label {
   flex: 1;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.88);
+  color: #ffffff !important;
+  letter-spacing: 0.01em;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
@@ -228,15 +308,15 @@
 .ppt-card .ppt-progress-panel__timer {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #ffffff !important;
   letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
 
 .ppt-card .ppt-progress-bar-track {
-  height: 4px;
-  background: rgba(255,255,255,0.08);
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -247,18 +327,18 @@
   border-radius: 999px;
   transition: width 0.7s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: width;
-  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
 }
 
 .ppt-card .ppt-progress-panel__steps {
   display: flex;
-  gap: 5px;
+  gap: 6px;
   align-items: center;
 }
 
 .ppt-card .ppt-step-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.20);
   transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease, box-shadow 0.35s ease;
@@ -278,11 +358,11 @@
 
 @keyframes ppt-dot-pulse {
   0%, 100% {
-    box-shadow: 0 0 3px rgba(34, 211, 238, 0.4);
+    box-shadow: 0 0 4px rgba(34, 211, 238, 0.4);
     transform: scale(1.45);
   }
   50% {
-    box-shadow: 0 0 10px rgba(34, 211, 238, 0.95);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.95);
     transform: scale(1.55);
   }
 }
