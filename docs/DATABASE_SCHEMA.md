@@ -1,6 +1,6 @@
 # Velaar Database Schema 🗄️
 
-> Automatically extracted from live Supabase instance (https://lnxkmdulkhbfyxchjjdl.supabase.co) on **2026-09-15T04:21:39.728Z**.
+> Automatically extracted from live Supabase instance (https://lnxkmdulkhbfyxchjjdl.supabase.co) on **2026-09-22T12:58:41.847Z**.
 
 ## Overview
 

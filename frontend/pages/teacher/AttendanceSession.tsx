@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
@@ -296,8 +296,8 @@ const AttendanceSession = () => {
                     size={280} 
                     level={"H"} 
                     includeMargin={true}
-                    fgColor="#0f172a"
-                    bgColor="transparent"
+                    fgColor="#000000"
+                    bgColor="#ffffff"
                     className="qr-code"
                   />
                 </div>

@@ -75,7 +75,7 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
         setCurrentLecture(next);
         setTimeout(() => setSlideIn(false), 500);
       } else {
-        alert("ðŸŽ‰ Course Completed! Congratulations.");
+        alert("🎉 Course Completed! Congratulations.");
       }
     }, 1500);
   };

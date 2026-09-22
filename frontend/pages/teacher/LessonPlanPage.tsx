@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
@@ -7,6 +7,13 @@ import { generateLessonPlan, generateSpecificField, generateSupplementaryLessonP
 import { exportLessonPlanToWord } from '../../utils/wordExport';
 import LessonPlanSkeleton from '../../components/skeletons/LessonPlanSkeleton';
 import './LessonPlanPage.css';
+
+const LinkIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
 
 const RefreshIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
@@ -376,7 +383,7 @@ const LessonPlanPage = () => {
                     Teaching Practice
                     <div style={{ marginTop: '5px' }}>
                       <button className={`link-btn ${lockedCols.teachingPractice ? 'linked' : ''}`} onClick={() => toggleLock('teachingPractice')} title="Link rows to edit all together">
-                        ðŸ”—
+                        <LinkIcon />
                       </button>
                     </div>
                   </th>
@@ -387,7 +394,7 @@ const LessonPlanPage = () => {
                         Formative
                         <div style={{ marginTop: '5px' }}>
                           <button className={`link-btn ${lockedCols.formative ? 'linked' : ''}`} onClick={() => toggleLock('formative')} title="Link rows to edit all together">
-                            ðŸ”—
+                            <LinkIcon />
                           </button>
                         </div>
                       </div>
@@ -395,7 +402,7 @@ const LessonPlanPage = () => {
                         Summative
                         <div style={{ marginTop: '5px' }}>
                           <button className={`link-btn ${lockedCols.summative ? 'linked' : ''}`} onClick={() => toggleLock('summative')} title="Link rows to edit all together">
-                            ðŸ”—
+                            <LinkIcon />
                           </button>
                         </div>
                       </div>

@@ -317,7 +317,7 @@ const LectureCard = ({ course, lecture, globalGenerating, setGlobalGenerating })
           onClick={generateNewPpt}
           disabled={generatingPpt || done}
         >
-          {generatingPpt && <span className="ppt-spinner" style={{ marginTop: 7 }} />}
+          {generatingPpt && <span className="ppt-spinner" />}
           {btnLabel}
         </button>
       </div>

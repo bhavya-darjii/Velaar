@@ -477,7 +477,6 @@ select.glass-input:focus {
   background: #cbd5e1 !important;
 }
 
-.glass-btn:disabled,
 .glass-container .glass-btn:disabled,
 .lesson-plan-container .glass-btn:disabled {
   background: rgba(255, 255, 255, 0.2) !important;
@@ -552,7 +551,6 @@ select.glass-input:focus {
   transform: translateY(-1px) !important;
 }
 
-.glass-btn.primary:disabled,
 .glass-container .glass-btn.primary:disabled,
 .lesson-plan-container .glass-btn.primary:disabled {
   background: rgba(255, 255, 255, 0.2) !important;

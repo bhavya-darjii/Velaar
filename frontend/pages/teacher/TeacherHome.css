@@ -80,9 +80,17 @@
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.ppt-card__btn {
+.ppt-card__btn,
+.ppt-card__btn:disabled,
+.ppt-card__btn.glass-btn--loading,
+.ppt-card__btn.glass-btn--done {
   /* Match the Generate New PPT control in Lecture Overview. */
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  opacity: 1 !important;
   font-size: 0.9rem !important;
+  font-weight: 700 !important;
   width: 100% !important;
   height: 42px !important;
   display: flex !important;
@@ -92,6 +100,21 @@
   letter-spacing: 0.06em;
   line-height: normal !important;
   margin: 0 !important;
+  border-radius: 12px !important;
+  cursor: pointer;
+}
+
+.ppt-card__btn:hover:not(:disabled) {
+  background: #f0f0f0 !important;
+  color: #000000 !important;
+}
+
+.ppt-card__btn:disabled {
+  cursor: not-allowed;
+}
+
+.ppt-card__btn.glass-btn--loading {
+  cursor: wait !important;
 }
 
 .ppt-card__btn .ppt-spinner {

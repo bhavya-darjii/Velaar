@@ -75,7 +75,12 @@
 }
 
 .history-btn-mini {
-  font-size: 0.85rem;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  opacity: 1 !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
   padding: 0;
   width: 180px;
   height: 40px;
@@ -83,11 +88,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px !important;
   margin: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.generate-btn-mini {
+.history-btn-mini:hover {
+  background: #f0f0f0 !important;
+  color: #000000 !important;
+}
+
+.generate-btn-mini,
+.generate-btn-mini:disabled,
+.generate-btn-mini.glass-btn--loading,
+.generate-btn-mini.glass-btn--done {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  opacity: 1 !important;
   font-size: 0.9rem !important;
+  font-weight: 700 !important;
   width: 392px !important;
   max-width: 100% !important;
   height: 42px !important;
@@ -97,15 +118,25 @@
   gap: 8px !important;
   line-height: normal !important;
   margin: 0 !important;
+  border-radius: 12px !important;
+  cursor: pointer;
 }
 
+.generate-btn-mini:hover:not(:disabled) {
+  background: #f0f0f0 !important;
+  color: #000000 !important;
+}
 
+.generate-btn-mini:disabled {
+  cursor: not-allowed;
+}
 
-.ppt-card__btn--done {
-  background: #22c55e !important;
-  color: #ffffff !important;
-  border-color: #16a34a !important;
-  cursor: default;
+.generate-btn-mini.glass-btn--loading {
+  cursor: wait !important;
+}
+
+.generate-btn-mini.glass-btn--done {
+  cursor: default !important;
 }
 
 /* ── PPT Generation Progress Panel ─────────────────────────── */

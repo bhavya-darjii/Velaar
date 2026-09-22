@@ -414,18 +414,41 @@
 
 .link-btn {
   background: transparent !important;
+  background-color: transparent !important;
   border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   cursor: pointer !important;
-  padding: 2px;
-  font-size: 1.1rem;
-  opacity: 0.8;
-  transition: all 0.2s;
-  filter: grayscale(100%);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8 !important;
 }
 
-.link-btn:focus { outline: none !important; }
-.link-btn:hover { opacity: 1; filter: grayscale(50%); background: transparent !important; }
-.link-btn.linked { opacity: 1; filter: grayscale(0%); background: transparent !important; }
+.link-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.link-btn:focus,
+.link-btn:active,
+.link-btn:hover {
+  outline: none !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.link-btn.linked {
+  color: #ffffff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+}
 
 .bt-cell { vertical-align: middle !important; text-align: center !important; }
 

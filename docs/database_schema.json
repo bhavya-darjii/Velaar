@@ -2574,6 +2574,21 @@
       }
     },
     "/rpc/get_my_role": {
+      "get": {
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) get_my_role"
+        ]
+      },
       "post": {
         "parameters": [
           {

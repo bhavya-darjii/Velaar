@@ -1,7 +1,7 @@
 /**
  * Shared Gemini API client.
  * Intelligent API Key Pooling with LRU (Least Recently Used) Rotation.
- * Uses the official @google/genai SDK with gemini-3.7-flash.
+ * Uses the official @google/genai SDK with gemini-3.8-flash.
  *
  * Keys are read from GOOGLE_API_KEYS env var as a comma-separated list.
  * Format: email:key,email:key,...
