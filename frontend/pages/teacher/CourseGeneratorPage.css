@@ -789,52 +789,44 @@ select.glass-input:focus {
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Syllabus Intake Card — styled to match the teacher home signature glass cards */
+/* Syllabus Intake Card */
 .syllabus-hero-card {
-  background: var(--liquid-glass-bg);
-  backdrop-filter: var(--liquid-glass-blur);
-  -webkit-backdrop-filter: var(--liquid-glass-blur);
-  border: 1px solid var(--liquid-glass-border);
-  border-radius: 24px;
-  padding: 38px 32px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 35px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--liquid-glass-shadow);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.syllabus-hero-card:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .ai-engine-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .syllabus-hero-title {
-  font-size: 1.9rem;
+  font-size: 1.85rem;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
   letter-spacing: -0.02em;
 }
 
 .syllabus-hero-subtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.96rem;
   max-width: 640px;
   margin: 0 auto 28px auto;
@@ -873,32 +865,29 @@ select.glass-input:focus {
 
 /* Dropzone */
 .syllabus-dropzone {
-  border: 1.5px dashed rgba(255, 255, 255, 0.22);
-  border-radius: 20px;
-  padding: 44px 28px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 45px 25px;
+  background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
   position: relative;
   max-width: 620px;
   margin: 0 auto;
 }
 .syllabus-dropzone:hover, .syllabus-dropzone.drag-active {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
   transform: translateY(-2px);
 }
 
 .dropzone-icon {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   margin: 0 auto 16px auto;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -913,7 +902,7 @@ select.glass-input:focus {
 }
 .dropzone-sub-text {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 20px;
 }
 
@@ -926,35 +915,29 @@ select.glass-input:focus {
 .syllabus-textarea {
   width: 100%;
   min-height: 180px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 16px;
-  padding: 18px;
+  background: rgba(10, 15, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px;
   color: #ffffff;
-  font-family: inherit;
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-family: monospace;
+  font-size: 0.88rem;
+  line-height: 1.5;
   box-sizing: border-box;
   resize: vertical;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .syllabus-textarea:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
 }
 
 /* Processing Box */
 .syllabus-processing-card {
-  padding: 32px;
-  border-radius: 20px;
-  background: var(--liquid-glass-bg);
-  backdrop-filter: var(--liquid-glass-blur);
-  -webkit-backdrop-filter: var(--liquid-glass-blur);
-  border: 1px solid var(--liquid-glass-border);
-  box-shadow: var(--liquid-glass-shadow);
+  padding: 30px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   max-width: 540px;
   margin: 20px auto;
   text-align: center;
@@ -962,11 +945,10 @@ select.glass-input:focus {
 }
 
 .syllabus-processing-card.parsing-card {
-  background: var(--liquid-glass-bg);
-  backdrop-filter: var(--liquid-glass-blur);
-  -webkit-backdrop-filter: var(--liquid-glass-blur);
-  border: 1px solid var(--liquid-glass-border);
-  box-shadow: var(--liquid-glass-shadow);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
   justify-content: center;
