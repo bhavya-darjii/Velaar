@@ -1,9 +1,7 @@
 .marks-dashboard {
-  padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  min-height: 60vh; /* prevent layout collapse on route transitions */
 }
 
 .marks-grid {
@@ -14,8 +12,10 @@
 
 .marks-card {
   padding: 30px;
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
   border: 1px solid var(--liquid-glass-border);
   box-shadow: var(--liquid-glass-shadow);
   display: flex;
@@ -62,11 +62,6 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.marks-select option {
-  background: #09090b;
-  color: #ffffff;
-}
-
 .exam-selection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -77,6 +72,8 @@
   padding: 35px 30px;
   border-radius: 16px;
   background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
   border: 1px solid var(--liquid-glass-border);
   box-shadow: var(--liquid-glass-shadow);
   cursor: pointer;
@@ -138,30 +135,38 @@
 }
 
 .marks-card-desc {
-  color: #ffffff;
+  color: #e2e8f0;
   line-height: 1.6;
   font-size: 0.95rem;
   margin: 0;
 }
 
+.edit-selection-view {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 0 50px;
+}
+
 .selection-title {
   font-size: 2.5rem;
   font-weight: 800;
-  margin-top: 30px;
+  margin-top: 0;
   margin-bottom: 10px;
   color: #ffffff;
 }
 
 .selection-subtitle {
-  color: #ffffff;
-  margin-bottom: 40px;
-  font-size: 1.1rem;
+  color: #e2e8f0;
+  margin-bottom: 35px;
+  font-size: 1.05rem;
 }
 
 .marks-exam-card p {
-  color: #ffffff;
+  color: #e2e8f0;
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 /* Glass back button - matches marks-card exactly */
@@ -172,13 +177,121 @@
   padding: 10px 20px;
   border-radius: 16px;
   background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
   border: 1px solid var(--liquid-glass-border);
   box-shadow: var(--liquid-glass-shadow);
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   margin-bottom: 20px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.back-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Focused single-card hero layout — top-aligned, matches home page card start */
+.marks-hero-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 0 80px;
+}
+
+.marks-card--featured {
+  max-width: 680px;
+  width: 100%;
+  padding: 44px 48px;
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow);
+  border-radius: 24px;
+}
+
+.marks-card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.marks-card-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px 16px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.marks-card--featured h2 {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.marks-card-desc {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 480px;
+}
+
+.marks-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.marks-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.marks-form-group label {
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+.marks-action-btn--large {
+  padding: 16px;
+  font-size: 1.05rem;
+  margin-top: 25px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 1.2px;
+}
+
+@media (max-width: 650px) {
+  .marks-form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .marks-card--featured {
+    padding: 30px 22px;
+  }
+  .marks-card--featured h2 {
+    font-size: 1.8rem;
+  }
 }

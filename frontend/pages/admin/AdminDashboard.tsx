@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { semesterToClass } from '../../services/dataService';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -339,6 +340,17 @@ export default function AdminDashboard() {
           delete inviteData.division;
           await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
         }
+        // Also update existing user in users table if they already registered
+        const userUpdate: any = {
+          user_type: inviteRole,
+          institution_id: currentUserData.institution_id,
+          college_name: currentUserData.college_name || 'Unknown',
+        };
+        if (inviteRole === 'student') {
+          if (inviteSemester) userUpdate.semester = inviteSemester;
+          if (inviteDivision) userUpdate.division = inviteDivision.trim().toUpperCase();
+        }
+        await supabase.from('users').update(userUpdate).eq('email', email);
         count++;
       }
       setInviteMsg(`Successfully sent ${count} invitation(s).`);
@@ -384,6 +396,17 @@ export default function AdminDashboard() {
         if (upsertErr && upsertErr.message?.includes('division')) {
           const fallbackRows = inviteRows.map(r => { const copy = { ...r }; delete copy.division; return copy; });
           await supabase.from('role_invitations').upsert(fallbackRows, { onConflict: 'email' });
+        }
+        // Also update existing users in users table
+        for (const row of inviteRows) {
+          const uUp: any = {
+            user_type: row.user_type,
+            institution_id: row.institution_id,
+            college_name: row.college_name,
+          };
+          if (row.semester) uUp.semester = row.semester;
+          if (row.division) uUp.division = row.division;
+          await supabase.from('users').update(uUp).eq('email', row.email);
         }
       }
       setInviteMsg(`Successfully invited ${count} users.`);
@@ -660,24 +683,31 @@ export default function AdminDashboard() {
                       </td>
                       <td>
                         {u.user_type === 'student' ? (
-                          <input 
-                            type="text"
-                            value={u.semester || ''}
-                            onChange={async (e) => {
-                              const newSem = e.target.value;
-                              setUsers(prev => prev.map(user => user.uid === u.uid ? { ...user, semester: newSem } : user));
-                            }}
-                            onBlur={async (e) => {
-                              try {
-                                await supabase.from('users').update({ semester: e.target.value }).eq('id', u.id || u.uid);
-                              } catch (err) {
-                                console.error('Failed to update semester', err);
-                              }
-                            }}
-                            className="va-glass-input"
-                            style={{ width: '60px', padding: '4px 8px', fontSize: '0.85rem' }}
-                            placeholder="-"
-                          />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <input 
+                              type="text"
+                              value={u.semester || ''}
+                              onChange={(e) => {
+                                const newSem = e.target.value;
+                                setUsers(prev => prev.map(user => (user.id || user.uid) === (u.id || u.uid) ? { ...user, semester: newSem } : user));
+                              }}
+                              onBlur={async (e) => {
+                                try {
+                                  await supabase.from('users').update({ semester: e.target.value }).eq('id', u.id || u.uid);
+                                } catch (err) {
+                                  console.error('Failed to update semester', err);
+                                }
+                              }}
+                              className="va-glass-input"
+                              style={{ width: '48px', padding: '4px 8px', fontSize: '0.85rem', textAlign: 'center' }}
+                              placeholder="-"
+                            />
+                            {u.semester && (
+                              <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.55)', fontWeight: 600 }}>
+                                {semesterToClass(u.semester)}
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
                         )}
@@ -689,7 +719,7 @@ export default function AdminDashboard() {
                             value={u.division || ''}
                             onChange={(e) => {
                               const newDiv = e.target.value.toUpperCase();
-                              setUsers(prev => prev.map(user => user.uid === u.uid ? { ...user, division: newDiv } : user));
+                              setUsers(prev => prev.map(user => (user.id || user.uid) === (u.id || u.uid) ? { ...user, division: newDiv } : user));
                             }}
                             onBlur={async (e) => {
                               const cleanDiv = e.target.value.trim().toUpperCase();

@@ -1,103 +1,179 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import GlassSelect from '../../components/shared/GlassSelect';
+import { getDistinctClasses, classToSemesters, getDistinctDivisions } from '../../services/dataService';
 import './MarksDashboard.css';
+
+const EXAM_OPTIONS = [
+  { slug: 'tt1', title: 'Term Test 1', desc: 'Edit mapped marks for Term Test 1.' },
+  { slug: 'tt2', title: 'Term Test 2', desc: 'Edit mapped marks for Term Test 2.' },
+  { slug: 'endSem', title: 'End Semester Exam', desc: 'Edit mapped marks for End Semester Examination.' },
+];
 
 const MarksDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { course } = useOutletContext<any>() || {};
 
-  const [detailedClass, setDetailedClass] = useState('SY - A');
-  const [detailedTest, setDetailedTest] = useState('Term Test 1');
-  const [viewClass, setViewClass] = useState('SY - A');
-  const [deleteTest, setDeleteTest] = useState('Term Test 1');
+  const [classOptions, setClassOptions] = useState<string[]>([]);
+  const [divisionOptions, setDivisionOptions] = useState<string[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+
+  // Initialize from location.state if navigated back
+  const [editClass, setEditClass] = useState<string>(() => (location.state as any)?.selectedClass || '');
+  const [editSemester, setEditSemester] = useState<string>(() => (location.state as any)?.selectedSemester || '');
+  const [editDivision, setEditDivision] = useState<string>(() => (location.state as any)?.selectedDivision || '');
+
+  useEffect(() => {
+    let mounted = true;
+
+    Promise.all([
+      getDistinctClasses(course?.institution_id),
+      getDistinctDivisions(course?.institution_id),
+    ]).then(([fetchedClasses, fetchedDivisions]) => {
+      if (!mounted) return;
+
+      if (fetchedClasses && fetchedClasses.length > 0) {
+        setClassOptions(fetchedClasses);
+        const initialClass = editClass && fetchedClasses.includes(editClass) ? editClass : fetchedClasses[0];
+        setEditClass(initialClass);
+        const validSems = classToSemesters(initialClass);
+        if (!editSemester || !validSems.includes(editSemester)) {
+          setEditSemester(validSems[0] || '1');
+        }
+      } else {
+        setClassOptions([]);
+      }
+
+      if (fetchedDivisions && fetchedDivisions.length > 0) {
+        setDivisionOptions(fetchedDivisions);
+        if (!editDivision || !fetchedDivisions.includes(editDivision)) {
+          setEditDivision(fetchedDivisions[0]);
+        }
+      } else {
+        setDivisionOptions([]);
+      }
+
+      setLoadingClasses(false);
+    });
+
+    return () => { mounted = false; };
+  }, [course?.institution_id]);
+
+  const handleEditClassChange = (newCls: string) => {
+    setEditClass(newCls);
+    const sems = classToSemesters(newCls);
+    if (sems.length > 0) {
+      setEditSemester(sems[0]);
+    }
+  };
 
   // Show exam selection view when on /teacher/marks/edit
   const isEditSelection = location.pathname === '/teacher/marks/edit';
 
+  const currentClass = (location.state as any)?.selectedClass || editClass;
+  const currentSemester = (location.state as any)?.selectedSemester || editSemester;
+  const currentDivision = (location.state as any)?.selectedDivision || editDivision;
+
+  const handleOpenMarksSheet = () => {
+    navigate('/teacher/marks/edit', {
+      state: {
+        selectedClass: editClass,
+        selectedSemester: editSemester,
+        selectedDivision: editDivision,
+      },
+    });
+  };
+
+  const handleSelectExam = (examSlug: string, examTitle: string) => {
+    navigate(`/teacher/marks/edit/${examSlug}`, {
+      state: {
+        selectedClass: currentClass,
+        selectedSemester: currentSemester,
+        selectedDivision: currentDivision,
+        selectedTest: examTitle,
+      },
+    });
+  };
+
   return (
     <div className="marks-dashboard">
       {!isEditSelection ? (
-        <div className="marks-grid">
-          {/* Edit Marks */}
-          <div className="marks-card glass">
-            <h3>Edit Marks</h3>
-            <div className="card-controls">
+        <div className="marks-hero-container">
+          {/* Focused & Enlarged Edit Marks Card */}
+          <div className="marks-card glass-card marks-card--featured">
+            <div className="marks-card-header">
+              <span className="marks-card-badge">Examination Control</span>
+              <h2>Edit Marks</h2>
               <p className="marks-card-desc">
-                Modify marks mapped securely against your Course Outcomes according to the paper pattern structure generated in the Examination module.
+                Select your class, semester, and division, then click Open Marks Sheet to choose your test.
               </p>
-              <button className="marks-action-btn" onClick={() => navigate('/teacher/marks/edit')}>Edit Marks</button>
             </div>
-          </div>
 
-          {/* Detailed View */}
-          <div className="marks-card glass">
-            <h3>Detailed View</h3>
             <div className="card-controls">
-              <label>Select Class</label>
-              <GlassSelect
-                value={detailedClass}
-                onChange={setDetailedClass}
-                options={['SY - A', 'SY - B', 'TY - A', 'TY - B']}
-              />
-              <label>Select Test</label>
-              <GlassSelect
-                value={detailedTest}
-                onChange={setDetailedTest}
-                options={['Term Test 1', 'Term Test 2', 'End Semester']}
-              />
-              <button className="marks-action-btn" onClick={() => alert('Coming soon!')}>View Marks</button>
-            </div>
-          </div>
+              <div className="marks-form-row">
+                <div className="marks-form-group">
+                  <label>Select Class</label>
+                  <GlassSelect
+                    value={editClass}
+                    onChange={handleEditClassChange}
+                    options={classOptions}
+                    placeholder={loadingClasses ? 'Loading...' : 'Select Class'}
+                  />
+                </div>
+                <div className="marks-form-group">
+                  <label>Select Semester</label>
+                  <GlassSelect
+                    value={editSemester}
+                    onChange={setEditSemester}
+                    options={classToSemesters(editClass).map(s => ({ value: s, label: `Semester ${s}` }))}
+                    placeholder="Select Semester"
+                  />
+                </div>
+              </div>
 
-          {/* View Marks */}
-          <div className="marks-card glass">
-            <h3>View Marks</h3>
-            <div className="card-controls">
-              <label>Select Class</label>
-              <GlassSelect
-                value={viewClass}
-                onChange={setViewClass}
-                options={['SY - A', 'SY - B', 'TY - A', 'TY - B']}
-              />
-              <label>Average Conversion</label>
-              <input type="text" className="marks-input" placeholder="Conversion Logic" />
-              <button className="marks-action-btn" onClick={() => alert('Coming soon!')}>View Marks</button>
-            </div>
-          </div>
+              <div className="marks-form-group">
+                <label>Select Division</label>
+                <GlassSelect
+                  value={editDivision}
+                  onChange={setEditDivision}
+                  options={divisionOptions.map(d => ({ value: d, label: `Division ${d}` }))}
+                  placeholder={loadingClasses ? 'Loading...' : 'Select Division'}
+                />
+              </div>
 
-          {/* Delete Marks */}
-          <div className="marks-card glass">
-            <h3>Delete Marks</h3>
-            <div className="card-controls">
-              <label>Select Test</label>
-              <GlassSelect
-                value={deleteTest}
-                onChange={setDeleteTest}
-                options={['Term Test 1', 'Term Test 2', 'End Semester']}
-              />
-              <button className="marks-action-btn marks-delete-btn" onClick={() => alert('Coming soon!')}>Delete Marks</button>
+              <button
+                className="marks-action-btn marks-action-btn--large"
+                onClick={handleOpenMarksSheet}
+                disabled={!editClass || !editSemester}
+              >
+                Open Marks Sheet →
+              </button>
             </div>
           </div>
         </div>
       ) : (
         <div className="edit-selection-view">
           <h2 className="selection-title">Select Examination</h2>
-          <p className="selection-subtitle">Choose the examination to dynamically edit student marks based on your paper pattern.</p>
+          {(currentClass || currentSemester || currentDivision) && (
+            <p className="selection-subtitle">
+              {currentClass && <>Year - <strong>{currentClass}</strong></>}
+              {currentSemester && <> &nbsp;·&nbsp; Semester - <strong>{currentSemester}</strong></>}
+              {currentDivision && <> &nbsp;·&nbsp; Division - <strong>{currentDivision}</strong></>}
+            </p>
+          )}
           
           <div className="exam-selection-grid">
-            <div className="marks-exam-card glass" onClick={() => navigate('/teacher/marks/edit/tt1')}>
-              <h3>Term Test 1</h3>
-              <p>Edit mapped marks for TT1.</p>
-            </div>
-            <div className="marks-exam-card glass" onClick={() => navigate('/teacher/marks/edit/tt2')}>
-              <h3>Term Test 2</h3>
-              <p>Edit mapped marks for TT2.</p>
-            </div>
-            <div className="marks-exam-card glass" onClick={() => navigate('/teacher/marks/edit/endSem')}>
-              <h3>End Semester Exam</h3>
-              <p>Edit mapped marks for End Sem.</p>
-            </div>
+            {EXAM_OPTIONS.map((exam) => (
+              <div
+                key={exam.slug}
+                className="marks-exam-card glass-card"
+                onClick={() => handleSelectExam(exam.slug, exam.title)}
+              >
+                <h3>{exam.title}</h3>
+                <p>{exam.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

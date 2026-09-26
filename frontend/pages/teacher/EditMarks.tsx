@@ -1,8 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
 import React, { useState, useEffect, useMemo } from 'react';
-import { useOutletContext, useNavigate, useParams } from 'react-router-dom';
+import { useOutletContext, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { formatStudentClass, semesterToClass } from '../../services/dataService';
 import GlassSelect from '../../components/shared/GlassSelect';
 import './EditMarks.css';
 import '../teacher/MarksDashboard.css';
@@ -66,6 +67,10 @@ const EditMarks = () => {
   const { examId } = useParams();
   const { course, setCourse, loading } = useOutletContext();
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedClass = (location.state as any)?.selectedClass || null;
+  const selectedSemester = (location.state as any)?.selectedSemester || null;
+  const selectedDivision = (location.state as any)?.selectedDivision || null;
 
   const [marksData, setMarksData] = useState({});
   const [students, setStudents] = useState([]);
@@ -88,21 +93,35 @@ const EditMarks = () => {
       try {
         let q = supabase.from('users').select('*').eq('user_type', 'student');
         if (course?.institution_id) q = q.eq('institution_id', course.institution_id);
-        if (course?.semester) q = q.eq('semester', course.semester);
         const { data: snap, error } = await q;
         if (error) throw error;
-        const loaded = (snap || []).map(d => ({
+        let loaded = (snap || []).map(d => ({
           uid: d.id,
           name: d.full_name || d.name || d.email || 'Unknown Student',
           rollNo: d.roll_no || d.rollNo || d.id.substring(0, 6).toUpperCase(),
+          semester: d.semester,
+          division: d.division,
+          studentClass: formatStudentClass(d.semester, d.division),
         })).sort((a, b) => a.name.localeCompare(b.name));
+
+        if (selectedSemester) {
+          const filtered = loaded.filter(s => String(s.semester).trim() === String(selectedSemester).trim());
+          if (filtered.length > 0) loaded = filtered;
+        } else if (selectedClass) {
+          const filtered = loaded.filter(s => semesterToClass(s.semester) === selectedClass);
+          if (filtered.length > 0) loaded = filtered;
+        }
+        if (selectedDivision) {
+          const filtered = loaded.filter(s => (s.division || '').trim().toUpperCase() === selectedDivision.toUpperCase());
+          if (filtered.length > 0) loaded = filtered;
+        }
         setStudents(loaded);
       } catch (err) {
         console.error('Failed to fetch students', err);
       }
     };
     fetchStudents();
-  }, [course?.institution_id, course?.semester]);
+  }, [course?.institution_id, selectedClass, selectedSemester, selectedDivision]);
 
   // ─── Build questions from pattern ────────────────────────────────────────
   useEffect(() => {
@@ -307,8 +326,8 @@ const EditMarks = () => {
   }, [pattern]);
 
   const examTitle =
-    examId === 'tt1' ? 'Term Test - 1' :
-      examId === 'tt2' ? 'Term Test - 2' :
+    examId === 'tt1' ? 'Term Test : 1' :
+      examId === 'tt2' ? 'Term Test : 2' :
         'End Semester Examination';
 
   if (loading || !course) return <div className="loading-spinner">Loading...</div>;
@@ -326,7 +345,12 @@ const EditMarks = () => {
 
       <div className="edit-marks-header glass-card">
         <div>
-          <h2 style={{ margin: 0 }}>Edit Marks: {examTitle}</h2>
+          <h2 style={{ margin: 0 }}>
+            Edit Marks: {examTitle}
+            {selectedClass ? ` — ${selectedClass}` : ''}
+            {selectedSemester ? ` (Sem ${selectedSemester})` : ''}
+            {selectedDivision ? ` · Div ${selectedDivision}` : ''}
+          </h2>
           {maxMarks > 0 && (
             <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
               Max marks: {maxMarks} · Best-of logic applied per question group

@@ -115,6 +115,127 @@ export const getStudentMarksFromCourse = (course, studentId) => {
 // â”€â”€â”€ Students per teacher / course â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
+ * Convert semester number (1-8) to academic class name (FY, SY, TY, LY).
+ */
+export const semesterToClass = (semester?: string | number | null): string => {
+  if (!semester) return '';
+  const s = String(semester).trim();
+  if (s === '1' || s === '2') return 'FY';
+  if (s === '3' || s === '4') return 'SY';
+  if (s === '5' || s === '6') return 'TY';
+  if (s === '7' || s === '8') return 'LY';
+  const up = s.toUpperCase();
+  if (['FY', 'SY', 'TY', 'LY'].includes(up)) return up;
+  return s;
+};
+
+/**
+ * Get valid semester numbers (1-8) corresponding to an academic class (FY, SY, TY, LY).
+ */
+export const classToSemesters = (className?: string | null): string[] => {
+  const c = (className || '').trim().toUpperCase();
+  if (c === 'FY') return ['1', '2'];
+  if (c === 'SY') return ['3', '4'];
+  if (c === 'TY') return ['5', '6'];
+  if (c === 'LY') return ['7', '8'];
+  return ['1', '2', '3', '4', '5', '6', '7', '8'];
+};
+
+/**
+ * Format a student's semester and division into a standardized class representation (e.g. "TY - A", "SY - B").
+ */
+export const formatStudentClass = (semester?: string | null, division?: string | null): string => {
+  if (!semester && !division) return '';
+  const cls = semesterToClass(semester);
+  const div = (division || '').trim().toUpperCase();
+  if (cls && div) return `${cls} - ${div}`;
+  if (cls) return cls;
+  return div;
+};
+
+/**
+ * Fetch distinct academic classes (e.g. 'FY', 'SY', 'TY', 'LY') dynamically present in Supabase.
+ */
+export const getDistinctClasses = async (institutionId?: string | null): Promise<string[]> => {
+  try {
+    const classSet = new Set<string>();
+
+    // 1. Fetch from users table
+    let usersQ = supabase.from('users').select('semester');
+    if (institutionId) {
+      usersQ = usersQ.eq('institution_id', institutionId);
+    }
+    const { data: usersData } = await usersQ;
+    (usersData || []).forEach((u: any) => {
+      const cls = semesterToClass(u.semester);
+      if (['FY', 'SY', 'TY', 'LY'].includes(cls)) classSet.add(cls);
+    });
+
+    // 2. Fetch from courses table
+    let coursesQ = supabase.from('courses').select('semester');
+    if (institutionId) {
+      coursesQ = coursesQ.eq('institution_id', institutionId);
+    }
+    const { data: coursesData } = await coursesQ;
+    (coursesData || []).forEach((c: any) => {
+      const cls = semesterToClass(c.semester);
+      if (['FY', 'SY', 'TY', 'LY'].includes(cls)) classSet.add(cls);
+    });
+
+    // 3. Fetch from role_invitations table
+    let invitesQ = supabase.from('role_invitations').select('semester');
+    if (institutionId) {
+      invitesQ = invitesQ.eq('institution_id', institutionId);
+    }
+    const { data: invitesData } = await invitesQ;
+    (invitesData || []).forEach((inv: any) => {
+      const cls = semesterToClass(inv.semester);
+      if (['FY', 'SY', 'TY', 'LY'].includes(cls)) classSet.add(cls);
+    });
+
+    const ordered = ['FY', 'SY', 'TY', 'LY'];
+    const result = ordered.filter(c => classSet.has(c));
+    return result.length > 0 ? result : Array.from(classSet);
+  } catch (err) {
+    console.error('Failed to get classes from Supabase:', err);
+    return [];
+  }
+};
+
+/**
+ * Fetch distinct divisions (e.g. 'A', 'B', 'C') present in Supabase users table.
+ */
+export const getDistinctDivisions = async (institutionId?: string | null): Promise<string[]> => {
+  try {
+    const divSet = new Set<string>();
+
+    let q = supabase.from('users').select('division').eq('user_type', 'student');
+    if (institutionId) q = q.eq('institution_id', institutionId);
+    const { data } = await q;
+
+    (data || []).forEach((u: any) => {
+      const div = (u.division || '').trim().toUpperCase();
+      if (div) divSet.add(div);
+    });
+
+    // Also check role_invitations
+    let invQ = supabase.from('role_invitations').select('division');
+    if (institutionId) invQ = invQ.eq('institution_id', institutionId);
+    const { data: invData } = await invQ;
+
+    (invData || []).forEach((inv: any) => {
+      const div = (inv.division || '').trim().toUpperCase();
+      if (div) divSet.add(div);
+    });
+
+    return Array.from(divSet).sort();
+  } catch (err) {
+    console.error('Failed to get divisions from Supabase:', err);
+    return [];
+  }
+};
+
+/**
  * Fetch all students for a given course (matched by institution_id + semester).
  */
 export const getStudentsForCourse = async (course) => {

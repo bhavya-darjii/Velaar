@@ -80,24 +80,25 @@ function App() {
       try {
         const { data: userData, error } = await supabase
           .from('users')
-          .select('user_type')
+          .select('user_type, semester, division, institution_id')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         let role = userData ? (userData.user_type || 'pending') : 'pending';
 
-        if (role === 'pending' && user.email) {
+        if (user.email) {
           const { data: inviteData } = await supabase
             .from('role_invitations')
             .select('*')
             .eq('email', user.email.toLowerCase())
-            .single();
+            .maybeSingle();
 
           if (inviteData) {
-            role = inviteData.user_type || 'pending';
-            const updatePayload = {
+            const oldRole = role;
+            role = inviteData.user_type || role || 'pending';
+            const updatePayload: any = {
               user_type: role,
-              institution_id: inviteData.institution_id || null,
+              institution_id: inviteData.institution_id || userData?.institution_id || null,
               college_name: inviteData.college_name || null,
             };
             if (inviteData.semester) updatePayload.semester = inviteData.semester;
@@ -106,8 +107,10 @@ function App() {
             await supabase.from('users').update(updatePayload).eq('id', user.id);
             await supabase.from('role_invitations').delete().eq('email', user.email.toLowerCase());
             
-            window.location.href = '/';
-            return;
+            if (oldRole !== role) {
+              window.location.href = '/';
+              return;
+            }
           }
         }
 

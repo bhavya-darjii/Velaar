@@ -196,10 +196,10 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
   // start on the first copilot message. This silently pings /api/health on mount
   // so the backend is ready by the time the user types their first message.
   useEffect(() => {
-    const rawBase = (import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:5000/api";
-    const base = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
-    const healthUrl = base.endsWith('/api') ? `${base.replace(/\/api$/, '')}/api/health` : `${base}/health`;
-    fetch(healthUrl, { method: 'GET', signal: AbortSignal.timeout(8000) }).catch(() => {});
+    // VITE_API_BASE_URL is e.g. "https://velaar-api.onrender.com/api"
+    // so appending "/health" gives the correct "/api/health" endpoint.
+    const base = ((import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, '');
+    fetch(`${base}/health`, { method: 'GET', signal: AbortSignal.timeout(8000) }).catch(() => {});
   }, []);
 
   useEffect(() => {
