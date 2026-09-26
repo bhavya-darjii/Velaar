@@ -11,6 +11,7 @@ import { adminSupabase } from '../supabaseAdmin.js';
 
 // Extend Express Request to include the verified Supabase user
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: User;
@@ -45,5 +46,33 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
   }
 
   req.user = user;
+  next();
+};
+
+/**
+ * Middleware: optional Supabase JWT auth.
+ * If a valid token is provided, attaches user to req.user.
+ * If no token or invalid/expired token, proceeds anyway without failing with 401.
+ * Useful for public/guest-accessible endpoints like Copilot.
+ */
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.slice(7);
+  if (!adminSupabase) {
+    return next();
+  }
+
+  try {
+    const { data: { user } } = await adminSupabase.auth.getUser(token);
+    if (user) {
+      req.user = user;
+    }
+  } catch {
+    // Ignore invalid/expired token in optionalAuth
+  }
   next();
 };

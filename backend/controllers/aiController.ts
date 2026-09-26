@@ -34,18 +34,26 @@ interface TeacherCtx {
 }
 
 /**
- * Extract teacher context from the VERIFIED JWT user only.
- * Body fields teacherId/teacherEmail are intentionally ignored
- * to prevent any logged-in user from spoofing another teacher's identity.
- * courseId/subjectName are non-sensitive metadata so they can come from the body.
+ * Extract teacher context from the VERIFIED JWT user when available,
+ * with fallbacks to body and pageContext for guest / Copilot usage.
  */
-const getCtx = (req: Request): TeacherCtx => ({
-  teacherId:    req.user?.id    ?? 'unknown',
-  teacherEmail: req.user?.email ?? '',
-  teacherName:  '',                                   // fetched server-side in logAiUsage if needed
-  courseId:     typeof req.body.courseId === 'string'    ? req.body.courseId    : '',
-  subjectName:  typeof req.body.subjectName === 'string' ? req.body.subjectName : '',
-});
+const getCtx = (req: Request): TeacherCtx => {
+  const pageCourse = (req.body.pageContext as { course?: { id?: string | number; subjectName?: string } })?.course;
+  const courseId = (typeof req.body.courseId === 'string' && req.body.courseId)
+    ? req.body.courseId
+    : (pageCourse?.id ? String(pageCourse.id) : '');
+  const subjectName = (typeof req.body.subjectName === 'string' && req.body.subjectName)
+    ? req.body.subjectName
+    : (pageCourse?.subjectName ? String(pageCourse.subjectName) : '');
+
+  return {
+    teacherId:    req.user?.id    ?? (typeof req.body.teacherId === 'string' ? req.body.teacherId : 'guest-teacher'),
+    teacherEmail: req.user?.email ?? (typeof req.body.teacherEmail === 'string' ? req.body.teacherEmail : ''),
+    teacherName:  (req.user?.user_metadata?.full_name as string) || (typeof req.body.teacherName === 'string' ? req.body.teacherName : 'Teacher'),
+    courseId,
+    subjectName,
+  };
+};
 
 // ─── 1. Generate Lecture Roadmap ──────────────────────────────────────────────
 export const generateLectureRoadmap = async (req: Request, res: Response): Promise<void> => {

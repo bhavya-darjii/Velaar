@@ -337,8 +337,12 @@ export const copilotChatService = async (
     .reverse()
     .find(m => m.role === 'user')?.content || '';
 
-  // Retrieve relevant passages from uploaded documents
-  const ragContext = lastUserMsg.trim().length >= 3
+  // Skip RAG for short/casual messages (greetings, thanks, simple questions) — saves 2-3s
+  const wordCount = lastUserMsg.trim().split(/\s+/).length;
+  const isSubstantiveQuery = wordCount >= 8 || /\b(syllabus|topic|chapter|module|explain|describe|what is|how does|difference|define|notes|marks|exam|question)\b/i.test(lastUserMsg);
+
+  // Retrieve relevant passages from uploaded documents (only for substantive queries)
+  const ragContext = isSubstantiveQuery
     ? await retrieveContext({
         query:     lastUserMsg,
         courseId:  ctx.courseId  || undefined,
@@ -355,6 +359,7 @@ export const copilotChatService = async (
   const data = await callGemini({
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents: formattedContents,
+    generationConfig: { maxOutputTokens: 512 }, // keep chat replies concise and fast
   });
   const usage = data.usageMetadata || {};
   await logAiUsage({ action: 'copilot-chat', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
@@ -370,7 +375,7 @@ export const classifyIntentService = async (
   const data = await callGemini({
     systemInstruction: { parts: [{ text: copilotIntentSystem }] },
     contents: [{ parts: [{ text: `User text: "${prompt}"\nCourse Context: ${JSON.stringify(context)}` }] }],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 256 },
   });
   const usage = data.usageMetadata || {};
   await logAiUsage({ action: 'classify-intent', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });

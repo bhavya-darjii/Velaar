@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -189,6 +189,17 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
       }
     };
     fetchName();
+  }, []);
+
+  // ── Keep Render backend warm ───────────────────────────────────────────────
+  // Free-tier Render spins down after ~15min inactivity, causing a 15-20s cold
+  // start on the first copilot message. This silently pings /api/health on mount
+  // so the backend is ready by the time the user types their first message.
+  useEffect(() => {
+    const rawBase = (import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:5000/api";
+    const base = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const healthUrl = base.endsWith('/api') ? `${base.replace(/\/api$/, '')}/api/health` : `${base}/health`;
+    fetch(healthUrl, { method: 'GET', signal: AbortSignal.timeout(8000) }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -410,20 +421,32 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
     abortControllerRef.current = new AbortController();
     const options = { signal: abortControllerRef.current.signal };
 
-    let intentRes;
-    try {
-      intentRes = await classifyCopilotIntent(msg, pageContext?.course || {}, options);
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        addMessage("assistant", "Execution stopped.", "aborted", () => handleSend(msg));
-        setIsTyping(false);
-        return;
+    // ── Fast local intent detection ───────────────────────────────────────────
+    // Avoid a full remote Gemini call for intent classification on every message.
+    // Only call the /intent API if the message explicitly looks like a generation
+    // trigger. Otherwise go straight to copilot-chat — saves ~4-6s per message.
+    const lowerMsg = msg.toLowerCase();
+    const isGenerationTrigger =
+      /\b(generate|create|make|build|write|produce)\b/.test(lowerMsg) &&
+      /\b(question|quiz|exam|paper|test|bank|lesson\s*plan|curriculum|roadmap|plan)\b/.test(lowerMsg);
+
+    let intentRes = { intent: "general_chat", extractedParams: {} };
+
+    if (isGenerationTrigger) {
+      try {
+        intentRes = await classifyCopilotIntent(msg, pageContext?.course || {}, options);
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          addMessage("assistant", "Execution stopped.", "aborted", () => handleSend(msg));
+          setIsTyping(false);
+          return;
+        }
+        intentRes = { intent: "general_chat", extractedParams: {} };
       }
-      throw err;
     }
 
-    if (intentRes.error || !intentRes.intent || intentRes.intent === "general_chat") {
-      // Use real AI chat for general responses
+    if (!intentRes.intent || intentRes.intent === "general_chat") {
+      // Go straight to copilot-chat — no intent round-trip needed
       const chatHistory = [...messages, { role: "user", content: msg }];
       let chatRes;
       try {

@@ -24,7 +24,15 @@ const getTeacherContext = async () => {
 
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
-  if (!user) return {};
+  if (!user) {
+    return {
+      teacherId:    'guest-teacher',
+      teacherEmail: '',
+      teacherName:  'Teacher',
+      courseId:     _pendingCourseId,
+      subjectName:  _pendingSubjectName,
+    };
+  }
 
   let teacherName = user.user_metadata?.full_name || '';
 
@@ -61,13 +69,32 @@ export const setAiContextCourse = (courseId, subjectName) => {
 // Invalidate cache on sign-out
 export const clearAiContext = () => { _cachedCtx = null; };
 
+// Helper to reliably get a non-expired access token (refreshes if needed)
+export const getValidAccessToken = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
+    if (expiresAt && expiresAt < Date.now() + 60000) {
+      const { data: refreshed, error } = await supabase.auth.refreshSession();
+      if (!error && refreshed?.session?.access_token) {
+        return refreshed.session.access_token;
+      }
+    }
+    return session.access_token || null;
+  } catch (err) {
+    console.warn('[aiService] Failed to get valid access token:', err);
+    return null;
+  }
+};
+
 // â”€â”€â”€ Shared fetch helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const aiPost = async (endpoint, body, options = {}) => {
   const ctx = await getTeacherContext();
 
-  // Get the Supabase JWT to send as Authorization header (required by requireAuth middleware)
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
+  // Get the valid Supabase JWT to send as Authorization header (required by requireAuth middleware)
+  const token = await getValidAccessToken();
 
   let res;
   try {
@@ -326,16 +353,19 @@ export const classifyCopilotIntent = async (prompt, context, options = {}) => {
 export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel, pageContext, options = {}) => {
   try {
     const ctx = await getTeacherContext();
-    // The Copilot endpoint is protected by the same requireAuth middleware as
-    // the other AI endpoints, so include the current Supabase access token.
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
+    // Copilot endpoint supports optional auth — attach token if logged in, otherwise allow guest usage
+    const token = await getValidAccessToken();
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_URL}/copilot-chat`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-      },
+      headers,
       body: JSON.stringify({
         messages,
         userRole,
@@ -346,7 +376,18 @@ export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel
       }),
       signal: options?.signal,
     });
-    return res.json();
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      return { error: res.ok ? "Invalid server response" : `Server error (${res.status})` };
+    }
+
+    if (!res.ok) {
+      return { error: data?.error || `Server error (${res.status})` };
+    }
+    return data;
   } catch (error) {
     if (error.name === 'AbortError') throw error;
     console.error("Copilot Chat Error:", error);
