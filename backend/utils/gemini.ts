@@ -12,13 +12,13 @@
 
 import { GoogleGenAI, type GenerateContentParameters } from '@google/genai';
 
-const PRIMARY_MODEL = 'gemini-3.8-flash';
+const PRIMARY_MODEL = 'gemini-3.5-flash';
 const FALLBACK_MODELS = [
-  'gemini-3.7-flash',
-  'gemini-3.6-flash',
-  'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
   'gemini-flash-lite-latest',
+  'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
 ];
 const ALL_MODELS = [PRIMARY_MODEL, ...FALLBACK_MODELS];
 
