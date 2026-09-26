@@ -26,6 +26,19 @@ const BT_OPTIONS = [
   { label: "Create (C)", value: "C" },
 ];
 
+// Module-level question cleaner: strips AI metadata, prefixes, answers, formulas
+const cleanQuestionText = (text) => {
+  if (typeof text !== 'string') return '';
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^[*#\-\s]+/, '');
+  cleaned = cleaned.replace(/^(?:(?:ai[\s-]?)?generated(?:\s*question)?|question\s*\d+|q\d+)[ \t]*[:\-\–—.]+[ \t]*/i, '');
+  cleaned = cleaned.replace(/^\[(?:ai[\s-]?)?generated[^\]]*\][ \t]*/i, '');
+  cleaned = cleaned.replace(/\n\s*(?:Answer|Solution|Formula|Formulas|Key|Working|Steps|Derivation|Hint|Explanation)[ \t]*:[\s\S]*$/i, '');
+  cleaned = cleaned.replace(/\s*\((?:ai[\s-]?)?generated[^)]*\)\s*$/i, '');
+  cleaned = cleaned.replace(/\s*\[(?:ai[\s-]?)?generated[^\]]*\]\s*$/i, '');
+  return cleaned.trim();
+};
+
 const ExamSection = ({ course }) => {
   const [examLoading, setExamLoading] = useState(false);
   const [timer, setTimer] = useState(0);
@@ -113,18 +126,6 @@ const ExamSection = ({ course }) => {
         ],
       }),
     ];
-
-const cleanQuestionText = (text) => {
-  if (typeof text !== 'string') return '';
-  let cleaned = text.trim();
-  cleaned = cleaned.replace(/^[*#\-\s]+/, '');
-  cleaned = cleaned.replace(/^(?:(?:ai[\s-]?)?generated(?:\s*question)?|question\s*\d+|q\d+)[ \t]*[:\-\–—.]+[ \t]*/i, '');
-  cleaned = cleaned.replace(/^\[(?:ai[\s-]?)?generated[^\]]*\][ \t]*/i, '');
-  cleaned = cleaned.replace(/\n\s*(?:Answer|Solution|Formula|Formulas|Key|Working|Steps|Derivation|Hint|Explanation)[ \t]*:[\s\S]*$/i, '');
-  cleaned = cleaned.replace(/\s*\((?:ai[\s-]?)?generated[^)]*\)\s*$/i, '');
-  cleaned = cleaned.replace(/\s*\[(?:ai[\s-]?)?generated[^\]]*\]\s*$/i, '');
-  return cleaned.trim();
-};
 
     // 2. Add Questions to Table including the CO data
     questions.forEach((q, index) => {
