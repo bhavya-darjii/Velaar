@@ -104,26 +104,39 @@ const AttendanceSession = () => {
   useEffect(() => {
     if (!sessionId) return;
     
+    // Enrich a log row with user info (no FK join - separate query)
+    const enrichWithUser = async (log) => {
+      const { data: student } = await supabase
+        .from('users')
+        .select('full_name, email')
+        .eq('id', log.student_id)
+        .single();
+      return { ...log, users: student || { full_name: 'Unknown', email: '' } };
+    };
+
     const fetchInitial = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('attendance_logs')
-        .select('id, marked_at, student_id, users(full_name, email)')
+        .select('id, marked_at, student_id')
         .eq('session_id', sessionId);
-      if (data) setAttendees(data);
+      if (error) { console.error('Attendance fetch error:', error); return; }
+      if (data) {
+        const enriched = await Promise.all(data.map(enrichWithUser));
+        setAttendees(enriched);
+      }
     };
     fetchInitial();
 
-    const channel = supabase.channel(`public:attendance_logs:session_id=eq.${sessionId}`)
+    const channel = supabase.channel(`attendance_live_${sessionId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'attendance_logs', filter: `session_id=eq.${sessionId}` },
         async (payload) => {
-          const { data: student } = await supabase.from('users').select('full_name, email').eq('id', payload.new.student_id).single();
-          const newAttendee = {
-            ...payload.new,
-            users: student
-          };
-          setAttendees((prev) => [...prev, newAttendee]);
+          const enriched = await enrichWithUser(payload.new);
+          setAttendees((prev) => {
+            if (prev.some(a => a.id === enriched.id)) return prev;
+            return [...prev, enriched];
+          });
         }
       )
       .subscribe();
