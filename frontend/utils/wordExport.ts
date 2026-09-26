@@ -4,7 +4,9 @@ import { supabase } from '../services/supabase';
 import { getApiBaseUrl } from '../services/apiConfig';
 
 const base = getApiBaseUrl();
-const API_URL = base ? `${base}/export` : '/api/export';
+// Ensure /api is always present — VITE_API_BASE_URL may or may not include it
+const apiRoot = base ? (base.endsWith('/api') ? base : `${base}/api`) : '';
+const API_URL = apiRoot ? `${apiRoot}/export` : '/api/export';
 
 export const exportLessonPlanToWord = async (course, lp) => {
   try {

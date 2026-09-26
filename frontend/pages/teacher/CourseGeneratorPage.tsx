@@ -1813,16 +1813,18 @@ const CourseGenerator = () => {
                 ))}
               </div>
 
-              <div className="action-row" style={{ marginTop: "25px" }}>
+
+              <div className="action-row" style={{ marginTop: "25px", width: "100%", display: "block" }}>
                 <button
                   className="glass-btn primary"
                   onClick={handleSaveCourse}
                   disabled={loading}
-                  style={{ background: "#ffffff", color: "#000000", border: "1px solid #ffffff", fontWeight: 800, padding: "12px 24px", width: "100%" }}
+                  style={{ background: "#ffffff", color: "#000000", border: "1px solid #ffffff", fontWeight: 800, padding: "14px 24px", width: "100%", display: "block", boxSizing: "border-box", textAlign: "center", borderRadius: "10px", fontSize: "0.95rem", letterSpacing: "0.05em" }}
                 >
                   {loading ? "Saving Course..." : "Confirm & Save Course to Cloud"}
                 </button>
               </div>
+
             </div>
           )}
         </div>

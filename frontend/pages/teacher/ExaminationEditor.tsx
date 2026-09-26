@@ -362,7 +362,11 @@ const ExaminationEditor = () => {
     setGenerating(true);
     try {
       const apiBase = getApiBaseUrl();
-      const exportUrl = apiBase ? `${apiBase}/export/exam` : '/api/export/exam';
+      // Ensure /api is always present — VITE_API_BASE_URL may or may not include it
+      const apiRoot = apiBase
+        ? (apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`)
+        : '';
+      const exportUrl = apiRoot ? `${apiRoot}/export/exam` : '/api/export/exam';
       const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(exportUrl, {
         method: "POST",
