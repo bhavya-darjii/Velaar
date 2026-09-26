@@ -383,8 +383,19 @@ const ExaminationEditor = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate.");
+        let errMsg = `Server error (${response.status})`;
+        try {
+          const ct = response.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const errorData = await response.json();
+            errMsg = errorData.error || errMsg;
+          } else if (response.status === 503 || response.status === 502) {
+            errMsg = 'The Velaar server is waking up — please wait 20 seconds and try again.';
+          } else if (response.status === 404) {
+            errMsg = 'API endpoint not found. The server may still be deploying.';
+          }
+        } catch (_) { /* keep default errMsg */ }
+        throw new Error(errMsg);
       }
 
       const blob = await response.blob();

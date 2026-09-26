@@ -45,3 +45,6 @@ docs/*
 
 # Compiled backend output 
 dist-backend/
+
+# Local credentials reference
+CREDENTIALS.md
