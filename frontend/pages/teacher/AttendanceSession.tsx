@@ -9,7 +9,7 @@ import './AttendanceSession.css';
 
 const AttendanceSession = () => {
   const { course } = useOutletContext() || {};
-  const courseId = course?.id || 'demo-course';
+  const courseId = course?.id || null;
   
   // Tabs
   const [activeTab, setActiveTab] = useState('live'); // 'live' or 'analytics'
@@ -27,6 +27,10 @@ const AttendanceSession = () => {
   
   // Create a new session in Postgres
   const startSession = async () => {
+    if (!courseId) {
+      alert('No course selected. Please select a course before starting an attendance session.');
+      return;
+    }
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
@@ -40,7 +44,7 @@ const AttendanceSession = () => {
           course_id: courseId,
           teacher_id: user.id,
           qr_token: newQrString,
-          expires_at: new Date(Date.now() + 10 * 1000).toISOString()
+          expires_at: new Date(Date.now() + 7 * 1000).toISOString()
         })
         .select()
         .single();
@@ -52,6 +56,7 @@ const AttendanceSession = () => {
       setSessionActive(true);
     } catch (err) {
       console.error("Error starting session:", err);
+      alert(`Failed to start session: ${err.message}`);
     }
   };
 
