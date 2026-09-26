@@ -193,6 +193,17 @@ export const exportTemplatedExam = async (req, res) => {
         if (hasNumerical) { Object.assign(aiData, results[numericalIdx].json); totalInputTokens += results[numericalIdx].usage.input; totalOutputTokens += results[numericalIdx].usage.output; }
       }
 
+      const buffer = await buildExamDocx({
+        course,
+        date,
+        duration,
+        maxMarks,
+        scheme,
+        regularExam,
+        pattern,
+        aiData,
+      });
+
       const docName = numSets === 1 
         ? `${course.subjectName || 'Exam'}_${examType}.docx`
         : `${course.subjectName || 'Exam'}_${examType}_Set_${s}.docx`;
