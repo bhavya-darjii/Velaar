@@ -2,6 +2,7 @@
 // @ts-nocheck
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { claimRoleInvite } from '../../services/adminService';
 import { useState, useEffect } from 'react';
 
 import './LoginPage.css';
@@ -35,19 +36,27 @@ const LoginPage = () => {
   useEffect(() => {
     let mounted = true;
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user && mounted) {
         setLoading(true);
-        supabase.from('users').select('user_type').eq('id', session.user.id).single()
-          .then(({ data }) => {
-            if (data && mounted) {
-              redirectByRole(data.user_type, navigate);
+        try {
+          const { data } = await supabase.from('users').select('user_type').eq('id', session.user.id).single();
+          let role = data?.user_type || 'pending';
+          if (role === 'pending') {
+            const claimResult = await claimRoleInvite();
+            if (claimResult.success && claimResult.role && claimResult.role !== 'pending') {
+              role = claimResult.role;
             }
-          })
-          .catch((err) => console.error("Error fetching user data:", err))
-          .finally(() => {
-            if (mounted) setLoading(false);
-          });
+          }
+          if (mounted) {
+            localStorage.setItem('cachedUserRole', role);
+            redirectByRole(role, navigate);
+          }
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+        } finally {
+          if (mounted) setLoading(false);
+        }
       }
     });
 
@@ -90,32 +99,32 @@ const LoginPage = () => {
     setLoading(true);
     setAuthError('');
     try {
+      let authenticatedUser = null;
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        if (data?.user) {
-          const { data: userDoc } = await supabase
-            .from('users')
-            .select('user_type')
-            .eq('id', data.user.id)
-            .single();
-          const role = userDoc?.user_type || 'pending';
-          localStorage.setItem('cachedUserRole', role);
-          redirectByRole(role, navigate);
-        }
+        authenticatedUser = data?.user;
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (data?.user) {
-          const { data: userDoc } = await supabase
-            .from('users')
-            .select('user_type')
-            .eq('id', data.user.id)
-            .single();
-          const role = userDoc?.user_type || 'pending';
-          localStorage.setItem('cachedUserRole', role);
-          redirectByRole(role, navigate);
+        authenticatedUser = data?.user;
+      }
+
+      if (authenticatedUser) {
+        const { data: userDoc } = await supabase
+          .from('users')
+          .select('user_type')
+          .eq('id', authenticatedUser.id)
+          .single();
+        let role = userDoc?.user_type || 'pending';
+        if (role === 'pending') {
+          const claimResult = await claimRoleInvite();
+          if (claimResult.success && claimResult.role && claimResult.role !== 'pending') {
+            role = claimResult.role;
+          }
         }
+        localStorage.setItem('cachedUserRole', role);
+        redirectByRole(role, navigate);
       }
     } catch (error) {
       console.error('Email Auth Error:', error);

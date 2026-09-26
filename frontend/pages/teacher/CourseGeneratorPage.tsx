@@ -106,50 +106,37 @@ const PARSE_STEPS = [
 const CourseGenerator = () => {
   const navigate = useNavigate();
 
-  // Load persisted draft if available
-  const savedDraft = useMemo(() => {
-    try {
-      const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const [step, setStep] = useState(() => savedDraft?.step ?? 0); // 0: Syllabus Intake, 1: Course Architecture & Schedule, 2: Preview & Confirm
+  const [step, setStep] = useState(0); // 0: Syllabus Intake, 1: Course Architecture & Schedule, 2: Preview & Confirm
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState("");
   const [costInfo, setCostInfo] = useState(null);
 
   // Basic Form Data
-  const [subjectName, setSubjectName] = useState(() => savedDraft?.subjectName || "");
-  const [courseCode, setCourseCode] = useState(() => savedDraft?.courseCode || "");
-  const [department, setDepartment] = useState(() => savedDraft?.department || "");
-  const [program, setProgram] = useState(() => savedDraft?.program || "");
-  const [semester, setSemester] = useState(() => savedDraft?.semester || "");
-  const [totalLectures, setTotalLectures] = useState(() => savedDraft?.totalLectures ?? 20);
-  const [startDate, setStartDate] = useState(() => savedDraft?.startDate || "");
-  const [endDate, setEndDate] = useState(() => savedDraft?.endDate || "");
+  const [subjectName, setSubjectName] = useState("");
+  const [courseCode, setCourseCode] = useState("");
+  const [department, setDepartment] = useState("");
+  const [program, setProgram] = useState("");
+  const [semester, setSemester] = useState("");
+  const [totalLectures, setTotalLectures] = useState(20);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Syllabus Specific Data
-  const [credits, setCredits] = useState(() => savedDraft?.credits || { theory: 3, practical: 0, tutorial: 0 });
-  const [prerequisites, setPrerequisites] = useState(() => savedDraft?.prerequisites || []);
-  const [prerequisitesHours, setPrerequisitesHours] = useState(() => savedDraft?.prerequisitesHours || 0);
-  const [conclusionSection, setConclusionSection] = useState(() => savedDraft?.conclusionSection || null);
-  const [courseObjectives, setCourseObjectives] = useState(() => savedDraft?.courseObjectives || []);
-  const [courseOutcomes, setCourseOutcomes] = useState(() => savedDraft?.courseOutcomes || []);
-  const [totalHoursTheory, setTotalHoursTheory] = useState(() => savedDraft?.totalHoursTheory || 0);
-  const [textBooks, setTextBooks] = useState(() => savedDraft?.textBooks || []);
-  const [referenceBooks, setReferenceBooks] = useState(() => savedDraft?.referenceBooks || []);
-  const [usefulLinks, setUsefulLinks] = useState(() => savedDraft?.usefulLinks || []);
-  const [syllabusRawText, setSyllabusRawText] = useState(() => savedDraft?.syllabusRawText || "");
-  const [syllabusParseStatus, setSyllabusParseStatus] = useState(() => {
-    if (savedDraft?.syllabusParseStatus === "done") return "done";
-    return "idle";
-  }); // idle | extracting | parsing | done | error
+  const [credits, setCredits] = useState({ theory: 3, practical: 0, tutorial: 0 });
+  const [prerequisites, setPrerequisites] = useState([]);
+  const [prerequisitesHours, setPrerequisitesHours] = useState(0);
+  const [conclusionSection, setConclusionSection] = useState(null);
+  const [courseObjectives, setCourseObjectives] = useState([]);
+  const [courseOutcomes, setCourseOutcomes] = useState([]);
+  const [totalHoursTheory, setTotalHoursTheory] = useState(0);
+  const [textBooks, setTextBooks] = useState([]);
+  const [referenceBooks, setReferenceBooks] = useState([]);
+  const [usefulLinks, setUsefulLinks] = useState([]);
+  const [syllabusRawText, setSyllabusRawText] = useState("");
+  const [syllabusParseStatus, setSyllabusParseStatus] = useState("idle"); // idle | extracting | parsing | done | error
   const [syllabusParseError, setSyllabusParseError] = useState("");
-  const [syllabusMode, setSyllabusMode] = useState(() => savedDraft?.syllabusMode || "upload"); // upload | paste
-  const [pastedSyllabusText, setPastedSyllabusText] = useState(() => savedDraft?.pastedSyllabusText || "");
+  const [syllabusMode, setSyllabusMode] = useState("upload"); // upload | paste
+  const [pastedSyllabusText, setPastedSyllabusText] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const syllabusFileInputRef = useRef(null);
 
@@ -257,27 +244,22 @@ const CourseGenerator = () => {
   };
 
   // Divisions Data
-  const [numDivisions, setNumDivisions] = useState(() => savedDraft?.numDivisions || 1);
-  const [divisionsList, setDivisionsList] = useState(() => savedDraft?.divisionsList || ["A"]);
+  const [numDivisions, setNumDivisions] = useState(1);
+  const [divisionsList, setDivisionsList] = useState(["A"]);
 
   // Module Data
-  const [numModules, setNumModules] = useState(() => savedDraft?.numModules || 1);
-  const [modules, setModules] = useState(() => {
-    if (savedDraft?.modules && Array.isArray(savedDraft.modules) && savedDraft.modules.length > 0) {
-      return savedDraft.modules;
-    }
-    return [
-      { id: 1, name: "", extractedText: "", moduleLabel: "1", coMapped: null, hoursPerModule: 0 },
-    ];
-  });
+  const [numModules, setNumModules] = useState(1);
+  const [modules, setModules] = useState([
+    { id: 1, name: "", extractedText: "", moduleLabel: "1", coMapped: null, hoursPerModule: 0 },
+  ]);
 
   // Schedule State (Nested by Division: { "A": { "Mon": ["10:00 AM"] }, "B": {...} })
-  const [weeklySchedule, setWeeklySchedule] = useState(() => savedDraft?.weeklySchedule || { A: {} });
-  const [activeDivision, setActiveDivision] = useState(() => savedDraft?.activeDivision || "A");
+  const [weeklySchedule, setWeeklySchedule] = useState({ A: {} });
+  const [activeDivision, setActiveDivision] = useState("A");
   const [activeDay, setActiveDay] = useState("Mon");
 
   // Preview State
-  const [previewDivision, setPreviewDivision] = useState(() => savedDraft?.previewDivision || "A");
+  const [previewDivision, setPreviewDivision] = useState("A");
 
   // Time Picker State
   const [hour, setHour] = useState("10");
@@ -285,7 +267,7 @@ const CourseGenerator = () => {
   const [ampm, setAmpm] = useState("AM");
 
   // Roadmap object containing arrays for each division
-  const [generatedRoadmap, setGeneratedRoadmap] = useState(() => savedDraft?.generatedRoadmap || {});
+  const [generatedRoadmap, setGeneratedRoadmap] = useState({});
 
   // Validation / Error Modal State
   const [validationError, setValidationError] = useState(null);
@@ -411,15 +393,26 @@ const CourseGenerator = () => {
   // --- LIFECYCLE GUARDS: PREVENT UNINTENDED RELOAD/EXIT ---
   useEffect(() => {
     const hasUnsavedWork =
-      syllabusParseStatus === "done" ||
       syllabusParseStatus === "extracting" ||
       syllabusParseStatus === "parsing" ||
+      syllabusParseStatus === "done" ||
       step > 0 ||
       Boolean(subjectName && subjectName.trim().length > 0) ||
       Boolean(courseCode && courseCode.trim().length > 0) ||
+      Boolean(department && department.trim().length > 0) ||
+      Boolean(program && program.trim().length > 0) ||
+      Boolean(semester && semester.trim().length > 0) ||
       Boolean(syllabusRawText && syllabusRawText.trim().length > 0) ||
       Boolean(pastedSyllabusText && pastedSyllabusText.trim().length > 0) ||
-      modules.some((m) => m.name || m.extractedText || m.fileStatus === "loading");
+      (courseObjectives && courseObjectives.length > 0) ||
+      (courseOutcomes && courseOutcomes.length > 0) ||
+      (prerequisites && prerequisites.length > 0) ||
+      (textBooks && textBooks.length > 0) ||
+      (referenceBooks && referenceBooks.length > 0) ||
+      numModules > 1 ||
+      modules.some((m) => m.name || m.extractedText || m.fileStatus === "loading" || (m.filesList && m.filesList.length > 0)) ||
+      Object.keys(weeklySchedule).some((div) => Object.keys(weeklySchedule[div] || {}).length > 0) ||
+      Object.keys(generatedRoadmap).length > 0;
 
     const handleBeforeUnload = (e) => {
       if (hasUnsavedWork) {
@@ -436,107 +429,37 @@ const CourseGenerator = () => {
     step,
     subjectName,
     courseCode,
-    syllabusRawText,
-    pastedSyllabusText,
-    modules,
-  ]);
-
-  // --- AUTO-SAVE DRAFT TO LOCALSTORAGE ---
-  useEffect(() => {
-    const hasContent =
-      subjectName ||
-      courseCode ||
-      syllabusRawText ||
-      syllabusParseStatus === "done" ||
-      step > 0 ||
-      modules.some((m) => m.name || m.extractedText);
-
-    if (!hasContent) return;
-
-    const timeoutId = setTimeout(() => {
-      try {
-        const draftData = {
-          step,
-          subjectName,
-          courseCode,
-          department,
-          program,
-          semester,
-          totalLectures,
-          startDate,
-          endDate,
-          credits,
-          prerequisites,
-          prerequisitesHours,
-          conclusionSection,
-          courseObjectives,
-          courseOutcomes,
-          totalHoursTheory,
-          textBooks,
-          referenceBooks,
-          usefulLinks,
-          syllabusRawText,
-          syllabusParseStatus,
-          syllabusMode,
-          pastedSyllabusText,
-          numDivisions,
-          divisionsList,
-          numModules,
-          modules: modules.map((m) => ({
-            id: m.id,
-            name: m.name || "",
-            extractedText: m.extractedText || "",
-            moduleLabel: m.moduleLabel || String(m.id),
-            coMapped: m.coMapped || null,
-            hoursPerModule: m.hoursPerModule || 0,
-            fileStatus: m.fileStatus || "idle",
-            filesList: (m.filesList || []).map((f) => ({ name: f.name, text: f.text, status: f.status })),
-          })),
-          weeklySchedule,
-          activeDivision,
-          previewDivision,
-          generatedRoadmap,
-        };
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftData));
-      } catch (err) {
-        console.warn("Failed to persist course generator draft:", err);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [
-    step,
-    subjectName,
-    courseCode,
     department,
     program,
     semester,
-    totalLectures,
-    startDate,
-    endDate,
-    credits,
-    prerequisites,
-    prerequisitesHours,
-    conclusionSection,
+    syllabusRawText,
+    pastedSyllabusText,
     courseObjectives,
     courseOutcomes,
-    totalHoursTheory,
+    prerequisites,
     textBooks,
     referenceBooks,
-    usefulLinks,
-    syllabusRawText,
-    syllabusParseStatus,
-    syllabusMode,
-    pastedSyllabusText,
-    numDivisions,
-    divisionsList,
     numModules,
     modules,
     weeklySchedule,
-    activeDivision,
-    previewDivision,
     generatedRoadmap,
   ]);
+
+  // Clean up any stale draft from localStorage on mount and pagehide
+  useEffect(() => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch (_) {}
+
+    const handlePageHide = () => {
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch (_) {}
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, []);
 
   // --- DIVISION HANDLERS ---
   const handleNumDivisionsChange = (e) => {

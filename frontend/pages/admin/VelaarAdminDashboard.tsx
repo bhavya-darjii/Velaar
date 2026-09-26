@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import AdminDashboardSkeleton from '../../components/skeletons/AdminDashboardSkeleton';
 import GlassSelect from '../../components/shared/GlassSelect';
+import { adminInviteUsers, adminUpdateUser } from '../../services/adminService';
 import './VelaarAdminDashboard.css';
 
 // ── Role badge helper ──────────────────────────────────────────────
@@ -198,10 +199,17 @@ const VelaarAdminDashboard = () => {
     if (!window.confirm(`Change role to ${ROLE_LABELS[newRole]}?`)) return;
     setUpdating(uid);
     try {
-      await supabase.from('users').update({ user_type: newRole }).eq('id', uid);
-      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, user_type: newRole } : u));
+      await adminUpdateUser(uid, { user_type: newRole });
+      setUsers(prev => prev.map(u => (u.id === uid || u.uid === uid) ? { ...u, user_type: newRole } : u));
     } catch (err) {
-      console.error('Role update error:', err);
+      console.warn('Backend update failed, attempting supabase fallback:', err);
+      try {
+        await supabase.from('users').update({ user_type: newRole }).eq('id', uid);
+        setUsers(prev => prev.map(u => (u.id === uid || u.uid === uid) ? { ...u, user_type: newRole } : u));
+      } catch (fbErr) {
+        console.error('Role update error:', fbErr);
+        alert('Failed to update role: ' + (err.message || fbErr.message));
+      }
     }
     setUpdating(null);
   };
@@ -212,10 +220,17 @@ const VelaarAdminDashboard = () => {
     if (!window.confirm(`Move to institution: ${newInstName}?`)) return;
     setUpdating(uid);
     try {
-      await supabase.from('users').update({ institution_id: newInstId, college_name: newInstName }).eq('id', uid);
-      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, institution_id: newInstId, college_name: newInstName } : u));
+      await adminUpdateUser(uid, { institution_id: newInstId, college_name: newInstName });
+      setUsers(prev => prev.map(u => (u.id === uid || u.uid === uid) ? { ...u, institution_id: newInstId, college_name: newInstName } : u));
     } catch (err) {
-      console.error('Institution update error:', err);
+      console.warn('Backend update failed, attempting supabase fallback:', err);
+      try {
+        await supabase.from('users').update({ institution_id: newInstId, college_name: newInstName }).eq('id', uid);
+        setUsers(prev => prev.map(u => (u.id === uid || u.uid === uid) ? { ...u, institution_id: newInstId, college_name: newInstName } : u));
+      } catch (fbErr) {
+        console.error('Institution update error:', fbErr);
+        alert('Failed to update institution: ' + (err.message || fbErr.message));
+      }
     }
     setUpdating(null);
   };
@@ -232,43 +247,43 @@ const VelaarAdminDashboard = () => {
 
     try {
       const emailList = inviteEmails.split(/[,\n\r]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@'));
-      let count = 0;
-      for (const email of emailList) {
-        const inviteData = {
-          email,
-          user_type: inviteRole,
-          institution_id: inviteInstId,
-          college_name: instName,
-        };
-        if (inviteRole === 'student') {
-          if (inviteSemester) inviteData.semester = inviteSemester;
-          if (inviteDivision) inviteData.division = inviteDivision.trim().toUpperCase();
-        }
-        const { error: upsertErr } = await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
-        if (upsertErr && upsertErr.message?.includes('division')) {
-          delete inviteData.division;
-          await supabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
-        }
-        // Also update existing user in users table if they already registered
-        const userUpdate: any = {
-          user_type: inviteRole,
-          institution_id: inviteInstId,
-          college_name: instName,
-        };
-        if (inviteRole === 'student') {
-          if (inviteSemester) userUpdate.semester = inviteSemester;
-          if (inviteDivision) userUpdate.division = inviteDivision.trim().toUpperCase();
-        }
-        await supabase.from('users').update(userUpdate).eq('email', email);
-        count++;
+      if (emailList.length === 0) {
+        setInviteMsg('Please enter at least one valid email address.');
+        setInviting(false);
+        return;
       }
-      setInviteMsg(`Successfully sent ${count} invitation(s).`);
+
+      await adminInviteUsers({
+        emails: emailList,
+        user_type: inviteRole,
+        institution_id: inviteInstId,
+        college_name: instName,
+        semester: inviteRole === 'student' ? inviteSemester : undefined,
+        division: inviteRole === 'student' ? inviteDivision : undefined,
+      });
+
+      // Update existing users in local state table if present
+      setUsers(prev => prev.map(u => {
+        if (emailList.includes((u.email || '').toLowerCase())) {
+          return {
+            ...u,
+            user_type: inviteRole,
+            institution_id: inviteInstId,
+            college_name: instName,
+            ...(inviteRole === 'student' && inviteSemester ? { semester: inviteSemester } : {}),
+            ...(inviteRole === 'student' && inviteDivision ? { division: inviteDivision.trim().toUpperCase() } : {}),
+          };
+        }
+        return u;
+      }));
+
+      setInviteMsg(`Successfully sent ${emailList.length} invitation(s).`);
       setInviteEmails('');
       setInviteSemester('');
       setInviteDivision('');
     } catch (err) {
-      console.error(err);
-      setInviteMsg('Failed to invite users.');
+      console.error('Invite error:', err);
+      setInviteMsg('Failed to invite users: ' + (err.message || 'Unknown error'));
     }
     setInviting(false);
   };
@@ -285,51 +300,53 @@ const VelaarAdminDashboard = () => {
     try {
       const text = await bulkFile.text();
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-      let count = 0;
-      const inviteRows = [];
+      const emailList = [];
       for (const line of lines) {
         const email = line.split(',')[0].trim().toLowerCase();
         if (email.includes('@')) {
-          const inviteData = {
-            email,
+          emailList.push(email);
+        }
+      }
+
+      if (emailList.length === 0) {
+        setInviteMsg('No valid email addresses found in CSV.');
+        setInviting(false);
+        return;
+      }
+
+      await adminInviteUsers({
+        emails: emailList,
+        user_type: inviteRole,
+        institution_id: inviteInstId,
+        college_name: instName,
+        semester: inviteRole === 'student' ? inviteSemester : undefined,
+        division: inviteRole === 'student' ? inviteDivision : undefined,
+      });
+
+      // Update existing users in local state table if present
+      setUsers(prev => prev.map(u => {
+        if (emailList.includes((u.email || '').toLowerCase())) {
+          return {
+            ...u,
             user_type: inviteRole,
             institution_id: inviteInstId,
             college_name: instName,
+            ...(inviteRole === 'student' && inviteSemester ? { semester: inviteSemester } : {}),
+            ...(inviteRole === 'student' && inviteDivision ? { division: inviteDivision.trim().toUpperCase() } : {}),
           };
-          if (inviteRole === 'student') {
-            if (inviteSemester) inviteData.semester = inviteSemester;
-            if (inviteDivision) inviteData.division = inviteDivision.trim().toUpperCase();
-          }
-          inviteRows.push(inviteData);
-          count++;
         }
-      }
-      if (inviteRows.length > 0) {
-        const { error: upsertErr } = await supabase.from('role_invitations').upsert(inviteRows, { onConflict: 'email' });
-        if (upsertErr && upsertErr.message?.includes('division')) {
-          const fallbackRows = inviteRows.map(r => { const copy = { ...r }; delete copy.division; return copy; });
-          await supabase.from('role_invitations').upsert(fallbackRows, { onConflict: 'email' });
-        }
-        // Also update existing users in users table
-        for (const row of inviteRows) {
-          const uUp: any = {
-            user_type: row.user_type,
-            institution_id: row.institution_id,
-            college_name: row.college_name,
-          };
-          if (row.semester) uUp.semester = row.semester;
-          if (row.division) uUp.division = row.division;
-          await supabase.from('users').update(uUp).eq('email', row.email);
-        }
-      }
-      setInviteMsg(`Successfully invited ${count} users.`);
+        return u;
+      }));
+
+      setInviteMsg(`Successfully invited ${emailList.length} users.`);
       setBulkFile(null);
       setInviteSemester('');
       setInviteDivision('');
-      document.getElementById('bulk-csv-input').value = '';
+      const el = document.getElementById('bulk-csv-input');
+      if (el) el.value = '';
     } catch (err) {
       console.error(err);
-      setInviteMsg('Failed to process CSV.');
+      setInviteMsg('Failed to process CSV: ' + (err.message || 'Unknown error'));
     }
     setInviting(false);
   };
@@ -552,9 +569,13 @@ const VelaarAdminDashboard = () => {
                             }}
                             onBlur={async (e) => {
                               try {
-                                await supabase.from('users').update({ semester: e.target.value }).eq('id', u.id || u.uid);
+                                await adminUpdateUser(u.id || u.uid, { semester: e.target.value });
                               } catch (err) {
-                                console.error('Failed to update semester', err);
+                                try {
+                                  await supabase.from('users').update({ semester: e.target.value }).eq('id', u.id || u.uid);
+                                } catch (fbErr) {
+                                  console.error('Failed to update semester', fbErr);
+                                }
                               }
                             }}
                             className="va-glass-input"
@@ -583,9 +604,13 @@ const VelaarAdminDashboard = () => {
                           onBlur={async (e) => {
                             const cleanDiv = e.target.value.trim().toUpperCase();
                             try {
-                              await supabase.from('users').update({ division: cleanDiv }).eq('id', u.id || u.uid);
+                              await adminUpdateUser(u.id || u.uid, { division: cleanDiv });
                             } catch (err) {
-                              console.error('Failed to update division', err);
+                              try {
+                                await supabase.from('users').update({ division: cleanDiv }).eq('id', u.id || u.uid);
+                              } catch (fbErr) {
+                                console.error('Failed to update division', fbErr);
+                              }
                             }
                           }}
                           className="va-glass-input"

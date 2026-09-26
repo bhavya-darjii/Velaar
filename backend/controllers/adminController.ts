@@ -148,3 +148,249 @@ export const getAdminLogs = async (req: Request, res: Response): Promise<void> =
     res.status(500).json({ error: 'Failed to fetch admin logs' });
   }
 };
+
+// ─── Helper: Check Admin Privileges ──────────────────────────────────────────
+const checkIsAdmin = async (userId: string): Promise<boolean> => {
+  if (!adminSupabase) return false;
+  try {
+    const { data } = await adminSupabase.from('users').select('user_type').eq('id', userId).maybeSingle();
+    return Boolean(data && ['admin', 'velaarAdmin', 'principal', 'registrar'].includes(data.user_type));
+  } catch {
+    return false;
+  }
+};
+
+// ─── POST /api/admin/invite-user ──────────────────────────────────────────────
+export const inviteUser = async (req: Request, res: Response): Promise<void> => {
+  if (!adminSupabase) {
+    res.status(500).json({ error: 'Admin database is unavailable.' });
+    return;
+  }
+
+  const callerId = req.user?.id;
+  if (!callerId || !(await checkIsAdmin(callerId))) {
+    res.status(403).json({ error: 'Forbidden: Administrator privileges required.' });
+    return;
+  }
+
+  try {
+    const { email, emails, user_type, institution_id, college_name, semester, division } = req.body;
+    const rawList: string[] = Array.isArray(emails) ? emails : (email ? [email] : []);
+    const emailList = rawList
+      .map(e => String(e).trim().toLowerCase())
+      .filter(e => e.includes('@'));
+
+    if (emailList.length === 0) {
+      res.status(400).json({ error: 'No valid email addresses provided.' });
+      return;
+    }
+
+    if (!user_type) {
+      res.status(400).json({ error: 'user_type is required.' });
+      return;
+    }
+
+    let count = 0;
+    const updatedUsers: string[] = [];
+
+    for (const em of emailList) {
+      const inviteData: Record<string, any> = {
+        email: em,
+        user_type,
+        institution_id: institution_id || null,
+        college_name: college_name || null,
+      };
+      if (semester) inviteData.semester = semester;
+      if (division) inviteData.division = String(division).trim().toUpperCase();
+
+      // 1. Upsert into role_invitations (bypassing RLS with adminSupabase)
+      const { error: inviteErr } = await adminSupabase
+        .from('role_invitations')
+        .upsert(inviteData, { onConflict: 'email' });
+
+      if (inviteErr && inviteErr.message?.includes('division')) {
+        delete inviteData.division;
+        await adminSupabase.from('role_invitations').upsert(inviteData, { onConflict: 'email' });
+      }
+
+      // 2. Also update existing user in users table if they have already registered
+      const userUpdate: Record<string, any> = {
+        user_type,
+      };
+      if (institution_id) userUpdate.institution_id = institution_id;
+      if (college_name) userUpdate.college_name = college_name;
+      if (semester) userUpdate.semester = semester;
+      if (division) userUpdate.division = String(division).trim().toUpperCase();
+
+      const { data: updated } = await adminSupabase
+        .from('users')
+        .update(userUpdate)
+        .ilike('email', em)
+        .select('id, email, user_type');
+
+      if (updated && updated.length > 0) {
+        updatedUsers.push(em);
+      }
+
+      count++;
+    }
+
+    res.status(200).json({
+      success: true,
+      count,
+      updatedExistingUsers: updatedUsers,
+      message: `Successfully processed ${count} invitation(s).`,
+    });
+  } catch (err: any) {
+    console.error('[adminController] inviteUser error:', err);
+    res.status(500).json({ error: err.message || 'Failed to process invitations.' });
+  }
+};
+
+// ─── PATCH /api/admin/user/:id ────────────────────────────────────────────────
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
+  if (!adminSupabase) {
+    res.status(500).json({ error: 'Admin database is unavailable.' });
+    return;
+  }
+
+  const callerId = req.user?.id;
+  if (!callerId || !(await checkIsAdmin(callerId))) {
+    res.status(403).json({ error: 'Forbidden: Administrator privileges required.' });
+    return;
+  }
+
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ error: 'User ID is required.' });
+      return;
+    }
+
+    const { user_type, institution_id, college_name, semester, division, department } = req.body;
+    const payload: Record<string, any> = {};
+
+    if (user_type !== undefined) payload.user_type = user_type;
+    if (institution_id !== undefined) payload.institution_id = institution_id;
+    if (college_name !== undefined) payload.college_name = college_name;
+    if (semester !== undefined) payload.semester = semester;
+    if (division !== undefined) payload.division = division ? String(division).trim().toUpperCase() : null;
+    if (department !== undefined) payload.department = department;
+
+    const { data, error } = await adminSupabase
+      .from('users')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true, user: data });
+  } catch (err: any) {
+    console.error('[adminController] updateUser error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update user.' });
+  }
+};
+
+// ─── POST /api/admin/claim-invite ─────────────────────────────────────────────
+export const claimInvite = async (req: Request, res: Response): Promise<void> => {
+  if (!adminSupabase) {
+    res.status(500).json({ error: 'Admin database is unavailable.' });
+    return;
+  }
+
+  try {
+    const user = req.user;
+    if (!user || !user.email) {
+      res.status(401).json({ error: 'Authenticated user with email required.' });
+      return;
+    }
+
+    const userEmail = user.email.toLowerCase().trim();
+
+    // 1. Check for pending invitation
+    const { data: invite } = await adminSupabase
+      .from('role_invitations')
+      .select('*')
+      .ilike('email', userEmail)
+      .maybeSingle();
+
+    if (invite) {
+      const updatePayload: Record<string, any> = {
+        user_type: invite.user_type,
+        institution_id: invite.institution_id || null,
+        college_name: invite.college_name || null,
+      };
+      if (invite.semester) updatePayload.semester = invite.semester;
+      if (invite.division) updatePayload.division = String(invite.division).trim().toUpperCase();
+
+      // Update user in users table
+      const { data: updatedUser } = await adminSupabase
+        .from('users')
+        .update(updatePayload)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      // Delete claimed invitation
+      await adminSupabase
+        .from('role_invitations')
+        .delete()
+        .ilike('email', userEmail);
+
+      res.status(200).json({
+        claimed: true,
+        role: invite.user_type,
+        user: updatedUser || updatePayload,
+      });
+      return;
+    }
+
+    // 2. No invite found — return current status from users table
+    const { data: userDoc } = await adminSupabase
+      .from('users')
+      .select('user_type, institution_id, college_name, semester, division')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const currentRole = userDoc?.user_type || 'pending';
+
+    res.status(200).json({
+      claimed: false,
+      role: currentRole,
+      user: userDoc,
+    });
+  } catch (err: any) {
+    console.error('[adminController] claimInvite error:', err);
+    res.status(500).json({ error: err.message || 'Failed to claim invitation.' });
+  }
+};
+
+// ─── GET /api/admin/users ─────────────────────────────────────────────────────
+export const getAdminUsers = async (req: Request, res: Response): Promise<void> => {
+  if (!adminSupabase) {
+    res.status(500).json({ error: 'Admin database is unavailable.' });
+    return;
+  }
+
+  const callerId = req.user?.id;
+  if (!callerId || !(await checkIsAdmin(callerId))) {
+    res.status(403).json({ error: 'Forbidden: Administrator privileges required.' });
+    return;
+  }
+
+  try {
+    const { data: users, error } = await adminSupabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true, users: users || [] });
+  } catch (err: any) {
+    console.error('[adminController] getAdminUsers error:', err);
+    res.status(500).json({ error: err.message || 'Failed to fetch users.' });
+  }
+};

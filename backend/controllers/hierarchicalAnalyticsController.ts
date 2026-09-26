@@ -84,6 +84,18 @@ interface ExamResult {
 }
 type MaybeExam = ExamResult | { hasData: false };
 
+const semesterToClass = (sem?: string | number | null): string => {
+  if (!sem) return '';
+  const s = String(sem).trim();
+  if (s === '1' || s === '2') return 'FY';
+  if (s === '3' || s === '4') return 'SY';
+  if (s === '5' || s === '6') return 'TY';
+  if (s === '7' || s === '8') return 'LY';
+  const up = s.toUpperCase();
+  if (['FY', 'SY', 'TY', 'LY'].includes(up)) return up;
+  return s;
+};
+
 const examResult = (
   raw: number | null, actualMax: number, passPct: number | null,
 ): MaybeExam => {
@@ -122,7 +134,32 @@ export const getStudentAnalytics = async (req: Request, res: Response): Promise<
       .select('id, name, subject_name, code, teacher_id, institution_id, semester, department, tt1_effective, tt2_effective, ese_effective, exam_patterns')
       .eq('institution_id', student.institution_id);
 
-    const allCourses = (courses ?? []).filter((c: any) => !c.semester || String(c.semester) === String(student.semester)) as Course[];
+    const studentSem = student.semester ? String(student.semester).trim() : null;
+
+    const allCourses = (courses ?? []).filter((c: any) => {
+      // 1. If student has recorded marks in this course, always include it
+      const hasMarks = extractEffective(c.tt1_effective, studentId) !== null
+        || extractEffective(c.tt2_effective, studentId) !== null
+        || extractEffective(c.ese_effective, studentId) !== null;
+      if (hasMarks) return true;
+
+      // 2. If student has no semester assigned yet, include all institution courses
+      if (!studentSem) return true;
+
+      // 3. If course has no semester specified, include it
+      if (!c.semester) return true;
+
+      const courseSem = String(c.semester).trim();
+      // 4. Exact semester match
+      if (courseSem === studentSem) return true;
+
+      // 5. Academic year/class match (e.g. Sem 3 and Sem 4 are both SY)
+      const studentClass = semesterToClass(studentSem);
+      const courseClass = semesterToClass(courseSem);
+      if (studentClass && courseClass && studentClass === courseClass) return true;
+
+      return false;
+    }) as Course[];
     const courseIds  = allCourses.map(c => c.id);
 
     const [{ data: sessions }, { data: logs }] = await Promise.all([

@@ -10,6 +10,7 @@ import { CopilotProvider } from './context/CopilotContext';
 import FullLayoutSkeleton from './components/skeletons/FullLayoutSkeleton';
 import AuthLoadingScreen from './components/shared/AuthLoadingScreen';
 import { extractGoogleAvatarUrl, cacheTeacherAvatar } from './utils/avatarUtils';
+import { claimRoleInvite } from './services/adminService';
 
 import LoginPage from './pages/auth/LoginPage';
 import TeacherLayout from './layouts/TeacherLayout';
@@ -86,31 +87,43 @@ function App() {
 
         let role = userData ? (userData.user_type || 'pending') : 'pending';
 
-        if (user.email) {
-          const { data: inviteData } = await supabase
-            .from('role_invitations')
-            .select('*')
-            .eq('email', user.email.toLowerCase())
-            .maybeSingle();
-
-          if (inviteData) {
-            const oldRole = role;
-            role = inviteData.user_type || role || 'pending';
-            const updatePayload: any = {
-              user_type: role,
-              institution_id: inviteData.institution_id || userData?.institution_id || null,
-              college_name: inviteData.college_name || null,
-            };
-            if (inviteData.semester) updatePayload.semester = inviteData.semester;
-            if (inviteData.division) updatePayload.division = String(inviteData.division).trim().toUpperCase();
-
-            await supabase.from('users').update(updatePayload).eq('id', user.id);
-            await supabase.from('role_invitations').delete().eq('email', user.email.toLowerCase());
-            
-            if (oldRole !== role) {
-              window.location.href = '/';
-              return;
+        // If the user's role is pending, attempt to claim any invitation via backend (which has service role to bypass RLS)
+        if (role === 'pending' && user.email) {
+          try {
+            const claimResult = await claimRoleInvite();
+            if (claimResult?.role && claimResult.role !== 'pending') {
+              role = claimResult.role;
             }
+          } catch (claimErr) {
+            console.warn('[App] Backend claim-invite unavailable, falling back to direct check:', claimErr);
+            // Fallback to client query if backend is cold-starting
+            try {
+              const { data: inviteData } = await supabase
+                .from('role_invitations')
+                .select('*')
+                .eq('email', user.email.toLowerCase())
+                .maybeSingle();
+
+              if (inviteData?.user_type) {
+                const oldRole = role;
+                role = inviteData.user_type;
+                const updatePayload: any = {
+                  user_type: role,
+                  institution_id: inviteData.institution_id || userData?.institution_id || null,
+                  college_name: inviteData.college_name || null,
+                };
+                if (inviteData.semester) updatePayload.semester = inviteData.semester;
+                if (inviteData.division) updatePayload.division = String(inviteData.division).trim().toUpperCase();
+
+                await supabase.from('users').update(updatePayload).eq('id', user.id);
+                await supabase.from('role_invitations').delete().eq('email', user.email.toLowerCase());
+                
+                if (oldRole !== role) {
+                  window.location.href = '/';
+                  return;
+                }
+              }
+            } catch (_) {}
           }
         }
 

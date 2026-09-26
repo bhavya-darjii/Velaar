@@ -147,7 +147,7 @@ const MarksDashboard = () => {
                 onClick={handleOpenMarksSheet}
                 disabled={!editClass || !editSemester}
               >
-                Open Marks Sheet →
+                Open Marks Sheet
               </button>
             </div>
           </div>
