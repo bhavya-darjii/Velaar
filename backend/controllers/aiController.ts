@@ -67,9 +67,9 @@ export const generateLectureRoadmap = async (req: Request, res: Response): Promi
   try {
     const result = await generateRoadmapService({ syllabusText, totalLectures, acceptedModules }, getCtx(req));
     res.status(200).json(result);
-  } catch (err) {
+  } catch (err: any) {
     console.error('[aiController] generateLectureRoadmap error:', err);
-    res.status(500).json({ error: 'Generation failed' });
+    res.status(500).json({ error: err?.message || 'Generation failed' });
   }
 };
 

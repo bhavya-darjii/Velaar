@@ -28,18 +28,17 @@ const router = express.Router();
 // Apply AI rate limiter to all AI routes
 router.use(aiLimiter);
 
-// ── Copilot endpoints + generation tasks Copilot can trigger (no login required) ──
-// These endpoints also work when authenticated — req.user will be populated if a valid
-// token is present, giving the AI more personalised context.
+// ── Generation endpoints accessible with optional auth (personalises context when logged in) ──
 router.post('/copilot-chat',            optionalAuth, copilotChat);
 router.post('/intent',                  optionalAuth, classifyCopilotIntent);
 router.post('/generate-questions-topics', optionalAuth, generateQuestionsFromTopics);
 router.post('/generate-lesson-plan',    optionalAuth, generateLessonPlan);
+router.post('/generate-roadmap',        optionalAuth, generateLectureRoadmap);
+router.post('/parse-syllabus',          optionalAuth, parseSyllabus);
 
 // ── Protected teacher-only routes (require a valid Supabase login) ────────────
 router.use(requireAuth);
 
-router.post('/generate-roadmap',              generateLectureRoadmap);
 router.post('/generate-questions-syllabus',   generateQuestionsFromSyllabus);
 router.post('/grade-exam',                    gradeFullExam);
 router.post('/generate-specific-field',       generateSpecificField);
@@ -51,6 +50,5 @@ router.post('/evaluate-answer-script',        evaluateAnswerScript);
 router.post('/generate-study-material',       generateStudyMaterial);
 router.post('/generate-lab-manual',           generateLabManual);
 router.post('/generate-lecture-presentation', generateLecturePresentation);
-router.post('/parse-syllabus',                parseSyllabus);
 
 export default router;

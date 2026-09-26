@@ -82,11 +82,15 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 app.use('/api/ai',             aiRoutes);
 app.use('/api/export',         exportRoutes);
 app.use('/api/pdf',            pdfRoutes);
 app.use('/api/admin',          adminRoutes);
+app.use('/admin',              adminRoutes); // Fallback for clients calling /admin directly
 app.use('/api/hier-analytics', hierarchicalAnalyticsRoutes);
 app.use('/api/notice',         noticeRoutes);
 app.use('/api/timetable',      timetableRoutes);

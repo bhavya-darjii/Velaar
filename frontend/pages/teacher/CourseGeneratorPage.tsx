@@ -883,14 +883,8 @@ const CourseGenerator = () => {
   return (
     <>
       {loading && (
-        <div className="generation-modal" style={{ background: 'rgba(10, 15, 30, 0.75)', backdropFilter: 'blur(20px)' }}>
-          <div className="modal-content" style={{
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            minWidth: '320px',
-            maxWidth: '420px',
-            padding: '40px',
-            textAlign: 'center'
-          }}>
+        <div className="generation-modal">
+          <div className="modal-content">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner-large" style={{ color: '#ffffff', marginBottom: '20px' }}>
               <line x1="12" y1="2" x2="12" y2="6"></line>
               <line x1="12" y1="18" x2="12" y2="22"></line>
@@ -1844,13 +1838,8 @@ const CourseGenerator = () => {
 
       {/* ERROR / VALIDATION MODAL */}
       {validationError && (
-        <div className="generation-modal" style={{ background: 'rgba(10, 15, 30, 0.75)', backdropFilter: 'blur(20px)' }}>
-          <div className="modal-content" style={{
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            minWidth: '320px',
-            maxWidth: '420px',
-            padding: '40px'
-          }}>
+        <div className="generation-modal">
+          <div className="modal-content">
             <div style={{ color: '#ffffff', marginBottom: '15px' }}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>

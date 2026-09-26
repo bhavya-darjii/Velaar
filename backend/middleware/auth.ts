@@ -38,15 +38,20 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     return;
   }
 
-  const { data: { user }, error } = await adminSupabase.auth.getUser(token);
+  try {
+    const { data: { user }, error } = await adminSupabase.auth.getUser(token);
 
-  if (error || !user) {
+    if (error || !user) {
+      res.status(401).json({ error: 'Unauthorized: invalid or expired token' });
+      return;
+    }
+
+    req.user = user;
+    next();
+  } catch (err: any) {
+    console.error('[auth] requireAuth token verification error:', err?.message || err);
     res.status(401).json({ error: 'Unauthorized: invalid or expired token' });
-    return;
   }
-
-  req.user = user;
-  next();
 };
 
 /**

@@ -118,7 +118,11 @@ export const generateRoadmapService = async (
   });
   if (data.error || !data.candidates?.[0]) throw new Error('AI generation failed');
   const usage = data.usageMetadata || {};
-  await logAiUsage({ action: 'generate-roadmap', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
+  try {
+    await logAiUsage({ action: 'generate-roadmap', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
+  } catch (logErr) {
+    console.warn('[aiGenerationService] logAiUsage failed (non-fatal):', logErr);
+  }
   return {
     roadmap: parseJson(data.candidates[0].content.parts[0].text),
     usage: { input: usage.promptTokenCount, output: usage.candidatesTokenCount },

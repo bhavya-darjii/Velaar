@@ -29,11 +29,23 @@ export interface UpdateUserPayload {
   department?: string | null;
 }
 
-export const adminInviteUsers = async (payload: InvitePayload) => {
+const getAdminEndpoint = (path: string): string => {
   const base = getApiBaseUrl();
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (!base) {
+    return `/api/admin${cleanPath}`;
+  }
+  if (base.endsWith('/api')) {
+    return `${base}/admin${cleanPath}`;
+  }
+  return `${base}/api/admin${cleanPath}`;
+};
+
+export const adminInviteUsers = async (payload: InvitePayload) => {
+  const url = getAdminEndpoint('/invite-user');
   const headers = await getAuthHeaders();
 
-  const response = await fetch(`${base}/admin/invite-user`, {
+  const response = await fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify(payload),
@@ -48,10 +60,10 @@ export const adminInviteUsers = async (payload: InvitePayload) => {
 };
 
 export const adminUpdateUser = async (userId: string, payload: UpdateUserPayload) => {
-  const base = getApiBaseUrl();
+  const url = getAdminEndpoint(`/user/${userId}`);
   const headers = await getAuthHeaders();
 
-  const response = await fetch(`${base}/admin/user/${userId}`, {
+  const response = await fetch(url, {
     method: 'PATCH',
     headers,
     body: JSON.stringify(payload),
@@ -67,13 +79,22 @@ export const adminUpdateUser = async (userId: string, payload: UpdateUserPayload
 
 export const claimRoleInvite = async () => {
   try {
-    const base = getApiBaseUrl();
+    const url = getAdminEndpoint('/claim-invite');
     const headers = await getAuthHeaders();
 
-    const response = await fetch(`${base}/admin/claim-invite`, {
+    let response = await fetch(url, {
       method: 'POST',
       headers,
     });
+
+    // Fallback if production base has different routing
+    if (response.status === 404) {
+      const base = getApiBaseUrl();
+      const fallbackUrl = `${base}/admin/claim-invite`;
+      if (fallbackUrl !== url) {
+        response = await fetch(fallbackUrl, { method: 'POST', headers });
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -89,10 +110,10 @@ export const claimRoleInvite = async () => {
 };
 
 export const adminFetchAllUsers = async () => {
-  const base = getApiBaseUrl();
+  const url = getAdminEndpoint('/users');
   const headers = await getAuthHeaders();
 
-  const response = await fetch(`${base}/admin/users`, {
+  const response = await fetch(url, {
     method: 'GET',
     headers,
   });

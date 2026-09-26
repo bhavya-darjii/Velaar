@@ -13,8 +13,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy all /api/* requests to the local Express backend
+      // Proxy /api/* and /admin/* requests to the local Express backend
       '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/admin': {
         target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,

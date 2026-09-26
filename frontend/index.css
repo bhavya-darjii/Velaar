@@ -245,7 +245,7 @@ input[type="number"] {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Generation Overlay */
+/* Generation Overlay — blurred without color tint */
 .generation-modal {
   position: fixed;
   top: 0;
@@ -253,27 +253,32 @@ input[type="number"] {
   width: 100vw;
   height: 100vh;
   z-index: 9999;
-  background: rgba(9, 9, 11, 0.85); /* Deep dark overlay */
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.03); /* Blurred with no dark/black color tint */
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .generation-modal .modal-content {
   background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
   border: 1px solid var(--liquid-glass-border);
-  padding: 50px 80px;
+  box-shadow: var(--liquid-glass-shadow);
+  padding: 40px 48px;
   border-radius: 24px;
   text-align: center;
-  box-shadow: var(--liquid-glass-shadow);
-  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
   color: #ffffff;
+  max-width: 460px;
+  width: 90%;
+  box-sizing: border-box;
 }
 
 .generation-modal h2 {
