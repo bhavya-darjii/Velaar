@@ -175,6 +175,11 @@
 }
 
 .btn-super-generate {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   background: #ffffff !important;
   color: #000000 !important;
   border: none !important;

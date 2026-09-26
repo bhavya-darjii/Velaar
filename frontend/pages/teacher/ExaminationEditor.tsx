@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { getApiBaseUrl } from '../../services/apiConfig';
 import GlassSelect from '../../components/shared/GlassSelect';
 import './ExaminationEditor.css';
 
@@ -360,9 +361,10 @@ const ExaminationEditor = () => {
     
     setGenerating(true);
     try {
-      const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+      const apiBase = getApiBaseUrl();
+      const exportUrl = apiBase ? `${apiBase}/export/exam` : '/api/export/exam';
       const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch(`${backendUrl}/export/exam`, {
+      const response = await fetch(exportUrl, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -390,7 +392,9 @@ const ExaminationEditor = () => {
       const a = document.createElement("a");
       a.href = url;
       // If batch, we return .zip from backend, else .docx
-      a.download = `${course.subjectName || 'Exam'}_${examId}_Generated.${numSets > 1 ? 'zip' : 'docx'}`;
+      a.download = numSets > 1 
+        ? `${course.subjectName || 'Exam'}_${examId}_Batch.zip`
+        : `${course.subjectName || 'Exam'}_${examId}.docx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -716,7 +720,7 @@ const ExaminationEditor = () => {
           
           <button 
             className={`btn-super-generate ${generating ? 'glass-btn--loading' : ''}`}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '24px' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '8px', marginTop: '24px' }}
             disabled={generating}
             onClick={handleGenerate}
           >

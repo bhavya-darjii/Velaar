@@ -658,8 +658,15 @@ select.glass-input:focus {
 }
 
 .action-row {
-  display: flex;
-  gap: 15px;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.action-row .glass-btn {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
 }
 
 /* SCROLLBAR */

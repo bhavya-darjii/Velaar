@@ -3,6 +3,7 @@
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign } from "docx";
 import { logAiUsage } from '../utils/logAiUsage.js';
 import { callGemini } from '../utils/gemini.js';
+import { cleanQuestionText } from '../utils/sanitize.js';
 
 const hText = (text, bold = false) => new Paragraph({ 
   children: [new TextRun({ text: String(text || ""), bold, size: 24, font: "Arial" })],
@@ -460,7 +461,9 @@ export const exportTemplatedExam = async (req, res) => {
           INSTRUCTIONS:
           1. Generate conceptually strong, theoretical questions based ONLY on the syllabus topics above.
           2. MUST NOT be numerical questions.
-          3. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
+          3. QUESTIONS ONLY: Do NOT include any answers, solutions, formulas, steps, hints, or derivations.
+          4. Clean text ONLY: Do NOT include words like "Generated", "AI Generated", "Question 1:", or any watermarks or metadata.
+          5. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
 
           STRUCTURE TO FILL:
           ${JSON.stringify(structureMap, null, 2)}
@@ -490,7 +493,9 @@ export const exportTemplatedExam = async (req, res) => {
 
           INSTRUCTIONS:
           1. Generate mathematically solvable problems strictly following the guidance above.
-          2. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
+          2. QUESTIONS ONLY: Do NOT include any answers, solutions, formulas, steps, hints, or derivations. Provide ONLY the problem statement text.
+          3. Clean text ONLY: Do NOT include words like "Generated", "AI Generated", "Question 1:", or any watermarks or metadata.
+          4. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
 
           STRUCTURE TO FILL:
           ${JSON.stringify(structureMap, null, 2)}
@@ -597,7 +602,7 @@ export const exportTemplatedExam = async (req, res) => {
         // Write actual subquestions
         q.subs.forEach((sub) => {
            let internalId = `Q${q.id}_${sub.id}`;
-           let aiQuestionData = aiData[internalId] || { q: "Error generating question", co: "CO1" };
+           let aiQuestionData = aiData[internalId] || { q: "Question not available", co: "CO1" };
            
            // If the AI somehow returned just a string (fallback), wrap it
            if (typeof aiQuestionData === 'string') {
@@ -606,7 +611,7 @@ export const exportTemplatedExam = async (req, res) => {
 
            tRows.push(new TableRow({ children: [
              cell(`${sub.id})`, { align: AlignmentType.CENTER, bold: true }),
-             cell(aiQuestionData.q),
+             cell(cleanQuestionText(aiQuestionData.q)),
              cell(String(sub.marks), { align: AlignmentType.CENTER }),
              cell(aiQuestionData.co, { align: AlignmentType.CENTER }),
              cell(sub.bt || "", { align: AlignmentType.CENTER })
@@ -755,7 +760,10 @@ export const exportTemplatedExam = async (req, res) => {
         }
 
         const docxBuffer = await generateDocxBuffer(aiData);
-        generatedBuffers.push({ name: `${course.subjectName || "Exam"}_${examType}_Set_${s}.docx`, buffer: docxBuffer });
+        const docName = numSets === 1 
+          ? `${course.subjectName || "Exam"}_${examType}.docx`
+          : `${course.subjectName || "Exam"}_${examType}_Set_${s}.docx`;
+        generatedBuffers.push({ name: docName, buffer: docxBuffer });
     }
 
     if (totalInputTokens > 0 || totalOutputTokens > 0) {

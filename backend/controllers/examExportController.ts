@@ -25,7 +25,10 @@ const parseGeminiJson = (text) => {
 /** Single Gemini AI call for exam generation — returns { json, usage } */
 const callExamAI = async (promptText) => {
   const systemInstruction = `You are a strict Universal Academic Exam Specialist.
-  YOUR ONLY JOB is to generate EXACTLY the requested JSON structure. No explanations, no markdown. Answer purely based on the context provided in the prompt.`;
+  YOUR ONLY JOB is to generate EXACTLY the requested JSON structure. No explanations, no markdown. Answer purely based on the context provided in the prompt.
+  STRICT RULES:
+  1. QUESTIONS ONLY: Do NOT include any answers, solutions, formulas, steps, hints, or derivations.
+  2. CLEAN TEXT: Do NOT include words like "Generated", "AI Generated", "Question 1:", or any watermarks or prefixes.`;
 
   const data = await callGemini({
     systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -190,8 +193,10 @@ export const exportTemplatedExam = async (req, res) => {
         if (hasNumerical) { Object.assign(aiData, results[numericalIdx].json); totalInputTokens += results[numericalIdx].usage.input; totalOutputTokens += results[numericalIdx].usage.output; }
       }
 
-      const buffer = await buildExamDocx({ course, date, duration, maxMarks, scheme, regularExam, pattern, aiData });
-      generatedBuffers.push({ name: `${course.subjectName || 'Exam'}_${examType}_Set_${s}.docx`, buffer });
+      const docName = numSets === 1 
+        ? `${course.subjectName || 'Exam'}_${examType}.docx`
+        : `${course.subjectName || 'Exam'}_${examType}_Set_${s}.docx`;
+      generatedBuffers.push({ name: docName, buffer });
     }
 
     // Fire-and-forget usage log

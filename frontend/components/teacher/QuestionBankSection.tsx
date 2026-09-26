@@ -114,6 +114,18 @@ const ExamSection = ({ course }) => {
       }),
     ];
 
+const cleanQuestionText = (text) => {
+  if (typeof text !== 'string') return '';
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^[*#\-\s]+/, '');
+  cleaned = cleaned.replace(/^(?:(?:ai[\s-]?)?generated(?:\s*question)?|question\s*\d+|q\d+)[ \t]*[:\-\–—.]+[ \t]*/i, '');
+  cleaned = cleaned.replace(/^\[(?:ai[\s-]?)?generated[^\]]*\][ \t]*/i, '');
+  cleaned = cleaned.replace(/\n\s*(?:Answer|Solution|Formula|Formulas|Key|Working|Steps|Derivation|Hint|Explanation)[ \t]*:[\s\S]*$/i, '');
+  cleaned = cleaned.replace(/\s*\((?:ai[\s-]?)?generated[^)]*\)\s*$/i, '');
+  cleaned = cleaned.replace(/\s*\[(?:ai[\s-]?)?generated[^\]]*\]\s*$/i, '');
+  return cleaned.trim();
+};
+
     // 2. Add Questions to Table including the CO data
     questions.forEach((q, index) => {
       tableRows.push(
@@ -122,7 +134,7 @@ const ExamSection = ({ course }) => {
             new TableCell({
               children: [new Paragraph((index + 1).toString())],
             }),
-            new TableCell({ children: [new Paragraph(q.question)] }),
+            new TableCell({ children: [new Paragraph(cleanQuestionText(q.question))] }),
             new TableCell({
               children: [new Paragraph(q.courseOutcome || "CO1")],
             }), // Fallback just in case
@@ -220,8 +232,14 @@ const ExamSection = ({ course }) => {
         throw new Error("AI returned an empty question bank.");
       }
 
+      // Sanitize all questions to strip any 'Generated', prefixes, answers, or formulas
+      const sanitizedQuestions = questions.map(q => ({
+        ...q,
+        question: cleanQuestionText(q.question),
+      }));
+
       // Extract new numericals to feed back into context memory limit to 5
-      const newNumericals = questions.filter(q => q.isNumerical).map(q => q.question);
+      const newNumericals = sanitizedQuestions.filter(q => q.isNumerical).map(q => q.question);
       let updatedNumericals = [...(course.past_numericals || course.pastNumericals || [])];
       if (newNumericals.length > 0) {
         updatedNumericals = [...newNumericals, ...updatedNumericals].slice(0, 5);
@@ -229,20 +247,20 @@ const ExamSection = ({ course }) => {
 
       // Create a master log of ALL questions ever generated (no overwriting)
       const generationTimestamp = new Date().toISOString();
-      const newQuestionsWithMeta = questions.map(q => ({ ...q, generatedAt: generationTimestamp }));
+      const newQuestionsWithMeta = sanitizedQuestions.map(q => ({ ...q, generatedAt: generationTimestamp }));
       const existingQuestionBank = course.question_bank || course.questionBank || [];
       const updatedQuestionBank = [...existingQuestionBank, ...newQuestionsWithMeta];
 
       // Save to Supabase
       await supabase.from("courses").update({
-        active_exam: questions,
+        active_exam: sanitizedQuestions,
         question_bank: updatedQuestionBank,
         last_exam_date: new Date().toISOString(),
         past_numericals: updatedNumericals
       }).eq("id", course.id);
 
       // Trigger Word Download
-      await exportToWord(questions);
+      await exportToWord(sanitizedQuestions);
       showToast("Question bank generated & downloaded successfully!", "success");
     } catch (error) {
       console.error("Error generating exam:", error);

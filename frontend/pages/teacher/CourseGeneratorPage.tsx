@@ -21,6 +21,7 @@ const mapLecturesToSchedule = (
   endDateStr,
   weeklySchedule,
 ) => {
+  if (!Array.isArray(roadmap) || roadmap.length === 0) return [];
   if (!startDateStr || Object.keys(weeklySchedule).length === 0) return roadmap;
 
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -750,11 +751,22 @@ const CourseGenerator = () => {
     try {
       setAiContextCourse("", subjectName);
       const acceptedModulesList = modules.map((m) => m.name).join(", ");
-      const { roadmap, usage } = await generateLectureRoadmap(
+      const result = await generateLectureRoadmap(
         aggregatedSyllabusText,
         Number(totalLectures),
         acceptedModulesList
       );
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      const roadmap = result?.roadmap;
+      const usage = result?.usage;
+
+      if (!Array.isArray(roadmap) || roadmap.length === 0) {
+        throw new Error("AI did not return any lectures. Please retry or adjust syllabus text.");
+      }
 
       // Map module metadata (coMapped, moduleLabel, hours) onto each lecture
       if (Array.isArray(roadmap)) {
@@ -1749,27 +1761,14 @@ const CourseGenerator = () => {
                 </div>
               </div>
 
-              {/* PREVIEW DIVISION TOGGLE */}
+              {/* PREVIEW DIVISION TOGGLE — SegmentedToggle matching Attendance page */}
               {divisionsList.length > 1 && (
-                <div
-                  className="division-tabs"
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginBottom: "20px",
-                    justifyContent: "center",
-                  }}
-                >
-                  {divisionsList.map((div) => (
-                    <button
-                      key={div}
-                      className={`glass-btn ${previewDivision === div ? "primary" : "secondary"}`}
-                      style={{ padding: "8px 20px" }}
-                      onClick={() => setPreviewDivision(div)}
-                    >
-                      View Div {div} Roadmap
-                    </button>
-                  ))}
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                  <SegmentedToggle
+                    options={divisionsList.map((div) => ({ value: div, label: `Div ${div} Roadmap` }))}
+                    value={previewDivision}
+                    onChange={(div) => setPreviewDivision(div)}
+                  />
                 </div>
               )}
 
@@ -1817,16 +1816,9 @@ const CourseGenerator = () => {
               <div className="action-row" style={{ marginTop: "25px" }}>
                 <button
                   className="glass-btn primary"
-                  style={{ background: "#ffffff", color: "#000000", border: "1px solid #ffffff", fontWeight: 700, padding: "12px 24px" }}
-                  onClick={() => setStep(1)}
-                >
-                  ← Edit Course Architecture
-                </button>
-                <button
-                  className="glass-btn primary"
                   onClick={handleSaveCourse}
                   disabled={loading}
-                  style={{ background: "#ffffff", color: "#000000", border: "1px solid #ffffff", fontWeight: 800, padding: "12px 24px" }}
+                  style={{ background: "#ffffff", color: "#000000", border: "1px solid #ffffff", fontWeight: 800, padding: "12px 24px", width: "100%" }}
                 >
                   {loading ? "Saving Course..." : "Confirm & Save Course to Cloud"}
                 </button>

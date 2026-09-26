@@ -13,7 +13,13 @@
 import { GoogleGenAI, type GenerateContentParameters } from '@google/genai';
 
 const PRIMARY_MODEL = 'gemini-3.8-flash';
-const FALLBACK_MODELS = ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash'];
+const FALLBACK_MODELS = [
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-flash-lite-latest',
+];
 const ALL_MODELS = [PRIMARY_MODEL, ...FALLBACK_MODELS];
 
 // Parse keys into an array of { email, key, client } objects
@@ -97,9 +103,20 @@ export const callGemini = async (bodyPayload: Record<string, unknown>): Promise<
             },
           };
         } catch (err: any) {
-          // 503 means the model itself is temporarily overloaded. Try next model in pool.
-          if (err?.status === 503) {
-            console.warn(`[gemini] ⚠️ Model ${model} returned 503 (Overloaded). Switching to alternative model...`);
+          const isModelIssue =
+            err?.status === 503 ||
+            err?.status === 404 ||
+            (err?.message && (
+              err.message.includes('503') ||
+              err.message.includes('404') ||
+              err.message.includes('NOT_FOUND') ||
+              err.message.includes('overloaded') ||
+              err.message.includes('no longer available')
+            ));
+
+          // If the model itself is overloaded or unavailable, switch immediately to next model
+          if (isModelIssue) {
+            console.warn(`[gemini] ⚠️ Model ${model} unavailable (${err?.status || 'overloaded'}). Switching to alternative model...`);
             modelOverloaded = true;
             lastError = err;
             break; // Break key loop to try alternative model
@@ -116,7 +133,7 @@ export const callGemini = async (bodyPayload: Record<string, unknown>): Promise<
       }
     }
 
-    // If both models were overloaded and attempt 1 failed, wait 1.2s before attempt 2
+    // If models were overloaded and attempt 1 failed, wait 1.2s before attempt 2
     if (attempt < maxAttempts) {
       console.warn('[gemini] ⏳ High traffic detected across models. Waiting 1.2s before retry...');
       await sleep(1200);

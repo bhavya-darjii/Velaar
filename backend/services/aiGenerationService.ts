@@ -8,6 +8,7 @@
 
 import { callGemini } from '../utils/gemini.js';
 import { logAiUsage } from '../utils/logAiUsage.js';
+import { cleanQuestionText } from '../utils/sanitize.js';
 import { retrieveContext } from './ragService.js';
 import {
   buildRoadmapPrompt, roadmapSystem,
@@ -82,18 +83,27 @@ const parseJson = (text: string) => {
 };
 
 /** Shared: parse JSON array robustly (handles wrapped objects) */
-const parseJsonArray = (text) => {
-  const match = text.match(/\[[\s\S]*\]/);
-  if (match) return JSON.parse(match[0]);
-  const objMatch = text.match(/\{[\s\S]*\}/);
-  if (objMatch) {
-    const parsed = JSON.parse(objMatch[0]);
-    if (Array.isArray(parsed)) return parsed;
-    if (parsed.questions && Array.isArray(parsed.questions)) return parsed.questions;
-    if (parsed.data && Array.isArray(parsed.data)) return parsed.data;
-    return [parsed];
+const parseJsonArray = (text: string) => {
+  const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const match = clean.match(/\[[\s\S]*\]/);
+  if (match) {
+    try {
+      return JSON.parse(match[0]);
+    } catch (_) { /* fallback below */ }
   }
-  return JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
+  const objMatch = clean.match(/\{[\s\S]*\}/);
+  if (objMatch) {
+    try {
+      const parsed = JSON.parse(objMatch[0]);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed.roadmap && Array.isArray(parsed.roadmap)) return parsed.roadmap;
+      if (parsed.lectures && Array.isArray(parsed.lectures)) return parsed.lectures;
+      if (parsed.questions && Array.isArray(parsed.questions)) return parsed.questions;
+      if (parsed.data && Array.isArray(parsed.data)) return parsed.data;
+      return [parsed];
+    } catch (_) { /* fallback below */ }
+  }
+  return JSON.parse(clean);
 };
 
 // --- Roadmap ---------------------------------------------------------
@@ -124,7 +134,7 @@ export const generateRoadmapService = async (
     console.warn('[aiGenerationService] logAiUsage failed (non-fatal):', logErr);
   }
   return {
-    roadmap: parseJson(data.candidates[0].content.parts[0].text),
+    roadmap: parseJsonArray(data.candidates[0].content.parts[0].text),
     usage: { input: usage.promptTokenCount, output: usage.candidatesTokenCount },
   };
 };
@@ -195,7 +205,10 @@ export const generateQuestionsFromTopicsService = async ({
   if (combined.length > 1 && numTheory > 0 && numNumerical > 0) {
     combined = combined.sort(() => Math.random() - 0.5);
   }
-  return combined;
+  return combined.map((q) => ({
+    ...q,
+    question: cleanQuestionText(q.question),
+  }));
 };
 
 // --- Questions from syllabus ---------------------------------------------------------
@@ -211,7 +224,17 @@ export const generateQuestionsFromSyllabusService = async (
   const usage = data.usageMetadata || {};
   await logAiUsage({ action: 'generate-questions-syllabus', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
   if (data.error || !data.candidates) return [];
-  return parseJson(data.candidates[0].content.parts[0].text);
+  const parsed = parseJson(data.candidates[0].content.parts[0].text);
+  if (Array.isArray(parsed)) {
+    return parsed.map((item) =>
+      typeof item === 'string'
+        ? cleanQuestionText(item)
+        : typeof item?.question === 'string'
+        ? { ...item, question: cleanQuestionText(item.question) }
+        : item,
+    );
+  }
+  return parsed;
 };
 
 // --- Grade exam ---------------------------------------------------------
@@ -469,7 +492,11 @@ export const parseSyllabusService = async (
   });
   if (data.error || !data.candidates?.[0]) throw new Error('Syllabus parsing failed');
   const usage = data.usageMetadata || {};
-  await logAiUsage({ action: 'parse-syllabus', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
+  try {
+    await logAiUsage({ action: 'parse-syllabus', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });
+  } catch (logErr) {
+    console.warn('[aiGenerationService] logAiUsage for parse-syllabus failed (non-fatal):', logErr);
+  }
   const parsed = parseJson(data.candidates[0].content.parts[0].text);
   // Post-process: strip any administrative sections mistakenly returned as modules
   if (parsed?.modules) {

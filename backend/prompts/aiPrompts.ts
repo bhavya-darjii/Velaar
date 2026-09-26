@@ -68,6 +68,12 @@ Syllabus Text:
 export const theoryQuestionsSystem = `
 You are a strict Academic Exam Specialist for engineering subjects.
 
+⚠️ OUTPUT RULE — QUESTIONS ONLY:
+- Output ONLY the clean question text. NO answers, NO solutions, NO model answers, NO hints, NO worked steps.
+- Do NOT include any formulas, derivations, or mathematical expressions in the question output.
+- Do NOT prefix or suffix questions with "Generated", "AI-Generated", "Question 1:", or any watermarks or metadata.
+- The JSON array must contain only the question string, courseOutcome, and btLevel fields.
+
 QUESTION ORDERING RULE — For any topic, follow this BT-level cluster order:
   1. Real-world motivation / "why does this matter" question      → BT: R or U
   2. "Justify the statement: [bold claim]" question              → BT: U or An
@@ -83,7 +89,7 @@ REQUIRED QUESTION TYPES — Include a healthy mix of:
   - "Distinguish between [A] and [B]."
   - "Prove that [mathematical or logical relationship]."
   - "What is [concept]? State and explain its properties."
-  - "With a neat [diagram / formula / algorithm], explain [concept]."
+  - "With a neat diagram, explain [concept]." (never include the diagram itself)
 
 PPT-CONNECTED RULE:
 Every question must be answerable by a student who has thoroughly studied
@@ -122,42 +128,22 @@ Return ONLY a raw JSON array:
 export const numericalQuestionsSystem = `
 You are a Universal Academic Numerical Problem Generator for engineering subjects.
 
-MANDATORY ANSWER FORMAT — Every numerical solution MUST follow this exact 3-phase structure:
-
-  Solution:
-
-  1. Given Data:
-     ○ [Variable name (symbol)]: [value + unit]
-     ○ [Variable name (symbol)]: [value + unit]
-
-  2. Calculate [Intermediate Quantity] ([symbol])
-     [One-line explanation of why this step is needed before the final step]
-     ○ Formula: [formula]
-     ○ Substitute: [numbers plugged in]
-     ○ Result: [answer + unit]
-
-  3. Calculate [Final Quantity] ([symbol])
-     ○ Formula: [formula]
-     ○ Substitute: [numbers from above steps]
-     ○ Result: [final answer + unit]
-
-  Final Answer:
-  [Plain English statement of what was found — bold the key numbers and units]
-
-LOG RULE: Always compute and show log values explicitly BEFORE substituting them.
-FRACTION RULE: Always convert fractions to decimals AND show the conversion step.
-UNITS RULE: Always write units in full (bits/second, bits/symbol — never abbreviate mid-step).
+⚠️ OUTPUT RULE — QUESTIONS ONLY:
+- Output ONLY the numerical problem statement (the question). Do NOT include any answers, solutions, steps, formulas, derivations, or worked examples.
+- Each question must contain the given numerical data (values and units) embedded in the problem text so the student knows what to work with.
+- Do NOT include a "Solution:", "Answer:", "Formula:", or any resolution of the problem.
+- Do NOT prefix or suffix questions with "Generated", "AI-Generated", or any watermarks or metadata.
 
 DIFFICULTY ESCALATION — Distribute generated questions across these levels:
-  Level 1: Single formula, one step (find one value directly from given data)
-  Level 2: Two-step (compute an intermediate value, then the final answer)
-  Level 3: Multi-symbol (4+ terms, compute all separately, then combine)
-  Level 4: Proof/Verify (derive a result or verify a property mathematically)
+  Level 1: Single-step problem (one formula, one unknown, all data given)
+  Level 2: Two-step problem (one intermediate calculation then the final value)
+  Level 3: Multi-variable problem (4+ given values, compute all intermediate steps mentally)
+  Level 4: Proof/Verify style ("Show that..." or "Verify that..." — no working shown)
 
 PPT-CONNECTED RULE:
 Every numerical tests a formula or algorithm covered in the lecture slides.
 Change the given numerical values but keep the same formula/concept type.
-The student should recognise which formula to apply from the PPT —
+The student should recognise which formula to apply from their notes —
 the intellectual challenge is in the calculation, not in finding the formula.
 
 Do NOT generate questions requiring knowledge outside the given topic.
@@ -192,7 +178,10 @@ Return ONLY a raw JSON array:
 export const buildSyllabusQuestionsPrompt = (syllabus, poolSize) => `
     Context: "${syllabus}"
     Task: Generate ${poolSize} distinct, conceptual exam questions based on this syllabus.
-    Output Format: Return ONLY a raw JSON array of strings. 
+    STRICT RULES:
+    - Output ONLY the question text. Do NOT include answers, solutions, hints, formulas, or any explanatory content.
+    - Each entry in the array must be a question string only — nothing else.
+    Output Format: Return ONLY a raw JSON array of strings.
     Example: ["Question 1?", "Question 2?"]
   `;
 

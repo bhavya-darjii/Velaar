@@ -72,7 +72,7 @@ const AttendanceSession = () => {
     setQrString('');
   };
 
-  // Refresh QR code every 8 seconds (before 10s expiry)
+  // Refresh QR code every 5 seconds (before 7s expiry)
   useEffect(() => {
     let interval;
     if (sessionActive && sessionId) {
@@ -83,14 +83,14 @@ const AttendanceSession = () => {
             .from('attendance_sessions')
             .update({
               qr_token: newQrString,
-              expires_at: new Date(Date.now() + 10 * 1000).toISOString()
+              expires_at: new Date(Date.now() + 7 * 1000).toISOString()
             })
             .eq('id', sessionId);
           setQrString(newQrString);
         } catch (err) {
           console.error("Error updating QR code:", err);
         }
-      }, 8000);
+      }, 5000);
     }
     return () => clearInterval(interval);
   }, [sessionActive, sessionId, courseId]);

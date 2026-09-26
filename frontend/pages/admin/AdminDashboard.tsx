@@ -28,7 +28,7 @@ const getTagClass = (action = '') => {
   return '';
 };
 
-const fmt = (n) => `Γé╣${Math.round(n).toLocaleString('en-IN')}`;
+const fmt = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
 const fmtTokens = (n) => n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : (n || 0).toString();
 
 const monthLabel = (m) => {
@@ -40,7 +40,7 @@ const monthLabel = (m) => {
 const initials = (name = '') => name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '??';
 
 const formatTimestamp = (iso) => {
-  if (!iso) return 'ΓÇö';
+  if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
@@ -68,7 +68,7 @@ const PieTooltip = ({ active, payload }) => {
       <div className="tt-label">{p.name}</div>
       <div className="tt-item">
         <span className="tt-dot" style={{ background: p.payload.fill }} />
-        <span>{p.payload.calls} calls ┬╖ {fmt(p.value)}</span>
+        <span>{p.payload.calls} calls · {fmt(p.value)}</span>
       </div>
     </div>
   );
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
 
   const availableMonths = [...new Set(logs.map(l => l.month).filter(Boolean))].sort().reverse();
 
-  // Latest first ΓÇö sort descending by timestamp
+  // Latest first - sort descending by timestamp
   const filteredLogs = logs
     .filter(l => {
       const matchMonth  = selectedMonth === 'all' || l.month === selectedMonth;
@@ -289,21 +289,21 @@ export default function AdminDashboard() {
       icon: <IconToken />, accent: '#10b981',
       label: 'Total Tokens Used',
       value: fmtTokens((totals.totalTokensIn || 0) + (totals.totalTokensOut || 0)),
-      sub: `${fmtTokens(totals.totalTokensIn || 0)} in ┬╖ ${fmtTokens(totals.totalTokensOut || 0)} out`,
+      sub: `${fmtTokens(totals.totalTokensIn || 0)} in · ${fmtTokens(totals.totalTokensOut || 0)} out`,
     },
     {
       icon: <IconStar />, accent: '#f59e0b',
       label: 'Top Teacher (Cost)',
-      value: summary?.mostActiveTeacher?.teacherName || 'ΓÇö',
+      value: summary?.mostActiveTeacher?.teacherName || '-',
       valueStyle: { fontSize: '1.1rem', paddingTop: 4 },
       sub: summary?.mostActiveTeacher
-        ? `${fmt(summary.mostActiveTeacher.costINR)} ┬╖ ${summary.mostActiveTeacher.calls} calls`
+        ? `${fmt(summary.mostActiveTeacher.costINR)} · ${summary.mostActiveTeacher.calls} calls`
         : 'No data yet',
     },
     {
       icon: <IconZap />, accent: '#06b6d4',
       label: 'Most Used Feature',
-      value: summary?.topAction?.actionLabel || 'ΓÇö',
+      value: summary?.topAction?.actionLabel || '-',
       valueStyle: { fontSize: '0.9rem', paddingTop: 4, lineHeight: 1.3 },
       sub: summary?.topAction ? `${summary.topAction.calls} uses` : 'No data yet',
     },
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                   </svg>
                 </div>
                 <h2>Success</h2>
-                <p style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '24px' }}>{inviteMsg}</p>
+                <p style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '24px' }}>{inviteMsg}</p>
                 <button onClick={() => setInviteMsg('')}>Close</button>
               </div>
             </div>
@@ -642,12 +642,12 @@ export default function AdminDashboard() {
         {/* velaarAdmin: show prompt when no institution selected */}
         {isVelaarAdmin && !selectedInstitutionId && (
           <div className="glass-card" style={{ width: '100%', padding: '40px', boxSizing: 'border-box', marginBottom: '20px', textAlign: 'center' }}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" style={{ margin: '0 auto 16px' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>Select an institution above to view its users and send invitations.</p>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" style={{ margin: '0 auto 16px' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <p style={{ color: '#ffffff', fontSize: '1rem' }}>Select an institution above to view its users and send invitations.</p>
           </div>
         )}
 
-        {/* ΓöÇΓöÇ USER DIRECTORY ΓöÇΓöÇ */}
+        {/* ── USER DIRECTORY ── */}
         <div className="glass-card" style={{ width: '100%', padding: '30px', boxSizing: 'border-box', marginBottom: '40px' }}>
           <div className="section-header">
             <span className="section-title">Institutional User Directory</span>
@@ -709,13 +709,13 @@ export default function AdminDashboard() {
                               placeholder="-"
                             />
                             {u.semester && (
-                              <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.55)', fontWeight: 600 }}>
+                              <span style={{ fontSize: '0.75rem', color: '#ffffff', fontWeight: 600 }}>
                                 {semesterToClass(u.semester)}
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
+                          <span style={{ color: '#ffffff' }}>-</span>
                         )}
                       </td>
                       <td>
@@ -744,12 +744,12 @@ export default function AdminDashboard() {
                             placeholder="-"
                           />
                         ) : (
-                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>—</span>
+                          <span style={{ color: '#ffffff' }}>-</span>
                         )}
                       </td>
                       <td>
                         <span className="teacher-email">
-                          {joinedDate ? joinedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                          {joinedDate ? joinedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </span>
                       </td>
                     </tr>
@@ -783,7 +783,7 @@ export default function AdminDashboard() {
           <div className="glass-card chart-container">
             <div className="section-header">
               <span className="section-title">Monthly Velaar Cost</span>
-              <span className="section-unit">Γé╣ INR</span>
+              <span className="section-unit">₹ INR</span>
             </div>
             {monthlyData.length === 0 ? (
               <div className="no-data-msg">No monthly data yet</div>
@@ -792,7 +792,7 @@ export default function AdminDashboard() {
                 <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }} barSize={26}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" tickFormatter={monthLabel} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => `Γé╣${v}`} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={52} />
+                  <YAxis tickFormatter={v => `₹${v}`} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={52} />
                   <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
                   <Bar dataKey="costINR" name="costINR" radius={[5, 5, 0, 0]}>
                     {monthlyData.map((_, i) => (
@@ -856,7 +856,7 @@ export default function AdminDashboard() {
                     const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'other';
                     const teacherSubjects = [...new Set(
                       logs.filter(l => l.teacherId === t.teacherId && l.subjectName).map(l => l.subjectName)
-                    )].slice(0, 2).join(', ') || 'ΓÇö';
+                    )].slice(0, 2).join(', ') || '-';
                     return (
                       <tr key={t.teacherId} id={`teacher-row-${i + 1}`}>
                         <td><span className={`rank-badge ${rankClass}`}>{i + 1}</span></td>
@@ -873,7 +873,7 @@ export default function AdminDashboard() {
                         <td><span className="token-pill">{t.calls}</span></td>
                         <td><span className="token-pill">{fmtTokens(t.inputTokens)}</span></td>
                         <td><span className="token-pill">{fmtTokens(t.outputTokens)}</span></td>
-                        <td><span className="cost-chip">Γé╣ {Math.round(t.costINR).toLocaleString('en-IN')}</span></td>
+                        <td><span className="cost-chip">₹ {Math.round(t.costINR).toLocaleString('en-IN')}</span></td>
                       </tr>
                     );
                   })}
@@ -960,7 +960,7 @@ export default function AdminDashboard() {
               id="admin-log-search"
               type="text"
               className="log-search"
-              placeholder="Search by teacher, subject, or actionΓÇª"
+              placeholder="Search by teacher, subject, or action..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -1003,7 +1003,7 @@ export default function AdminDashboard() {
                     <th>Velaar Action</th>
                     <th>Tokens In</th>
                     <th>Tokens Out</th>
-                    <th>Cost (Γé╣)</th>
+                    <th>Cost (₹)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1019,7 +1019,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="subject-cell">{log.subjectName || 'ΓÇö'}</td>
+                      <td className="subject-cell">{log.subjectName || '-'}</td>
                       <td>
                         <span className={`action-tag ${getTagClass(log.action)}`} title={log.actionLabel}>
                           {log.actionLabel || log.action}
@@ -1027,7 +1027,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="timestamp-cell">{fmtTokens(log.inputTokens)}</td>
                       <td className="timestamp-cell">{fmtTokens(log.outputTokens)}</td>
-                      <td><span className="cost-chip">Γé╣{Math.round(log.costINR).toLocaleString('en-IN')}</span></td>
+                      <td><span className="cost-chip">₹{Math.round(log.costINR).toLocaleString('en-IN')}</span></td>
                     </tr>
                   ))}
                 </tbody>

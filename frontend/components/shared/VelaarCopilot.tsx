@@ -34,6 +34,18 @@ const QUICK_ACTIONS = [
 
 
 
+const cleanQuestionText = (text) => {
+  if (typeof text !== 'string') return '';
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^[*#\-\s]+/, '');
+  cleaned = cleaned.replace(/^(?:(?:ai[\s-]?)?generated(?:\s*question)?|question\s*\d+|q\d+)[ \t]*[:\-\–—.]+[ \t]*/i, '');
+  cleaned = cleaned.replace(/^\[(?:ai[\s-]?)?generated[^\]]*\][ \t]*/i, '');
+  cleaned = cleaned.replace(/\n\s*(?:Answer|Solution|Formula|Formulas|Key|Working|Steps|Derivation|Hint|Explanation)[ \t]*:[\s\S]*$/i, '');
+  cleaned = cleaned.replace(/\s*\((?:ai[\s-]?)?generated[^)]*\)\s*$/i, '');
+  cleaned = cleaned.replace(/\s*\[(?:ai[\s-]?)?generated[^\]]*\]\s*$/i, '');
+  return cleaned.trim();
+};
+
 const exportQuestionsToWord = async (questions, course) => {
   const tableRows = [
     new TableRow({
@@ -48,7 +60,7 @@ const exportQuestionsToWord = async (questions, course) => {
       new TableRow({
         children: [
           new TableCell({ children: [new Paragraph((i + 1).toString())] }),
-          new TableCell({ children: [new Paragraph(q.question || "")] }),
+          new TableCell({ children: [new Paragraph(cleanQuestionText(q.question) || "")] }),
           new TableCell({ children: [new Paragraph(q.courseOutcome || "CO1")] }),
           new TableCell({ children: [new Paragraph(q.btLevel || "")] }),
         ],

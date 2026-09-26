@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 /**
  * Exam docx builder.
@@ -7,6 +7,7 @@
  */
 
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, VerticalAlign, BorderStyle } from 'docx';
+import { cleanQuestionText } from './sanitize.js';
 
 /** Centered paragraph with Times New Roman font */
 const hText = (text, bold = false, size = 20) => new Paragraph({
@@ -119,12 +120,12 @@ export const buildExamDocx = async ({ course, date, duration, maxMarks, scheme, 
 
     q.subs.forEach((sub) => {
       const internalId = `Q${q.id}_${sub.id}`;
-      let aiQuestionData = aiData[internalId] || { q: 'Error generating question', co: 'CO1' };
+      let aiQuestionData = aiData[internalId] || { q: 'Question not available', co: 'CO1' };
       if (typeof aiQuestionData === 'string') aiQuestionData = { q: aiQuestionData, co: 'CO-Auto' };
 
       tRows.push(new TableRow({ children: [
         cell(`${sub.id})`, { align: AlignmentType.CENTER, bold: true }),
-        cell(aiQuestionData.q),
+        cell(cleanQuestionText(aiQuestionData.q)),
         cell(String(sub.marks), { align: AlignmentType.CENTER }),
         cell(aiQuestionData.co, { align: AlignmentType.CENTER }),
         cell(sub.bt || '', { align: AlignmentType.CENTER }),

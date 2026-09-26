@@ -4,10 +4,10 @@
 // Every request now includes teacher context so the server can log AI usage accurately.
 
 import { supabase } from './supabase';
+import { getApiBaseUrl } from './apiConfig';
 
-const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
-const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/ai` : `${BASE_URL}/api/ai`;
+const BASE_URL = getApiBaseUrl(); // '' on localhost (uses Vite proxy), full URL in prod
+const API_URL = BASE_URL ? (BASE_URL.endsWith('/api') ? `${BASE_URL}/ai` : `${BASE_URL}/api/ai`) : '/api/ai';
 
 // â”€â”€â”€ Teacher context cache (fetched once per session) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let _cachedCtx = null;

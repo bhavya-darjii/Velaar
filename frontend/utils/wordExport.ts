@@ -1,10 +1,10 @@
 /* eslint-disable */
 // @ts-nocheck
 import { supabase } from '../services/supabase';
+import { getApiBaseUrl } from '../services/apiConfig';
 
-const rawBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
-const API_URL = BASE_URL.endsWith('/api') ? `${BASE_URL}/export` : `${BASE_URL}/api/export`;
+const base = getApiBaseUrl();
+const API_URL = base ? `${base}/export` : '/api/export';
 
 export const exportLessonPlanToWord = async (course, lp) => {
   try {

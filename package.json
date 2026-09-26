@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "npx tsx backend/index.ts",
-    "dev": "concurrently \"vite --host --port 5173\" \"npx tsx backend/index.ts\"",
+    "dev": "concurrently \"vite --host --port 5173\" \"npx tsx watch backend/index.ts\"",
     "build": "vite build",
     "lint": "eslint .",
     "type-check": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.backend.json --noEmit",

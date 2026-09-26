@@ -1,4 +1,4 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 /**
  * Exam paper prompt builders.
@@ -14,7 +14,9 @@ export const buildExamTheoryPrompt = (structureMap, variantNum, topicsList) => `
           INSTRUCTIONS:
           1. Generate conceptually strong, theoretical questions based ONLY on the syllabus topics above.
           2. MUST NOT be numerical questions.
-          3. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
+          3. QUESTIONS ONLY: Do NOT include any answers, solutions, formulas, steps, hints, or derivations.
+          4. Clean text ONLY: Do NOT include words like "Generated", "AI Generated", "Question 1:", or any watermarks or metadata.
+          5. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
 
           STRUCTURE TO FILL:
           ${JSON.stringify(structureMap, null, 2)}
@@ -27,13 +29,13 @@ export const buildExamNumericalPrompt = (structureMap, variantNum, numericalProm
           ${numericalPrompt ? `"${numericalPrompt}"` : 'Generate numerical problems based on general engineering/science applications.'}
           
           ${looksLikeExample ? `
-          âš ï¸ TEMPLATE REWRITING MODE:
+          ⚠️  TEMPLATE REWRITING MODE:
           The guidance above is a SPECIFIC PROBLEM/EXAMPLE. You MUST:
           1. Generate the EXACT SAME TYPE of problem (same algorithm, same concept, same domain).
           2. CHANGE the specific values (e.g., use a different array, different graph edges, different voltage).
           3. Do NOT generate numericals from any other topic.
           ` : `
-          âš ï¸ TOPIC MODE: Use the guidance above as the exact subject area.
+          ⚠️  TOPIC MODE: Use the guidance above as the exact subject area.
           `}
 
           ${pastNumericals && pastNumericals.length > 0 ? `
@@ -44,7 +46,9 @@ export const buildExamNumericalPrompt = (structureMap, variantNum, numericalProm
 
           INSTRUCTIONS:
           1. Generate mathematically solvable problems strictly following the guidance above.
-          2. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
+          2. QUESTIONS ONLY: Do NOT include any answers, solutions, formulas, steps, hints, or derivations. Provide ONLY the problem statement text.
+          3. Clean text ONLY: Do NOT include words like "Generated", "AI Generated", "Question 1:", or any watermarks or metadata.
+          4. Return ONLY a RAW JSON OBJECT covering EXACTLY the keys in the structure below. No markdown.
 
           STRUCTURE TO FILL:
           ${JSON.stringify(structureMap, null, 2)}
