@@ -1,6 +1,9 @@
 /**
  * Centralized API base URL resolver.
- * Handles development (localhost) and production (velaar.vercel.app) cleanly.
+ *
+ * - Production (Vercel): reads VITE_API_BASE_URL → "https://velaar-api.onrender.com/api"
+ * - Localhost: returns '' (empty string) so relative /api/* paths go through the Vite dev proxy
+ *   which forwards them to http://localhost:5000
  */
 
 export const getApiBaseUrl = (): string => {
@@ -9,14 +12,7 @@ export const getApiBaseUrl = (): string => {
     return envUrl.trim().replace(/\/$/, '');
   }
 
-  // If in browser and on production domain, use Render backend
-  if (
-    typeof window !== 'undefined' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
-  ) {
-    return 'https://velaar-api.onrender.com/api';
-  }
-
-  return 'http://localhost:5000/api';
+  // On localhost, return '' so callers use relative paths (/api/...)
+  // Vite's dev server proxy (vite.config.ts) forwards them to http://localhost:5000
+  return '';
 };

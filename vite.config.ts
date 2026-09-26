@@ -11,4 +11,14 @@ export default defineConfig({
   build: {
     cssMinify: false, // Prevent esbuild from stripping standard backdrop-filter
   },
+  server: {
+    proxy: {
+      // Proxy all /api/* requests to the local Express backend
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 });

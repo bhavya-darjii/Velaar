@@ -10,14 +10,17 @@
 
 import { supabase } from './supabase';
 
-// Use the same env var as every other service (VITE_API_BASE_URL = "https://velaar-api.onrender.com/api").
+// On production (Vercel) VITE_API_BASE_URL = "https://velaar-api.onrender.com/api".
 // Strip the trailing "/api" so we can prepend "/api/hier-analytics/..." without doubling it.
-const _rawBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:5000/api';
-const BASE = _rawBase.endsWith('/api')
-  ? _rawBase.slice(0, -4)          // "https://velaar-api.onrender.com"
-  : _rawBase.endsWith('/')
-  ? _rawBase.slice(0, -1)
-  : _rawBase;
+// On localhost we leave BASE as empty string '' — Vite's dev proxy rewrites /api/* → http://localhost:5000/api/*
+const _rawBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ?? '';
+const BASE = _rawBase
+  ? (_rawBase.endsWith('/api')
+      ? _rawBase.slice(0, -4)   // "https://velaar-api.onrender.com"
+      : _rawBase.endsWith('/')
+        ? _rawBase.slice(0, -1)
+        : _rawBase)
+  : '';  // empty = use Vite proxy on localhost
 
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
