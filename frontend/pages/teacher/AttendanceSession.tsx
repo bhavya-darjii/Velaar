@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '../../services/supabase';
+import { getApiBaseUrl } from '../../services/apiConfig';
 import SegmentedToggle from '../../components/shared/SegmentedToggle';
 import './AttendanceSession.css';
 
@@ -100,33 +101,62 @@ const AttendanceSession = () => {
     return () => clearInterval(interval);
   }, [sessionActive, sessionId, courseId]);
 
-  // Listen for attendees in live session via Supabase Realtime
+  // Listen for attendees in live session via Realtime + Resilient Polling
   useEffect(() => {
-    if (!sessionId) return;
-    
-    // Enrich a log row with user info (no FK join - separate query)
-    const enrichWithUser = async (log) => {
-      const { data: student } = await supabase
-        .from('users')
-        .select('full_name, email')
-        .eq('id', log.student_id)
-        .single();
-      return { ...log, users: student || { full_name: 'Unknown', email: '' } };
-    };
+    if (!sessionId || !sessionActive) return;
 
-    const fetchInitial = async () => {
-      const { data, error } = await supabase
-        .from('attendance_logs')
-        .select('id, marked_at, student_id')
-        .eq('session_id', sessionId);
-      if (error) { console.error('Attendance fetch error:', error); return; }
-      if (data) {
-        const enriched = await Promise.all(data.map(enrichWithUser));
-        setAttendees(enriched);
+    // Helper to enrich a log row with user info
+    const enrichWithUser = async (log) => {
+      try {
+        const { data: student } = await supabase
+          .from('users')
+          .select('full_name, email')
+          .eq('id', log.student_id)
+          .single();
+        return { ...log, users: student || { full_name: 'Unknown', email: '' } };
+      } catch {
+        return { ...log, users: { full_name: 'Unknown', email: '' } };
       }
     };
-    fetchInitial();
 
+    // Resilient attendee fetcher: attempts backend service-role first, falls back to client Supabase
+    const fetchAttendees = async () => {
+      try {
+        const apiBase = getApiBaseUrl();
+        const res = await fetch(`${apiBase}/attendance/session/${sessionId}/attendees`);
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json?.attendees)) {
+            setAttendees(json.attendees);
+            return;
+          }
+        }
+      } catch (err) {
+        // Network or cold-start fallback to client-side Supabase
+      }
+
+      // Direct client Supabase fallback
+      try {
+        const { data, error } = await supabase
+          .from('attendance_logs')
+          .select('id, marked_at, student_id')
+          .eq('session_id', sessionId);
+        if (!error && data) {
+          const enriched = await Promise.all(data.map(enrichWithUser));
+          setAttendees(enriched);
+        }
+      } catch (err) {
+        console.error('Attendance fetch error:', err);
+      }
+    };
+
+    // 1. Initial fetch immediately
+    fetchAttendees();
+
+    // 2. Continuous polling every 3 seconds to guarantee updates regardless of WebSocket state
+    const pollInterval = setInterval(fetchAttendees, 3000);
+
+    // 3. Instant Realtime push subscription
     const channel = supabase.channel(`attendance_live_${sessionId}`)
       .on(
         'postgres_changes',
@@ -139,12 +169,17 @@ const AttendanceSession = () => {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[AttendanceSession] Realtime channel connected');
+        }
+      });
 
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
-  }, [sessionId]);
+  }, [sessionId, sessionActive]);
 
   // Cleanup on unmount
   useEffect(() => {

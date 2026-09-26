@@ -11,6 +11,7 @@ import hierarchicalAnalyticsRoutes from './routes/hierarchicalAnalyticsRoutes.js
 import noticeRoutes from './routes/noticeRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
 import ragRoutes from './routes/ragRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
@@ -95,6 +96,7 @@ app.use('/api/hier-analytics', hierarchicalAnalyticsRoutes);
 app.use('/api/notice',         noticeRoutes);
 app.use('/api/timetable',      timetableRoutes);
 app.use('/api/rag',            ragRoutes);            // RAG knowledge base
+app.use('/api/attendance',     attendanceRoutes);     // Realtime attendance & attendee fetch
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
