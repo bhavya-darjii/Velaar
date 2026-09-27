@@ -21,7 +21,7 @@
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
 - [Executive Summary](#-executive-summary)
 - [System Architecture](#-system-architecture)
@@ -56,7 +56,7 @@
 
 ---
 
-## 🏛️ Executive Summary
+## Executive Summary
 
 Modern higher-education institutions face fragmented workflows: syllabi remain static PDFs, lesson planning takes hours of manual formatting, exam generation risks question duplication and syllabus misalignment, and accreditation bodies (like **NBA** and **NAAC**) require arduous Course Outcome (CO) and Program Outcome (PO) mapping.
 
@@ -69,7 +69,7 @@ Modern higher-education institutions face fragmented workflows: syllabi remain s
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### High-Level Architecture
 
@@ -166,7 +166,7 @@ flowchart TB
 
 ---
 
-## 🧠 Retrieval-Augmented Generation (RAG) Engine
+## Retrieval-Augmented Generation (RAG) Engine
 
 The Velaar RAG architecture grounds all generated lecture content, study materials, and examination questions in official institutional curriculum files.
 
@@ -216,7 +216,7 @@ sequenceDiagram
 
 ---
 
-## ⚡ High-Availability AI Infrastructure
+## High-Availability AI Infrastructure
 
 ### Multi-Key LRU Rotation Pool
 
@@ -269,7 +269,7 @@ To survive upstream Google Cloud outages, high latency spikes, or temporary 503 
 
 ---
 
-## 👥 Institutional Role Matrix & RBAC
+## Institutional Role Matrix & RBAC
 
 Velaar enforces strict multi-tenant Row Level Security (RLS) and frontend route guards across **8 institutional roles**:
 
@@ -286,7 +286,7 @@ Velaar enforces strict multi-tenant Row Level Security (RLS) and frontend route 
 
 ---
 
-## 🔍 Deep-Dive Feature Modules
+## Deep-Dive Feature Modules
 
 ### 1. Course & Syllabus Intelligence Studio
 - **PDF Extraction**: Upload university syllabi (e.g., Mumbai University, VTU, SPPU) in PDF format.
@@ -332,7 +332,7 @@ Velaar enforces strict multi-tenant Row Level Security (RLS) and frontend route 
 
 ---
 
-## 🗄️ Database Schema & Entity-Relationship Architecture
+## Database Schema & Entity-Relationship Architecture
 
 Velaar utilizes **13 interconnected PostgreSQL tables** hosted on Supabase with strict foreign-key integrity and multi-tenant indexing:
 
@@ -380,7 +380,7 @@ erDiagram
 
 ---
 
-## 📡 Backend API Reference
+## Backend API Reference
 
 All backend routes are mounted under `/api` and protected by JWT authentication and IP rate-limiters.
 
@@ -421,7 +421,7 @@ All backend routes are mounted under `/api` and protected by JWT authentication 
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |---|---|---|
@@ -437,7 +437,7 @@ All backend routes are mounted under `/api` and protected by JWT authentication 
 
 ---
 
-## 🚀 Getting Started & Local Development
+## Getting Started & Local Development
 
 ### Prerequisites
 
@@ -506,7 +506,7 @@ The frontend will be available at `http://localhost:5173` and the API at `http:/
 
 ---
 
-## 📁 Project Directory Structure
+## Project Directory Structure
 
 ```
 velaar/
@@ -558,7 +558,7 @@ velaar/
 
 ---
 
-## 📜 License & Intellectual Property
+## License & Intellectual Property
 
 **Copyright © 2026 Bhavya Darji. All Rights Reserved.**
 
@@ -578,6 +578,4 @@ Founder & Full-Stack Architect
 
 ---
 
-<div align="center">
-  <sub>Engineered with precision for modern higher-education institutions.</sub>
-</div>
+<p align="center">Made with ❤️ by <a href="https://bhavya-darji.vercel.app/" target="_blank" rel="noopener noreferrer"><strong>Bhavya Darji</strong></a></p>
