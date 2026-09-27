@@ -386,7 +386,7 @@ export const copilotChatService = async (
   const data = await callGemini({
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents: formattedContents,
-    generationConfig: { maxOutputTokens: 512 }, // keep chat replies concise and fast
+    generationConfig: {},
   });
   const usage = data.usageMetadata || {};
   await logAiUsage({ action: 'copilot-chat', inputTokens: usage.promptTokenCount || 0, outputTokens: usage.candidatesTokenCount || 0, ...ctx });

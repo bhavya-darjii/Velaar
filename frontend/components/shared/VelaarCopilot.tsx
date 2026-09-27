@@ -505,6 +505,35 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
   };
 
   const handleQuickAction = (action) => {
+    // Bypass AI intent classification — jump directly into the structured flow
+    // so the Word export is always triggered correctly.
+    const lowerAction = action.toLowerCase();
+
+    let flowKey = null;
+    if (lowerAction.includes('question') || lowerAction.includes('exam')) {
+      flowKey = 'questions';
+    } else if (lowerAction.includes('lesson') || lowerAction.includes('plan')) {
+      flowKey = 'lessonplan';
+    }
+
+    if (flowKey) {
+      addMessage('user', action);
+      setInput('');
+      setShowPanel(true);
+      setIsExpanded(true);
+      setIsFocused(true);
+
+      const firstStep = FLOWS[flowKey][0];
+      const question =
+        typeof firstStep.ask === 'function'
+          ? firstStep.ask(pageContext?.course)
+          : firstStep.ask;
+      setFlow({ type: flowKey, step: 0, params: {} });
+      addMessage('assistant', question);
+      return;
+    }
+
+    // Fallback: treat as a normal chat message
     handleSend(action);
   };
 
@@ -650,7 +679,6 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
             setIsFocused(true);
             if (messages.length > 0 || flow) setShowPanel(true);
           }}
-          disabled={isTyping}
           autoComplete="off"
         />
 

@@ -313,9 +313,9 @@
 }
 
 .copilot-v2__send:not(:disabled):hover {
-  background: #08758a !important;
+  background: #000000 !important;
   transform: scale(1.08) !important;
-  box-shadow: 0 4px 12px rgba(10, 143, 168, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .copilot-v2__send:disabled {
