@@ -566,7 +566,7 @@ This software, including all source code, design systems, algorithms, and docume
 
 ---
 
-## 👨‍💻 Author & Contact
+## Author & Contact
 
 **Bhavya Darji**  
 Founder & Full-Stack Architect
