@@ -1,7 +1,8 @@
-﻿/* eslint-disable */
+/* eslint-disable */
 // @ts-nocheck
 import React, { useState } from 'react';
 import { supabase } from '../../services/supabase';
+import SpringCheck from '../shared/SpringCheck';
 import './CourseChecklist.css';
 
 // Component 1: The Active Lecture Checklist
@@ -129,19 +130,25 @@ export const ActiveLecture = ({ course, setCourse, currentLecture, setCurrentLec
           {currentLecture?.checklist.map((item, idx) => {
             const isChecked = currentLecture.checkedItems?.includes(idx);
             return (
-              <div
-                key={idx}
-                className={`check-item ${isChecked ? 'checked' : ''}`}
-                onClick={() => toggleChecklist(idx)}
-              >
-                <div className="checkbox-circle">
-                  {isChecked && (
-                    <svg style={{ display: 'block' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 7 9 18 4 13"></polyline>
-                    </svg>
-                  )}
-                </div>
-                <span>{item}</span>
+              <div key={idx} className="check-item-spring-wrap">
+                <SpringCheck
+                  label={item}
+                  checked={isChecked}
+                  onChange={() => toggleChecklist(idx)}
+                  color="#ffffff"
+                  fillColor="#0a8fa8"
+                  checkColor="#ffffff"
+                  boxSize={22}
+                  boxRadius={11}
+                  fontSize={16}
+                  strokeWidth={3.6}
+                  minRowHeight={40}
+                  bounce={0.2}
+                  strikeLag={0.12}
+                  doneOpacity={0.42}
+                  strike="left"
+                  className="check-item-spring"
+                />
               </div>
             );
           })}

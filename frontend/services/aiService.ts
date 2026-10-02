@@ -363,6 +363,10 @@ export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel
       headers["Authorization"] = `Bearer ${token}`;
     }
 
+    const courseObj = (pageContext as any)?.course || pageContext || {};
+    const effectiveSubject = courseObj?.subjectName || courseObj?.name || ctx.subjectName || '';
+    const effectiveCourseId = courseObj?.id || ctx.courseId || '';
+
     const res = await fetch(`${API_URL}/copilot-chat`, {
       method: "POST",
       headers,
@@ -373,6 +377,8 @@ export const sendCopilotMessage = async (messages, userRole, pagePath, pageLabel
         pageLabel,
         pageContext: pageContext || {},
         ...ctx,
+        ...(effectiveSubject ? { subjectName: effectiveSubject } : {}),
+        ...(effectiveCourseId ? { courseId: effectiveCourseId } : {}),
       }),
       signal: options?.signal,
     });

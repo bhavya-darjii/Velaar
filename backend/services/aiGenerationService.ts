@@ -364,9 +364,19 @@ export const copilotChatService = async (
     .reverse()
     .find(m => m.role === 'user')?.content || '';
 
+  // Extract course info fallback from pageContext if missing in ctx
+  const rawCtx = (pageContext || {}) as any;
+  const pageCourse = rawCtx?.course || rawCtx;
+  if (!ctx.subjectName && (pageCourse?.subjectName || pageCourse?.name)) {
+    ctx.subjectName = pageCourse.subjectName || pageCourse.name;
+  }
+  if (!ctx.courseId && pageCourse?.id) {
+    ctx.courseId = String(pageCourse.id);
+  }
+
   // Skip RAG for short/casual messages (greetings, thanks, simple questions) — saves 2-3s
   const wordCount = lastUserMsg.trim().split(/\s+/).length;
-  const isSubstantiveQuery = wordCount >= 8 || /\b(syllabus|topic|chapter|module|explain|describe|what is|how does|difference|define|notes|marks|exam|question)\b/i.test(lastUserMsg);
+  const isSubstantiveQuery = wordCount >= 8 || /\b(syllabus|topic|chapter|module|explain|describe|what is|how does|difference|define|notes|marks|exam|question|paper)\b/i.test(lastUserMsg);
 
   // Retrieve relevant passages from uploaded documents (only for substantive queries)
   const ragContext = isSubstantiveQuery

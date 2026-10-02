@@ -5,6 +5,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { TEACHER_NAV } from '../config/navigation';
 import { useCopilotContext } from '../context/CopilotContext';
+import { setAiContextCourse } from '../services/aiService';
 import { extractGoogleAvatarUrl, cacheTeacherAvatar } from '../utils/avatarUtils';
 import { preloadCoursePresentationHistory } from '../utils/presentationHistoryUtils';
 import UnifiedLayout from './UnifiedLayout';
@@ -77,11 +78,6 @@ const TeacherLayout = () => {
             ...docData 
           };
           if (mounted) {
-            setCourse(courseData);
-            setPageContext({ course: courseData });
-            // Preload presentation history for instant 0ms access in Lecture Overview
-            preloadCoursePresentationHistory(courseData.id);
-            
             let allLectures = [];
             if (courseData.roadmap && !Array.isArray(courseData.roadmap)) {
               Object.entries(courseData.roadmap).forEach(([div, lecs]) => {
@@ -93,7 +89,13 @@ const TeacherLayout = () => {
 
             allLectures.sort((a, b) => new Date(a.fullIsoDate || 0) - new Date(b.fullIsoDate || 0));
             const nextUp = allLectures.find(l => !l.isCompleted) || allLectures[allLectures.length - 1];
+
+            setCourse(courseData);
             setCurrentLecture(nextUp);
+            setPageContext({ course: courseData, currentLecture: nextUp });
+            setAiContextCourse(courseData.id, courseData.subjectName);
+            // Preload presentation history for instant 0ms access in Lecture Overview
+            preloadCoursePresentationHistory(courseData.id);
           }
         } else {
           console.log("No courses found for this teacher.");

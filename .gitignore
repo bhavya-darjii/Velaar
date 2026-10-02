@@ -48,3 +48,6 @@ dist-backend/
 
 # Local credentials reference
 CREDENTIALS.md
+
+# Local planning docs
+PROXY_SYSTEM_PLAN.md

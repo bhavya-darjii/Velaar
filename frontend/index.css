@@ -90,7 +90,7 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.5px;
 }
 
-button:not(.glass-btn):not(.liquid-btn):not(.segment-toggle__item):not(.app-shell__hamburger):not(.app-shell__close):not(.copilot-v2__chip):not(.copilot-v2__help):not(.copilot-v2__send):not(.copilot-v2__panel-close):not(.export-btn):not(.velaar-ai-send):not(.ai-close-btn):not(.remove-file-btn):not(.hamburger-btn):not(.close-btn):not(.glass-dropdown__trigger):not(.glass-dropdown__item) {
+button:not(.glass-btn):not(.liquid-btn):not(.segment-toggle__item):not(.app-shell__hamburger):not(.app-shell__close):not(.copilot-v2__chip):not(.copilot-v2__help):not(.copilot-v2__send):not(.copilot-v2__panel-close):not(.export-btn):not(.velaar-ai-send):not(.ai-close-btn):not(.remove-file-btn):not(.hamburger-btn):not(.close-btn):not(.glass-dropdown__trigger):not(.glass-dropdown__item):not(.spring-check) {
   border-radius: 12px;
   border: 1px solid transparent;
   padding: 0.8em 1.5em;
@@ -103,7 +103,7 @@ button:not(.glass-btn):not(.liquid-btn):not(.segment-toggle__item):not(.app-shel
   transition: background-color 0.2s ease;
 }
 
-button:not(.glass-btn):not(.liquid-btn):not(.segment-toggle__item):not(.app-shell__hamburger):not(.app-shell__close):not(.copilot-v2__chip):not(.copilot-v2__help):not(.copilot-v2__send):not(.copilot-v2__panel-close):not(.export-btn):not(.velaar-ai-send):not(.ai-close-btn):not(.remove-file-btn):not(.hamburger-btn):not(.close-btn):not(.glass-dropdown__trigger):not(.glass-dropdown__item):hover {
+button:not(.glass-btn):not(.liquid-btn):not(.segment-toggle__item):not(.app-shell__hamburger):not(.app-shell__close):not(.copilot-v2__chip):not(.copilot-v2__help):not(.copilot-v2__send):not(.copilot-v2__panel-close):not(.export-btn):not(.velaar-ai-send):not(.ai-close-btn):not(.remove-file-btn):not(.hamburger-btn):not(.close-btn):not(.glass-dropdown__trigger):not(.glass-dropdown__item):not(.spring-check):hover {
   background-color: #e2e8f0;
 }
 button:focus,

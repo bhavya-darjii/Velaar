@@ -74,7 +74,7 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: copilotPanelIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 300px;
+  max-height: min(440px, 60vh);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -468,6 +468,35 @@
 
 .copilot-v2__message--user {
   align-items: flex-end;
+  scroll-margin-top: 4px;
+}
+
+/* Gemini-style turn reveal: whole block fades + eases in together */
+.copilot-v2__gemini-in {
+  animation: copilotGeminiIn 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes copilotGeminiIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.copilot-v2__followup {
+  display: flex;
+  flex-direction: column;
+}
+
+.copilot-v2__flow-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
 }
 
 /* -- Wave dots typing indicator ------------------------------------- */
@@ -522,7 +551,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 4px 18px 0;
+  padding: 0 4px 20px 0;
   scroll-behavior: smooth;
 
   /* Custom thin black scrollbar */
@@ -545,5 +574,103 @@
 
 .copilot-v2__panel-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.55);
+}
+
+@keyframes copilot-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes copilotPulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.25); opacity: 1; filter: drop-shadow(0 0 5px #9B51E0); }
+}
+
+/* Force date input text to be black regardless of page color-scheme */
+.copilot-date-input,
+.copilot-date-input::-webkit-datetime-edit,
+.copilot-date-input::-webkit-datetime-edit-fields-wrapper,
+.copilot-date-input::-webkit-datetime-edit-text,
+.copilot-date-input::-webkit-datetime-edit-month-field,
+.copilot-date-input::-webkit-datetime-edit-day-field,
+.copilot-date-input::-webkit-datetime-edit-year-field {
+  color: #000 !important;
+}
+.copilot-date-input {
+  border: 1.5px solid #b5b5b5 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  box-shadow: none !important;
+  width: 145px !important;
+  background: #ffffff !important;
+  transition: border-color 0.2s ease !important;
+}
+.copilot-date-input:focus {
+  border-color: #555555 !important;
+}
+
+/* ── Flow Chips entrance & hover animations ──────────────────────── */
+.copilot-flow-chip {
+  padding: 7px 16px !important;
+  border-radius: 999px !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  font-size: 0.83rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  color: #111111 !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.copilot-flow-chip:hover {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18) !important;
+}
+
+.copilot-flow-chip:active {
+  transform: translateY(0) scale(0.97) !important;
+}
+
+/* ── Date Picker Card (animates with parent .copilot-v2__followup) ─ */
+.copilot-date-card {
+  margin: 8px 0 4px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  width: fit-content;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.copilot-date-submit-btn {
+  padding: 5px 12px !important;
+  border-radius: 8px !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.copilot-date-submit-btn:hover {
+  background: #000000 !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.copilot-date-submit-btn:active {
+  transform: translateY(0) scale(0.97) !important;
 }
 

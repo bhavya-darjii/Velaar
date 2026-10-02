@@ -2,7 +2,6 @@
 // @ts-nocheck
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-// import { sendCopilotMessage } from "../../services/aiService"; // DISABLED — replaced by task runner
 import {
   generateQuestionsFromTopics,
   generateLessonPlan,
@@ -11,6 +10,7 @@ import {
   sendCopilotMessage,
 } from "../../services/aiService";
 import { exportLessonPlanToWord } from "../../utils/wordExport";
+import { getApiBaseUrl } from "../../services/apiConfig";
 import {
   Document,
   Packer,
@@ -44,6 +44,91 @@ const cleanQuestionText = (text) => {
   cleaned = cleaned.replace(/\s*\((?:ai[\s-]?)?generated[^)]*\)\s*$/i, '');
   cleaned = cleaned.replace(/\s*\[(?:ai[\s-]?)?generated[^\]]*\]\s*$/i, '');
   return cleaned.trim();
+};
+
+// ── Exam paper export via backend ─────────────────────────────────────────
+const exportExamPaperToWord = async (questions, course, examType, headerConfig) => {
+  try {
+    const base = getApiBaseUrl();
+    const apiRoot = base ? (base.endsWith('/api') ? base : `${base}/api`) : '';
+    const EXPORT_URL = apiRoot ? `${apiRoot}/export/exam` : '/api/export/exam';
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    // Map examType label to examId used by the backend
+    const examIdMap = { "Term Test 1": "tt1", "Term Test 2": "tt2", "End Semester": "endSem" };
+    const examId = examIdMap[examType] || "endSem";
+
+    // Build a basic exam pattern from the questions
+    const isTT = examId === 'tt1' || examId === 'tt2';
+    const subMarks = isTT ? 4 : (parseInt(headerConfig.maxMarks) > 40 ? 10 : 5);
+    const totalSubs = Math.min(questions.length, isTT ? 9 : 12);
+    const subsPerQ = isTT ? 3 : 3;
+    const numQs = Math.ceil(totalSubs / subsPerQ);
+
+    const pattern = Array.from({ length: numQs }, (_, qi) => {
+      const subs = questions.slice(qi * subsPerQ, qi * subsPerQ + subsPerQ).map((q, si) => ({
+        id: String.fromCharCode(97 + si),
+        marks: subMarks,
+        bt: q.btLevel || "U",
+        isNumerical: false,
+        co: (q.courseOutcome || "CO1").replace("CO", ""),
+        _question: q.question,
+        _courseOutcome: q.courseOutcome || "CO1",
+      }));
+      return {
+        id: String(qi + 1),
+        title: isTT
+          ? `Answer any two questions out of three: (0${subMarks} marks each)`
+          : `Solve any two questions out of three: (${subMarks < 10 ? '0' : ''}${subMarks} marks each)`,
+        marks: subMarks * (isTT ? 2 : 2),
+        subs,
+      };
+    });
+
+    // Pre-fill aiData from the questions (no second AI call needed)
+    const aiData = {};
+    questions.forEach((q, i) => {
+      const qi = Math.floor(i / subsPerQ);
+      const si = i % subsPerQ;
+      const subId = String.fromCharCode(97 + si);
+      aiData[`Q${qi + 1}_${subId}`] = { q: q.question, co: q.courseOutcome || "CO1" };
+    });
+
+    const res = await fetch(EXPORT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: session ? `Bearer ${session.access_token}` : "",
+      },
+      body: JSON.stringify({
+        course,
+        examType: examId,
+        pattern,
+        headerConfig,
+        numSets: 1,
+        generationMode: "bank",  // use our pre-filled questions, no AI re-call
+        _aiDataOverride: aiData,  // backend will use this if supported, else re-generates
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Export failed (${res.status})`);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${course?.subjectName || "Exam"}_${examType.replace(/ /g, '_')}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Exam paper export error:", err);
+    throw err;
+  }
 };
 
 const exportQuestionsToWord = async (questions, course) => {
@@ -116,6 +201,39 @@ const FLOWS = {
     },
     { generate: true },
   ],
+  examPaper: [
+    {
+      ask: "What type of exam paper do you want to generate?",
+      param: "examType",
+      chips: ["Term Test 1", "Term Test 2", "End Semester"],
+    },
+    {
+      ask: "What is the exam date?",
+      param: "examDate",
+      chips: [],
+    },
+    {
+      ask: "What is the exam duration?",
+      param: "duration",
+      chips: ["1 Hour", "2 Hours", "2.5 Hours", "3 Hours"],
+    },
+    {
+      ask: "What is the maximum marks for this paper?",
+      param: "maxMarks",
+      chips: ["20", "30", "60", "80", "100"],
+    },
+    {
+      ask: "What is the academic year / class? (e.g. SY, TY, FY)",
+      param: "academicYear",
+      chips: ["FY", "SY", "TY", "LY"],
+    },
+    {
+      ask: "What semester number? (e.g. III, IV, V, VI)",
+      param: "semester",
+      chips: ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"],
+    },
+    { generate: true },
+  ],
 };
 
 
@@ -169,6 +287,13 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { pageContext } = useCopilotContext();
+  const course = pageContext?.course || (pageContext?.subjectName ? pageContext : null);
+
+  useEffect(() => {
+    if (course?.id || course?.subjectName) {
+      setAiContextCourse(course.id, course.subjectName);
+    }
+  }, [course?.id, course?.subjectName]);
 
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -178,11 +303,32 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
   const [showPanel, setShowPanel] = useState(false);
   const [userName, setUserName] = useState("");
   const [flow, setFlow] = useState(null);
+  const datePickerRef = useRef<HTMLInputElement>(null);
+
+  const scrollLatestUserPromptToTop = () => {
+    const panel = panelBodyRef.current;
+    const target = lastUserMsgRef.current;
+    if (!panel || !target) return;
+
+    const panelRect = panel.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const nextScroll = panel.scrollTop + (targetRect.top - panelRect.top) - 4;
+    panel.scrollTo({ top: Math.max(0, nextScroll), behavior: "smooth" });
+  };
 
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
   const panelBodyRef = useRef(null);
+  const lastUserMsgRef = useRef(null);
   const abortControllerRef = useRef(null);
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const currentDay = String(now.getDate()).padStart(2, '0');
+  const defaultDateStr = `${currentYear}-${currentMonth}-${currentDay}`;
+
+  const isExamDateStep = flow?.type === "examPaper" && FLOWS[flow.type]?.[flow.step]?.param === "examDate";
 
   useEffect(() => {
     const fetchName = async () => {
@@ -265,23 +411,33 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
     }
   }, [isFocused, input, showPanel]);
 
-  // Auto-scroll panel to bottom on new messages (smooth + bouncy)
+  // Keep the latest user pill pinned to the top-right of the visible panel
   useEffect(() => {
-    if (panelBodyRef.current) {
-      const el = panelBodyRef.current;
-      // Small timeout so DOM has rendered the new message before scrolling
-      setTimeout(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-      }, 50);
-    }
-  }, [messages, isTyping]);
+    const run = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(scrollLatestUserPromptToTop);
+      });
+    };
+    const timer = setTimeout(run, 16);
+    return () => clearTimeout(timer);
+  }, [messages, isTyping, showPanel, isExamDateStep, flow?.step]);
 
   const addMessage = (role, content, status = "normal", retryAction = null) => {
     setMessages((prev) => [...prev, { role, content, status, retryAction }]);
   };
 
+  // Focus date picker without shifting scroll when it appears
+  useEffect(() => {
+    if (isExamDateStep) {
+      const timer = setTimeout(() => {
+        datePickerRef.current?.focus({ preventScroll: true });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isExamDateStep]);
+
   const runGenerate = async (flowType, params) => {
-    const course = pageContext?.course;
+    const activeCourse = course || pageContext?.course;
 
     if (flowType === "questions") {
       const numQuestions = parseInt(params.numQuestions) || 10;
@@ -298,12 +454,19 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
         }
       }
 
-      const completedTopics = [
+      let targetTopics = [
         ...new Set(allLectures.filter((l) => l.isCompleted).map((l) => l.title)),
       ];
 
-      if (completedTopics.length === 0) {
-        addMessage("assistant", "No completed lectures found in your course yet. Mark some lectures as done first, then try again!");
+      // Fallback: If no lectures are marked completed yet, use all roadmap lectures or module topics
+      if (targetTopics.length === 0) {
+        const roadmapTopics = allLectures.map((l) => l.title).filter(Boolean);
+        const moduleTopics = (course?.modules || []).map((m) => m.name).filter(Boolean);
+        targetTopics = [...new Set([...roadmapTopics, ...moduleTopics])];
+      }
+
+      if (targetTopics.length === 0) {
+        addMessage("assistant", "No lecture or syllabus topics found in your course yet. Please set up your syllabus or lectures, then try again!");
         setIsTyping(false);
         return;
       }
@@ -316,7 +479,7 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
       let questions;
       try {
         questions = await generateQuestionsFromTopics(
-          completedTopics,
+          targetTopics,
           numQuestions,
           btLevels,
           0, "", [],
@@ -355,6 +518,104 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
 
       addMessage("assistant", `Generated ${questions.length} questions! Your Word document is downloading now...`, "success");
       await exportQuestionsToWord(questions, course);
+
+    } else if (flowType === "examPaper") {
+      if ((params.examType || "").toLowerCase().includes("cancel")) {
+        addMessage("assistant", "Cancelled. Let me know if you need anything else!");
+        setIsTyping(false);
+        setFlow(null);
+        return;
+      }
+
+      // Build topics from completed or all lectures
+      let allLectures = [];
+      if (activeCourse?.roadmap) {
+        if (Array.isArray(activeCourse.roadmap)) {
+          allLectures = activeCourse.roadmap;
+        } else {
+          Object.values(activeCourse.roadmap).forEach((divLecs: any) => {
+            allLectures = [...allLectures, ...(divLecs as any[])];
+          });
+        }
+      }
+
+      let targetTopics = [
+        ...new Set(allLectures.filter((l) => l.isCompleted).map((l) => l.title)),
+      ];
+      if (targetTopics.length === 0) {
+        const roadmapTopics = allLectures.map((l) => l.title).filter(Boolean);
+        const moduleTopics = (activeCourse?.modules || []).map((m) => m.name).filter(Boolean);
+        targetTopics = [...new Set([...roadmapTopics, ...moduleTopics])];
+      }
+
+      if (targetTopics.length === 0) {
+        addMessage("assistant", "No lecture or syllabus topics found. Please set up your syllabus first!", "error");
+        setIsTyping(false);
+        return;
+      }
+
+      // Determine marks per question type
+      const maxMarks = parseInt(params.maxMarks) || 60;
+      const isTT = (params.examType || "").toLowerCase().includes("term");
+      const numQuestions = isTT ? 9 : 12;
+      const btLevels = [];
+
+      abortControllerRef.current = new AbortController();
+      const options = { signal: abortControllerRef.current.signal };
+
+      addMessage("assistant", `⏳ Generating your **${params.examType}** question paper... This may take a moment.`);
+
+      let questions;
+      try {
+        questions = await generateQuestionsFromTopics(
+          targetTopics,
+          numQuestions,
+          btLevels,
+          0, "", [],
+          options
+        );
+      } catch (err) {
+        if ((err as any).name === 'AbortError') {
+          addMessage("assistant", "Execution stopped.", "aborted", () => runGenerate(flowType, params));
+          setIsTyping(false);
+          return;
+        }
+        throw err;
+      }
+
+      if (!questions || questions.error || !Array.isArray(questions) || questions.length === 0) {
+        addMessage("assistant", questions?.error || "Could not generate questions. Please try again.", "error");
+        setIsTyping(false);
+        return;
+      }
+
+      // Parse date input (user may type DD/MM/YYYY or YYYY-MM-DD)
+      let isoDate = new Date().toISOString().split('T')[0];
+      try {
+        const raw = (params.examDate || "").trim();
+        if (raw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          const [d, m, y] = raw.split('/');
+          isoDate = `${y}-${m}-${d}`;
+        } else if (raw.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          isoDate = raw;
+        }
+      } catch (_) {}
+
+      const headerConfig = {
+        date: isoDate,
+        duration: params.duration || "2.5 Hours",
+        maxMarks: String(maxMarks),
+        scheme: "",
+        academicYear: params.academicYear || "SY",
+        semester: params.semester || "IV",
+      };
+
+      try {
+        await exportExamPaperToWord(questions, activeCourse, params.examType || "End Semester", headerConfig);
+        addMessage("assistant", `✅ **${params.examType}** question paper generated and downloaded! Check your downloads folder.\n\n💡 *Tip: For full control over the paper structure and BT level mapping, use the full **Examination** editor from the navigation menu.*`, "success");
+      } catch (exportErr) {
+        addMessage("assistant", "❌ Export failed. Please try again or use the full Examination editor.", "error");
+      }
 
     } else if (flowType === "lessonplan") {
       if ((params.confirm || "").toLowerCase().includes("cancel")) {
@@ -408,15 +669,67 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
     setIsFocused(true);
 
     if (flow) {
-      const currentStep = FLOWS[flow.type][flow.step];
-      const updatedParams = { ...flow.params, [currentStep.param]: msg };
+      // ── Off-topic escape: if the user types something unrelated to the flow
+      // question (e.g. greetings, random questions), exit the flow and answer normally.
+      const currentStep = FLOWS[flow.type]?.[flow.step];
+      const validChips = currentStep?.chips || [];
+      const msgLower = msg.toLowerCase().trim();
+
+      const isChipAnswer = validChips.some(c => msgLower === c.toLowerCase());
+      const looksLikeCasualChat =
+        !isChipAnswer &&
+        (
+          /^(hey|hi|hello|bro|man|yo|sup|ok|okay|thanks|lol|haha|damn|cool|nice|great|hmm|umm|what|how|why|who|tell|explain|help|no|yes|nah|sure)\b/i.test(msgLower) ||
+          msg.endsWith('?') ||
+          // Single word that doesn't look like a date/number/valid answer
+          (msg.split(' ').length <= 2 && !/\d/.test(msg) && !isChipAnswer && validChips.length > 0 &&
+            !['term test 1','term test 2','end semester','today','manual','fy','sy','ty','ly',
+              'i','ii','iii','iv','v','vi','vii','viii','1 hour','2 hours','2.5 hours','3 hours'].some(v => msgLower.includes(v)))
+        );
+
+      if (looksLikeCasualChat) {
+        // Exit the flow and treat as normal chat
+        setFlow(null);
+        setIsTyping(true);
+        abortControllerRef.current = new AbortController();
+        const opts = { signal: abortControllerRef.current.signal };
+        const chatHistory = [...messages, { role: "user", content: msg }];
+        let chatRes;
+        try {
+          chatRes = await sendCopilotMessage(chatHistory, userRole, location.pathname, "", course || pageContext?.course || {}, opts);
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            addMessage("assistant", "Execution stopped.", "aborted", () => handleSend(msg));
+            setIsTyping(false);
+            return;
+          }
+          throw err;
+        }
+        addMessage("assistant", chatRes.reply || chatRes.error || "Sorry, I had trouble responding.");
+        setIsTyping(false);
+        return;
+      }
+
+      let paramValue = msg;
+      if (currentStep?.param === "examDate") {
+        const trimmed = msg.trim();
+        if (/^\d{1,2}$/.test(trimmed)) {
+          paramValue = `${trimmed.padStart(2, '0')}/${currentMonth}/${currentYear}`;
+        } else if (/^\d{1,2}[\/\-]\d{1,2}$/.test(trimmed)) {
+          const [d, m] = trimmed.split(/[\/\-]/);
+          paramValue = `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${currentYear}`;
+        } else if (/\b\d{1,2}(st|nd|rd|th)?\s+[a-zA-Z]+\b/i.test(trimmed) && !/\b\d{4}\b/.test(trimmed)) {
+          paramValue = `${trimmed} ${currentYear}`;
+        }
+      }
+
+      const updatedParams = { ...flow.params, [currentStep.param]: paramValue };
       const nextStep = flow.step + 1;
       const nextFlowStep = FLOWS[flow.type][nextStep];
 
       if (nextFlowStep?.generate) {
         setIsTyping(true);
         setFlow(null);
-        // We do not add a message here anymore, the sleek loading UI handles it.
         await runGenerate(flow.type, updatedParams);
       } else if (nextFlowStep?.ask) {
         const question =
@@ -435,18 +748,40 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
 
     // ── Fast local intent detection ───────────────────────────────────────────
     // Avoid a full remote Gemini call for intent classification on every message.
-    // Only call the /intent API if the message explicitly looks like a generation
-    // trigger. Otherwise go straight to copilot-chat — saves ~4-6s per message.
+    // Only call the /intent API if the message explicitly looks like a pure generation
+    // trigger (e.g. "generate question bank", "create exam paper").
+    // Compound / mixed queries or conversational requests (e.g. containing "but", "also", "first", "code", "?")
+    // go straight to copilot-chat so Copilot can respond conversationally with context and draft questions.
     const lowerMsg = msg.toLowerCase();
+    const hasMixedIndicators = /\b(but|also|first|then|code|what|why|how|explain)\b/.test(lowerMsg);
+
+    // ── Exam-paper trigger: fires on ANY mention, even in mixed messages ────
+    // If the user says anything with "question paper" or "exam paper" in it,
+    // always start the structured flow — never send it to general chat.
+    const isExamPaperTrigger =
+      /\b(exam\s*paper|question\s*paper|exam\s*question|question\s*paper|make.*paper|paper.*exam)\b/.test(lowerMsg);
+
+    if (isExamPaperTrigger) {
+      const firstStep = FLOWS.examPaper[0];
+      const question = typeof firstStep.ask === "function"
+        ? firstStep.ask(pageContext?.course)
+        : firstStep.ask;
+      setFlow({ type: "examPaper", step: 0, params: {} });
+      addMessage("assistant", question);
+      setIsTyping(false);
+      return;
+    }
+
     const isGenerationTrigger =
-      /\b(generate|create|make|build|write|produce)\b/.test(lowerMsg) &&
-      /\b(question|quiz|exam|paper|test|bank|lesson\s*plan|curriculum|roadmap|plan)\b/.test(lowerMsg);
+      !hasMixedIndicators &&
+      /\b(generate|create|build|produce)\b/.test(lowerMsg) &&
+      /\b(question\s*bank|quiz|lesson\s*plan|curriculum\s*roadmap)\b/.test(lowerMsg);
 
     let intentRes = { intent: "general_chat", extractedParams: {} };
 
     if (isGenerationTrigger) {
       try {
-        intentRes = await classifyCopilotIntent(msg, pageContext?.course || {}, options);
+        intentRes = await classifyCopilotIntent(msg, course || pageContext?.course || {}, options);
       } catch (err) {
         if (err.name === 'AbortError') {
           addMessage("assistant", "Execution stopped.", "aborted", () => handleSend(msg));
@@ -467,7 +802,7 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
           userRole,
           location.pathname,
           "",
-          pageContext?.course || {},
+          course || pageContext?.course || {},
           options
         );
       } catch (err) {
@@ -510,7 +845,9 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
     const lowerAction = action.toLowerCase();
 
     let flowKey = null;
-    if (lowerAction.includes('question') || lowerAction.includes('exam')) {
+    if (lowerAction.includes('exam paper')) {
+      flowKey = 'examPaper';
+    } else if (lowerAction.includes('question') || lowerAction.includes('bank')) {
       flowKey = 'questions';
     } else if (lowerAction.includes('lesson') || lowerAction.includes('plan')) {
       flowKey = 'lessonplan';
@@ -535,6 +872,17 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
 
     // Fallback: treat as a normal chat message
     handleSend(action);
+  };
+
+  const handleConfirmDate = () => {
+    const val = datePickerRef.current?.value;
+    if (!val) {
+      datePickerRef.current?.focus();
+      return;
+    }
+    const [y, m, d] = val.split('-');
+    const formatted = y && m && d ? `${d}/${m}/${y || currentYear}` : val;
+    handleSend(formatted);
   };
 
   return (
@@ -579,72 +927,169 @@ const VelaarCopilot = ({ userRole = "teacher" }) => {
             </button>
           </div>
           <div className="copilot-v2__panel-body" ref={panelBodyRef}>
-            {messages.map((m, i) =>
-              m.role === "user" ? (
-                <div key={i} className="copilot-v2__message copilot-v2__message--user">
-                  <span className="copilot-v2__sender">You</span>
-                  <p className="copilot-v2__user-msg">{m.content}</p>
-                </div>
-              ) : (
+            {(() => {
+              const lastUserIdx = messages.map((m) => m.role).lastIndexOf("user");
+              const historyMessages =
+                lastUserIdx > 0 ? messages.slice(0, lastUserIdx) : [];
+              const latestUser =
+                lastUserIdx >= 0 ? messages[lastUserIdx] : null;
+              const followupMessages =
+                lastUserIdx >= 0
+                  ? messages.slice(lastUserIdx + 1)
+                  : messages;
+
+              const userTurnKey =
+                latestUser != null
+                  ? `user-${lastUserIdx}-${latestUser.content}`
+                  : "user-none";
+              const followupTurnKey = `followup-${messages.length}-${flow?.type ?? "n"}-${flow?.step ?? "n"}-${isTyping}`;
+
+              const renderAssistantMessage = (m, i) => (
                 <div key={i} className="copilot-v2__message copilot-v2__message--assistant">
                   <span className="copilot-v2__sender copilot-v2__sender--velaar">Velaar</span>
-                  <div className={`copilot-v2__reply copilot-v2__reply--${m.status || 'normal'}`}>
-                    {m.status === 'error' && <span style={{marginRight: '6px'}}>&#9888;</span>}
-                    {m.status === 'aborted' && <span style={{marginRight: '6px'}}>&#9888;</span>}
+                  <div className={`copilot-v2__reply copilot-v2__reply--${m.status || "normal"}`}>
+                    {m.status === "error" && <span style={{ marginRight: "6px" }}>&#9888;</span>}
+                    {m.status === "aborted" && <span style={{ marginRight: "6px" }}>&#9888;</span>}
                     {renderMarkdown(m.content)}
                     {m.retryAction && (
-                      <button 
-                        onClick={() => m.retryAction()} 
-                        style={{marginTop: "8px", padding: "6px 12px", background: "#000", color: "#fff", border: "none", borderRadius: "16px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600"}}
+                      <button
+                        onClick={() => m.retryAction()}
+                        style={{
+                          marginTop: "8px",
+                          padding: "6px 12px",
+                          background: "#000",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "16px",
+                          cursor: "pointer",
+                          fontSize: "0.8rem",
+                          fontWeight: "600",
+                        }}
                       >
                         Restart
                       </button>
                     )}
                   </div>
                 </div>
-              )
-            )}
-            {isTyping && (
-              <div className="copilot-v2__message copilot-v2__message--assistant">
-                <span className="copilot-v2__sender copilot-v2__sender--velaar">Velaar</span>
-                <div className="copilot-v2__wave-dots">
-                  <span /><span /><span />
-                </div>
-              </div>
-            )}
-            {/* Inline chips for the current flow step */}
-            {flow && !isTyping && (() => {
-              const step = FLOWS[flow.type][flow.step];
-              return step?.chips ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "10px" }}>
-                  {step.chips.map((chip) => (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => {
-                        if (step.multiSelect) {
-                          setInput((prev) => (prev ? prev + ", " + chip : chip));
-                          inputRef.current?.focus();
-                        } else {
-                          handleSend(chip);
-                        }
-                      }}
-                      style={{
-                        padding: "6px 14px",
-                        borderRadius: "999px",
-                        background: "rgba(0,0,0,0.08)",
-                        border: "1px solid rgba(0,0,0,0.15)",
-                        fontSize: "0.82rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        color: "#000",
-                      }}
+              );
+
+              const flowStep = flow ? FLOWS[flow.type]?.[flow.step] : null;
+              const showFlowChips =
+                flow && !isTyping && flowStep?.chips && flowStep.chips.length > 0;
+
+              return (
+                <>
+                  {historyMessages.map((m, i) =>
+                    m.role === "user" ? (
+                      <div key={i} className="copilot-v2__message copilot-v2__message--user">
+                        <span className="copilot-v2__sender">You</span>
+                        <p className="copilot-v2__user-msg">{m.content}</p>
+                      </div>
+                    ) : (
+                      renderAssistantMessage(m, i)
+                    )
+                  )}
+
+                  {latestUser && (
+                    <div
+                      key={userTurnKey}
+                      ref={lastUserMsgRef}
+                      className="copilot-v2__message copilot-v2__message--user copilot-v2__gemini-in"
                     >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
-              ) : null;
+                      <span className="copilot-v2__sender">You</span>
+                      <p className="copilot-v2__user-msg">{latestUser.content}</p>
+                    </div>
+                  )}
+
+                  {(followupMessages.length > 0 ||
+                    isTyping ||
+                    showFlowChips ||
+                    isExamDateStep) && (
+                    <div
+                      key={followupTurnKey}
+                      className="copilot-v2__followup copilot-v2__gemini-in"
+                    >
+                      {followupMessages.map((m, i) =>
+                        renderAssistantMessage(m, lastUserIdx + 1 + i)
+                      )}
+
+                      {isTyping && (
+                        <div className="copilot-v2__message copilot-v2__message--assistant">
+                          <span className="copilot-v2__sender copilot-v2__sender--velaar">Velaar</span>
+                          <div className="copilot-v2__wave-dots">
+                            <span /><span /><span />
+                          </div>
+                        </div>
+                      )}
+
+                      {showFlowChips && (
+                        <div className="copilot-v2__flow-chips">
+                          {flowStep.chips.map((chip) => (
+                            <button
+                              key={chip}
+                              type="button"
+                              className="copilot-flow-chip"
+                              onClick={() => {
+                                if (flowStep.multiSelect) {
+                                  setInput((prev) => (prev ? prev + ", " + chip : chip));
+                                  inputRef.current?.focus();
+                                } else {
+                                  handleSend(chip);
+                                }
+                              }}
+                            >
+                              {chip}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {isExamDateStep && !isTyping && (
+                        <div className="copilot-date-card">
+                          <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#444" }}>
+                            Exam date ({currentYear})
+                          </span>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleConfirmDate();
+                            }}
+                            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                          >
+                            <input
+                              className="copilot-date-input"
+                              type="date"
+                              id="copilot-date-picker"
+                              ref={datePickerRef}
+                              defaultValue={defaultDateStr}
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleConfirmDate();
+                                }
+                              }}
+                              style={{
+                                padding: "4px 8px",
+                                borderRadius: "8px",
+                                fontSize: "0.88rem",
+                                background: "#fff",
+                                color: "#000",
+                                colorScheme: "light" as const,
+                                cursor: "pointer",
+                                width: "145px",
+                              }}
+                            />
+                            <button type="submit" className="copilot-date-submit-btn">
+                              Done ↵
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
             })()}
           </div>
         </div>

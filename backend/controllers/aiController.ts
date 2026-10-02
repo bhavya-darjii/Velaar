@@ -38,13 +38,14 @@ interface TeacherCtx {
  * with fallbacks to body and pageContext for guest / Copilot usage.
  */
 const getCtx = (req: Request): TeacherCtx => {
-  const pageCourse = (req.body.pageContext as { course?: { id?: string | number; subjectName?: string } })?.course;
+  const rawPageCtx = (req.body.pageContext || {}) as any;
+  const pageCourse = rawPageCtx?.course || rawPageCtx;
   const courseId = (typeof req.body.courseId === 'string' && req.body.courseId)
     ? req.body.courseId
     : (pageCourse?.id ? String(pageCourse.id) : '');
   const subjectName = (typeof req.body.subjectName === 'string' && req.body.subjectName)
     ? req.body.subjectName
-    : (pageCourse?.subjectName ? String(pageCourse.subjectName) : '');
+    : (pageCourse?.subjectName ? String(pageCourse.subjectName) : (pageCourse?.name ? String(pageCourse.name) : ''));
 
   return {
     teacherId:    req.user?.id    ?? (typeof req.body.teacherId === 'string' ? req.body.teacherId : 'guest-teacher'),

@@ -70,58 +70,25 @@
   margin-bottom: 20px;
 }
 
-.check-item {
+.check-item-spring-wrap {
   display: flex;
   align-items: center;
-  gap: 15px;
   background: rgba(255, 255, 255, 0.05);
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 10px 16px;
+  margin-bottom: 10px;
   border-radius: 12px;
-  cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ffffff;
 }
 
-.check-item:hover {
+.check-item-spring-wrap:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateX(4px);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* CHECKED STATE */
-.check-item.checked {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.check-item.checked span {
-  text-decoration: line-through;
-  color: #ffffff;
-}
-
-/* CUSTOM CHECKBOX CIRCLE */
-.checkbox-circle {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  background: transparent;
-  padding: 0;
-  line-height: 1;
-}
-
-.check-item.checked .checkbox-circle {
-  background: var(--accent-teal);
-  border-color: var(--accent-teal);
-  color: #ffffff !important;
+.check-item-spring {
+  width: 100%;
 }
 
 /* =========================================
